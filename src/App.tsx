@@ -12,6 +12,7 @@ import { PostCard } from './components/PostCard';
 import { CommentsModal } from './components/CommentsModal';
 import { CreatePostModal } from './components/CreatePostModal';
 import { ReelsViewer } from './components/ReelsViewer';
+import { UniverseFeed } from './components/UniverseFeed';
 import { ExploreView } from './components/ExploreView';
 import { SearchView } from './components/SearchView';
 import { ProfileView } from './components/ProfileView';
@@ -40,6 +41,14 @@ const MainApp: React.FC = () => {
   // Feed Data
   const [feedPosts, setFeedPosts] = useState<Post[]>([]);
   const [feedTab, setFeedTab] = useState<'for_you' | 'following'>('for_you');
+  // 'universe' = feed de vídeos em zoom (padrão) | 'list' = feed clássico em lista
+  const [feedMode, setFeedMode] = useState<'universe' | 'list'>(() => {
+    try {
+      return localStorage.getItem('mocinhas_feed_mode') === 'list' ? 'list' : 'universe';
+    } catch {
+      return 'universe';
+    }
+  });
   const [isFeedLoading, setIsFeedLoading] = useState<boolean>(true);
   const [storyGroups, setStoryGroups] = useState<StoryGroup[]>([]);
 
@@ -58,6 +67,16 @@ const MainApp: React.FC = () => {
   const [followListModal, setFollowListModal] = useState<{ user: User; tab: 'followers' | 'following' } | null>(null);
   const [isAdminPanelOpen, setIsAdminPanelOpen] = useState<boolean>(false);
   const [isSyncpayModalOpen, setIsSyncpayModalOpen] = useState<boolean>(false);
+
+  const changeFeedMode = (mode: 'universe' | 'list') => {
+    setFeedMode(mode);
+    try {
+      localStorage.setItem('mocinhas_feed_mode', mode);
+    } catch {}
+    // o universo usa sempre o feed "Para você" (todos os vídeos publicados)
+    if (mode === 'universe') setFeedTab('for_you');
+    window.scrollTo({ top: 0 });
+  };
 
   const handleOpenAuth = (mode: 'login' | 'register' = 'login') => {
     setAuthModalMode(mode);
@@ -146,7 +165,7 @@ const MainApp: React.FC = () => {
   return (
     <div className="min-h-screen bg-[#09090E] text-white transition-colors duration-300 font-sans relative overflow-x-hidden">
       {/* Background Ambient Glows */}
-      <FloatingParticles />
+      {!(activeView === 'feed' && feedMode === 'universe') && <FloatingParticles />}
 
       {/* Main Responsive Layout */}
       <div className="relative z-10 w-full max-w-[1440px] mx-auto min-h-screen flex flex-row justify-center gap-4 sm:gap-6 p-0 sm:p-3 lg:p-4">
@@ -179,7 +198,22 @@ const MainApp: React.FC = () => {
           {/* Content View Container */}
           <main className="flex-1 px-3 sm:px-4 py-2 w-full">
             {/* VIEW: FEED */}
-            {activeView === 'feed' && (
+            {/* VIEW: FEED — UNIVERSO */}
+            {activeView === 'feed' && feedMode === 'universe' && (
+              <div className="pb-20 animate-bento-fade">
+                <UniverseFeed
+                  posts={feedPosts}
+                  isLoading={isFeedLoading}
+                  paused={selectedPostForModal !== null || selectedPostForComments !== null}
+                  onSelectPost={post => setSelectedPostForModal(post)}
+                  onNavigateUser={u => handleNavigate('profile', u)}
+                  onSwitchToList={() => changeFeedMode('list')}
+                />
+              </div>
+            )}
+
+            {/* VIEW: FEED — LISTA (clássico) */}
+            {activeView === 'feed' && feedMode === 'list' && (
               <div className="space-y-4 pb-20 animate-bento-fade">
                 {/* Stories Bar */}
                 <StoriesBar
@@ -215,6 +249,13 @@ const MainApp: React.FC = () => {
                         {t('following')}
                       </button>
                     )}
+                    <button
+                      id="btn-feed-universe"
+                      onClick={() => changeFeedMode('universe')}
+                      className="px-5 py-2 rounded-full text-xs font-black transition-all cursor-pointer text-zinc-400 hover:text-white"
+                    >
+                      🪐 Universo
+                    </button>
                   </div>
                 </div>
 

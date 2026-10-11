@@ -145,3 +145,50 @@
 .animate-heart-burst {
   animation: heart-burst 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
 }
+
+/* ============ 🌌 Feed Universo ============ */
+.uni-sky {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at 20% 15%, rgba(139, 92, 246, 0.16), transparent 55%),
+    radial-gradient(ellipse at 85% 80%, rgba(236, 72, 153, 0.11), transparent 55%),
+    #05050b;
+}
+
+/* camada de estrelas: tile repetido, movida só com transform (barato) */
+.uni-stars {
+  position: absolute;
+  left: -320px;
+  top: -320px;
+  right: -320px;
+  bottom: -320px;
+  opacity: 0.85;
+  background-image:
+    radial-gradient(1.5px 1.5px at 20px 30px, #fff, transparent),
+    radial-gradient(1px 1px at 90px 140px, rgba(255, 255, 255, 0.8), transparent),
+    radial-gradient(1.5px 1.5px at 170px 70px, rgba(196, 181, 253, 0.9), transparent),
+    radial-gradient(1px 1px at 250px 210px, rgba(255, 255, 255, 0.7), transparent),
+    radial-gradient(1px 1px at 60px 260px, rgba(251, 207, 232, 0.8), transparent),
+    radial-gradient(1.5px 1.5px at 290px 120px, #fff, transparent);
+  background-size: 320px 320px;
+  pointer-events: none;
+}
+
+@keyframes uni-float {
+  from { transform: translate3d(0, -5px, 0); }
+  to { transform: translate3d(0, 5px, 0); }
+}
+
+.uni-float {
+  animation: uni-float var(--uni-dur, 5s) ease-in-out var(--uni-delay, 0s) infinite alternate;
+}
+
+/* durante o movimento da câmera, nada de animação extra competindo por CPU/GPU */
+.uni-moving .uni-float {
+  animation-play-state: paused;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .uni-float { animation: none; }
+}

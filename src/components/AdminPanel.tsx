@@ -8,6 +8,7 @@ import {
 import { useAuth } from '../context/AuthContext';
 import { api } from '../services/api';
 import { sounds } from '../utils/sound';
+import { uploadVideoPoster } from '../utils/videoPoster';
 import { Post, User } from '../types';
 
 interface AdminPanelProps {
@@ -317,6 +318,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose, onPostCreated }
       setStatusMessage('Enviando arquivos e publicando...');
       let finalMediaUrl = mediaUrl;
       let finalMediaType: 'image' | 'video' | 'audio' | 'pdf' | 'gif' = postType;
+      let posterUrl: string | undefined;
 
       if (selectedFile) {
         const uploadRes = await api.uploadFile(selectedFile);
@@ -329,6 +331,12 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose, onPostCreated }
           else if (selectedFile.type === 'application/pdf' || ['pdf', 'doc', 'docx', 'txt'].includes(ext)) finalMediaType = 'pdf';
           else finalMediaType = 'image';
         }
+        // 🪐 poster leve para o feed Universo (só para vídeos enviados do aparelho)
+        if (finalMediaType === 'video') {
+          setStatusMessage('Gerando miniatura do vídeo...');
+          posterUrl = await uploadVideoPoster(selectedFile);
+          setStatusMessage('Enviando arquivos e publicando...');
+        }
       }
 
       const token = localStorage.getItem('mocinhas_token') || localStorage.getItem('yume_token');
@@ -339,7 +347,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose, onPostCreated }
           'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({
-          media: [{ url: finalMediaUrl, type: finalMediaType, fileName: selectedFile?.name }],
+          media: [{ url: finalMediaUrl, type: finalMediaType, fileName: selectedFile?.name, thumbnail: posterUrl }],
           caption,
           location,
           isTemporary,

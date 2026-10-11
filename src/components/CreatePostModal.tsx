@@ -23,6 +23,7 @@ import {
 import { api } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { sounds } from '../utils/sound';
+import { uploadVideoPoster } from '../utils/videoPoster';
 import confetti from 'canvas-confetti';
 
 interface CreatePostModalProps {
@@ -295,6 +296,7 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({
         const item = mediaFiles[i];
         let finalUrl = item.url;
 
+        let posterUrl: string | undefined;
         if (item.file) {
           try {
             const uploadRes = await api.uploadFile(item.file);
@@ -304,13 +306,17 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({
           } catch (uploadErr) {
             console.warn('Direct file upload fallback:', uploadErr);
           }
+          // 🪐 poster leve (JPEG pequeno) usado pelo feed Universo e pelas miniaturas
+          if (item.type === 'video') {
+            posterUrl = await uploadVideoPoster(item.file);
+          }
         }
         uploadedMediaItems.push({
           url: finalUrl,
           type: item.type,
           filter: (item.type === 'image' || item.type === 'gif') && activeFilter !== 'none' ? activeFilter : undefined,
           fileName: item.fileName,
-          thumbnail: item.thumbnail,
+          thumbnail: posterUrl || item.thumbnail,
         });
         setUploadProgress(40 + Math.round(((i + 1) / mediaFiles.length) * 40));
       }
