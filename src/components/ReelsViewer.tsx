@@ -40,7 +40,7 @@ export const ReelsViewer: React.FC<ReelsViewerProps> = ({
   const [followsState, setFollowsState] = useState<{ [userId: string]: boolean }>({});
   const [heartBurst, setHeartBurst] = useState(false);
 
-  // ⏳ 1-Hour Ephemeral Countdown for Reels/Videos
+  //  1-Hour Ephemeral Countdown for Reels/Videos
   const [timeLeftStr, setTimeLeftStr] = useState<string>('');
   const [isExpiringSoon, setIsExpiringSoon] = useState<boolean>(false);
   const [isExpired, setIsExpired] = useState<boolean>(false);
@@ -203,12 +203,12 @@ export const ReelsViewer: React.FC<ReelsViewerProps> = ({
   if (reels.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center h-[70vh] text-center p-6">
-        <span className="text-5xl mb-3 animate-bounce">🎬</span>
+        <span className="text-5xl mb-3 animate-bounce"></span>
         <h2 className="text-lg font-bold text-white dark:text-white">
           Nenhum vídeo no momento
         </h2>
         <p className="text-xs text-zinc-300 dark:text-zinc-300 mt-1 max-w-xs">
-          Seja a primeira pessoa a postar um clipe ou Reel! ✦
+          Seja a primeira pessoa a postar um clipe ou Reel! 
         </p>
       </div>
     );
@@ -276,7 +276,7 @@ export const ReelsViewer: React.FC<ReelsViewerProps> = ({
           </button>
         </div>
 
-        {/* ⏳ Countdown Badge (Identical to Publications) */}
+        {/*  Countdown Badge (Identical to Publications) */}
         {currentReel && (
           <div
             title={`Este vídeo é efêmero e será excluído permanentemente em ${timeLeftStr}`}

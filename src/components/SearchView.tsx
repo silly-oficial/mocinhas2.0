@@ -116,10 +116,10 @@ export const SearchView: React.FC<SearchViewProps> = ({
       {query && (
         <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1">
           {[
-            { id: 'all', label: '✦ Tudo' },
-            { id: 'users', label: '👥 Perfis' },
-            { id: 'posts', label: '📸 Publicações' },
-            { id: 'hashtags', label: '🏷️ Hashtags' },
+            { id: 'all', label: ' Tudo' },
+            { id: 'users', label: ' Perfis' },
+            { id: 'posts', label: ' Publicações' },
+            { id: 'hashtags', label: ' Hashtags' },
           ].map(tab => (
             <button
               key={tab.id}
@@ -182,7 +182,7 @@ export const SearchView: React.FC<SearchViewProps> = ({
         <div className="flex flex-col items-center justify-center py-16 gap-3">
           <div className="w-8 h-8 border-3 border-white/20 border-t-transparent rounded-full animate-spin" />
           <span className="text-xs text-zinc-400 font-bold">
-            Pesquisando... ✦
+            Pesquisando... 
           </span>
         </div>
       ) : (
@@ -304,7 +304,7 @@ export const SearchView: React.FC<SearchViewProps> = ({
 
           {results.users.length === 0 && results.hashtags.length === 0 && results.posts.length === 0 && (
             <div className="text-center py-12">
-              <span className="text-3xl mb-2 block">🔍</span>
+              <span className="text-3xl mb-2 block"></span>
               <p className="text-sm font-bold text-zinc-200 dark:text-zinc-200">
                 Nenhum resultado encontrado
               </p>

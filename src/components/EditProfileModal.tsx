@@ -254,7 +254,7 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
                       : 'bg-[#171724] border border-white/10 text-zinc-300 hover:bg-[#20202F]'
                   }`}
                 >
-                  <span>✦</span>
+                  <span></span>
                   <span>Feminino</span>
                 </button>
 
@@ -267,7 +267,7 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
                       : 'bg-[#171724] border border-white/10 text-zinc-300 hover:bg-[#20202F]'
                   }`}
                 >
-                  <span>⚡</span>
+                  <span></span>
                   <span>Masculino</span>
                 </button>
 
@@ -280,7 +280,7 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
                       : 'bg-[#171724] border border-white/10 text-zinc-300 hover:bg-[#20202F]'
                   }`}
                 >
-                  <span>✨</span>
+                  <span></span>
                   <span>Outro</span>
                 </button>
               </div>
@@ -364,26 +364,6 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
               </div>
             </div>
 
-            {/* Private Account Switch */}
-            <div className="flex items-center justify-between p-3 rounded-2xl bg-[#171724] border border-white/10">
-              <div className="flex items-center gap-2">
-                <Lock className="w-4 h-4 text-zinc-400" />
-                <div>
-                  <span className="text-xs font-bold text-white block">
-                    Conta Privada
-                  </span>
-                  <span className="text-[10px] text-zinc-400">
-                    Apenas seguidores aprovados verão suas fotos
-                  </span>
-                </div>
-              </div>
-              <input
-                type="checkbox"
-                checked={isPrivate}
-                onChange={e => setIsPrivate(e.target.checked)}
-                className="w-4 h-4 accent-white cursor-pointer"
-              />
-            </div>
           </div>
 
           <div className="pt-2">

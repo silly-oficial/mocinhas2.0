@@ -111,7 +111,7 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({
                     className={`px-2 py-0.5 text-[11px] font-extrabold rounded-full ${
                       isActive
                         ? 'bg-black text-white'
-                        : 'bg-[#FF2A6D] text-white shadow-xs'
+                        : 'bg-[#10B981] text-white shadow-xs'
                     }`}
                   >
                     {item.badge! > 9 ? '9+' : item.badge}
@@ -158,7 +158,7 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({
           >
             <div className="flex items-center gap-2">
               <Crown className="w-4 h-4 text-white" />
-              <span>{user?.isPremium ? 'Status VIP Premium 💎' : 'Assinar VIP Premium'}</span>
+              <span>{user?.isPremium ? 'Status VIP Premium ' : 'Assinar VIP Premium'}</span>
             </div>
             {!user?.isPremium && (
               <span className="text-[10px] bg-black/30 px-2 py-0.5 rounded-full font-extrabold">R$ 9,99</span>

@@ -17,7 +17,7 @@ export function usePushNotifications() {
     const res = await Notification.requestPermission();
     setPermission(res);
     if (res === 'granted') {
-      new Notification('mocinhas ✦', {
+      new Notification('mocinhas ', {
         body: 'Notificações ativadas com sucesso! Você receberá alertas mesmo com o app em segundo plano.',
         icon: '/favicon.ico'
       });

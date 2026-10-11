@@ -82,7 +82,7 @@ export const ReportModal: React.FC<ReportModalProps> = ({
               Denúncia enviada com sucesso!
             </p>
             <p className="text-xs text-zinc-400">
-              Obrigado por ajudar a manter a plataforma segura e confiável. ✦
+              Obrigado por ajudar a manter a plataforma segura e confiável. 
             </p>
           </div>
         ) : (

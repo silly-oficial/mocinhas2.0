@@ -87,7 +87,7 @@ export const PostCard: React.FC<PostCardProps> = ({
     return () => window.removeEventListener('mocinhas:comment-count-updated', handleCommentUpdate);
   }, [post.id]);
 
-  // ⏳ Ephemeral Countdown Timer (1-Hour default or custom duration)
+  //  Ephemeral Countdown Timer (1-Hour default or custom duration)
   const [timeLeftStr, setTimeLeftStr] = useState<string>('');
   const [isExpiringSoon, setIsExpiringSoon] = useState<boolean>(false);
   const [isExpired, setIsExpired] = useState<boolean>(false);
@@ -335,7 +335,7 @@ export const PostCard: React.FC<PostCardProps> = ({
                 {post.user.displayName}
               </button>
               {post.user.isVerified && (
-                <span className="text-xs text-[#FACC15] shrink-0">✦</span>
+                <span className="text-xs text-[#FACC15] shrink-0"></span>
               )}
             </div>
             <div className="flex items-center gap-2 text-[11px] text-zinc-400">
@@ -357,7 +357,7 @@ export const PostCard: React.FC<PostCardProps> = ({
 
         {/* Options Menu & Actions & Live Countdown Timer */}
         <div className="flex items-center gap-2 shrink-0">
-          {/* ⏳ Countdown Badge (Ephemeral Post) */}
+          {/*  Countdown Badge (Ephemeral Post) */}
           <div
             title={`Esta publicação é efêmera e será excluída em ${timeLeftStr}`}
             className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-extrabold tracking-tight select-none border ${
@@ -487,7 +487,7 @@ export const PostCard: React.FC<PostCardProps> = ({
             </div>
             <div>
               <p className="font-heading text-sm font-extrabold text-white">
-                {currentMedia.fileName || 'Mensagem de Áudio / Voz 🎙️'}
+                {currentMedia.fileName || 'Mensagem de Áudio / Voz '}
               </p>
               <p className="text-xs text-zinc-400 mt-1">Reproduzir mensagem de voz</p>
             </div>
@@ -599,7 +599,7 @@ export const PostCard: React.FC<PostCardProps> = ({
               onClick={handleToggleLike}
               className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border text-xs font-black transition-all cursor-pointer ${
                 isLiked
-                  ? 'bg-[#FF2A6D] text-white border-[#FF2A6D] shadow-md shadow-[#FF2A6D]/20 scale-105'
+                  ? 'bg-[#10B981] text-white border-[#10B981] shadow-md shadow-[#10B981]/20 scale-105'
                   : 'bg-white/5 hover:bg-white/10 border-white/10 text-zinc-300 hover:text-white'
               }`}
             >

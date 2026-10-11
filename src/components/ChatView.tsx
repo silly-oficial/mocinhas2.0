@@ -96,8 +96,8 @@ export const ChatView: React.FC<ChatViewProps> = ({
   const [showScrollBottomBtn, setShowScrollBottomBtn] = useState(false);
 
   const emojiList = [
-    '👍', '❤️', '🔥', '✨', '👏', '🎉', '😊', '🙌',
-    '💬', '💡', '🌟', '🚀', '💯', '🙏', '✌️', '😎',
+    '', '', '', '', '', '', '', '',
+    '', '', '', '', '', '', '', '',
   ];
 
   const groupAvatarPresets = [
@@ -818,7 +818,7 @@ export const ChatView: React.FC<ChatViewProps> = ({
                           </div>
                           <p className="text-[11px] text-zinc-300/70 truncate font-sans">
                             {c.lastMessage?.text ||
-                              (c.lastMessage?.mediaUrl ? '📷 Mídia enviada' : 'Conversa iniciada')}
+                              (c.lastMessage?.mediaUrl ? ' Mídia enviada' : 'Conversa iniciada')}
                           </p>
                         </div>
                       </div>
@@ -926,7 +926,7 @@ export const ChatView: React.FC<ChatViewProps> = ({
                             {g.name}
                           </h4>
                           <span className="text-[10px] text-zinc-300/70 block">
-                            👥 {g.participantIds?.length || 0} participantes
+                             {g.participantIds?.length || 0} participantes
                           </span>
                         </div>
                       </div>
@@ -1014,7 +1014,7 @@ export const ChatView: React.FC<ChatViewProps> = ({
                           )}
                         </div>
                         <span className="text-[10px] text-zinc-300/70 font-medium block">
-                          👥 {activeConv.participantIds?.length || 0} mocinhas • Ver detalhes
+                           {activeConv.participantIds?.length || 0} mocinhas • Ver detalhes
                         </span>
                       </div>
                     </div>
@@ -1074,7 +1074,7 @@ export const ChatView: React.FC<ChatViewProps> = ({
                 ) : messages.length === 0 ? (
                   <div className="text-center py-16 px-4 space-y-2">
                     <p className="text-xs text-zinc-400">Nenhuma mensagem ainda.</p>
-                    <p className="text-[11px] text-zinc-400">Envie um "Olá!" para começar a conversa ✨</p>
+                    <p className="text-[11px] text-zinc-400">Envie um "Olá!" para começar a conversa </p>
                   </div>
                 ) : (
                   groupedMessages.map((group, gIdx) => {
@@ -1555,7 +1555,7 @@ export const ChatView: React.FC<ChatViewProps> = ({
                       ))}
                     </div>
                     <p className="text-[10px] text-amber-300/90 leading-tight">
-                      ✨ <strong>Como funciona:</strong> Ao expirar o tempo, apenas as mensagens antigas são apagadas. O grupo, as participantes e as regras continuam intactos!
+                       <strong>Como funciona:</strong> Ao expirar o tempo, apenas as mensagens antigas são apagadas. O grupo, as participantes e as regras continuam intactos!
                     </p>
                   </div>
                 )}

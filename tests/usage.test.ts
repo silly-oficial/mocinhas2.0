@@ -1,0 +1,15 @@
+import assert from 'node:assert/strict';
+import { reserveUsage } from '../server/consumption';
+const now = 1_800_000_000_000, limit = 60_000, day = 86400_000;
+let b = reserveUsage([], limit, now, true);
+assert.equal(b.usedMs, 10_000);
+assert.deepEqual(reserveUsage([b], limit, now + 100, true), b, 'parallel tabs reuse one lease');
+const device = { ...b, usedMs: limit, leaseUntil: now };
+assert.equal(reserveUsage([device, b], limit, now + 1000, true).usedMs, limit, 'new accounts inherit browser quota');
+for (let step = 1; step <= 6; step++) b = reserveUsage([b], limit, now + step * 10_000, true);
+assert.equal(b.usedMs, limit);
+assert.equal(b.leaseUntil, now + limit, 'no grants past exhaustion');
+assert.equal(reserveUsage([b], limit, now + day, true).usedMs, 10_000, '24h reset');
+assert.equal(reserveUsage([b], limit, now + day - 1, true).usedMs, limit, 'no early reset');
+assert.equal(reserveUsage([b], limit, now + 1000, false).usedMs, limit, 'status does not spend quota');
+console.log('7 quota assertions passed.');

@@ -125,7 +125,7 @@ export const CommentsModal: React.FC<CommentsModalProps> = ({
     setInputText(prev => prev + emoji);
   };
 
-  const quickEmojis = ['❤️', '👏', '🔥', '✨', '🙌', '😍', '🎉', '💯'];
+  const quickEmojis = ['', '', '', '', '', '', '', ''];
 
   return (
     <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4">

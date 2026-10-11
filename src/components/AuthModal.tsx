@@ -101,7 +101,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         <div className="p-4.5 border-b border-white/10 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-2xl bg-black border border-white/15 flex items-center justify-center text-white shadow-xs">
-              <span className="text-lg font-black leading-none text-white">✦</span>
+              <span className="text-lg font-black leading-none text-white"></span>
             </div>
             <div>
               <h2 className="font-heading text-sm font-extrabold text-white">
@@ -186,7 +186,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                           : 'bg-[#171724] text-zinc-300 hover:bg-white/10 border border-white/10'
                       }`}
                     >
-                      ✦ Feminino
+                       Feminino
                     </button>
                     <button
                       type="button"
@@ -197,7 +197,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                           : 'bg-[#171724] text-zinc-300 hover:bg-white/10 border border-white/10'
                       }`}
                     >
-                      ⚡ Masculino
+                       Masculino
                     </button>
                     <button
                       type="button"
@@ -208,7 +208,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                           : 'bg-[#171724] text-zinc-300 hover:bg-white/10 border border-white/10'
                       }`}
                     >
-                      ✨ Outro
+                       Outro
                     </button>
                   </div>
                 </div>
@@ -406,7 +406,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 </div>
 
                 <p className="text-[10px] text-zinc-400 leading-relaxed border-t border-white/5 pt-2">
-                  ✦ <strong>Aviso legal:</strong> Conteúdos efêmeros expiram em 1 hora sem análise manual prévia. O autor responde integralmente pelo material veiculado e colaboramos estritamente com as autoridades policiais e judiciais.
+                   <strong>Aviso legal:</strong> Conteúdos efêmeros expiram em 1 hora sem análise manual prévia. O autor responde integralmente pelo material veiculado e colaboramos estritamente com as autoridades policiais e judiciais.
                 </p>
               </div>
             )}

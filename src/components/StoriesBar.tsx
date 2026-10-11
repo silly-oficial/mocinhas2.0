@@ -52,7 +52,7 @@ export const StoriesBar: React.FC<StoriesBarProps> = ({
               }}
               className={`w-14 h-14 sm:w-15 sm:h-15 rounded-full p-0.5 relative cursor-pointer transition-transform hover:scale-105 active:scale-95 ${
                 myGroup
-                  ? 'bg-gradient-to-tr from-amber-400 via-[#FF2A6D] to-purple-500 ring-2 ring-white/20'
+                  ? 'bg-gradient-to-tr from-amber-400 via-[#10B981] to-purple-500 ring-2 ring-white/20'
                   : 'border-2 border-dashed border-white/20'
               }`}
             >
@@ -95,7 +95,7 @@ export const StoriesBar: React.FC<StoriesBarProps> = ({
                   <div
                     className={`w-14 h-14 sm:w-15 sm:h-15 rounded-full p-[2.5px] transition-transform duration-200 group-hover:scale-105 group-active:scale-95 ${
                       group.hasUnseen
-                        ? 'bg-gradient-to-tr from-amber-400 via-[#FF2A6D] to-purple-500 shadow-md ring-2 ring-white/20'
+                        ? 'bg-gradient-to-tr from-amber-400 via-[#10B981] to-purple-500 shadow-md ring-2 ring-white/20'
                         : 'bg-zinc-800 opacity-70'
                     }`}
                   >
@@ -109,7 +109,7 @@ export const StoriesBar: React.FC<StoriesBarProps> = ({
                     </div>
                   </div>
                   {group.hasUnseen && (
-                    <span className="absolute top-0 right-0 w-3 h-3 rounded-full bg-[#FF2A6D] border-2 border-[#12121B]" />
+                    <span className="absolute top-0 right-0 w-3 h-3 rounded-full bg-[#10B981] border-2 border-[#12121B]" />
                   )}
                 </div>
                 <div className="flex items-center gap-0.5 max-w-[65px]">
@@ -117,7 +117,7 @@ export const StoriesBar: React.FC<StoriesBarProps> = ({
                     {group.user.username}
                   </span>
                   {group.user.isVerified && (
-                    <span className="text-[9px] text-[#FACC15]">✦</span>
+                    <span className="text-[9px] text-[#FACC15]"></span>
                   )}
                 </div>
               </div>

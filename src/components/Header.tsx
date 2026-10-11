@@ -97,7 +97,7 @@ export const Header: React.FC<HeaderProps> = ({
               }`}
             >
               <Crown className="w-3.5 h-3.5 text-white" />
-              <span className="hidden sm:inline">{user.isPremium ? 'VIP 💎' : 'VIP'}</span>
+              <span className="hidden sm:inline">{user.isPremium ? 'VIP ' : 'VIP'}</span>
             </button>
           )}
 
@@ -109,7 +109,7 @@ export const Header: React.FC<HeaderProps> = ({
               className="h-8 sm:h-9 px-2.5 sm:px-3 rounded-full bg-white/10 hover:bg-white/20 border border-white/15 text-white font-bold text-xs flex items-center gap-1 cursor-pointer transition-all shrink-0"
             >
               <ShieldCheck className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-              <span className="hidden sm:inline">Admin 👑</span>
+              <span className="hidden sm:inline">Admin </span>
             </button>
           )}
 
@@ -127,7 +127,7 @@ export const Header: React.FC<HeaderProps> = ({
           >
             <MessageCircle className="w-4 h-4 sm:w-4.5 sm:h-4.5" />
             {unreadMessagesCount > 0 && (
-              <span className="absolute -top-1 -right-1 min-w-[16px] sm:min-w-[18px] h-4 sm:h-[18px] px-1 rounded-full bg-[#FF2A6D] text-white text-[9px] sm:text-[10px] font-extrabold flex items-center justify-center shadow-xs">
+              <span className="absolute -top-1 -right-1 min-w-[16px] sm:min-w-[18px] h-4 sm:h-[18px] px-1 rounded-full bg-[#10B981] text-white text-[9px] sm:text-[10px] font-extrabold flex items-center justify-center shadow-xs">
                 {unreadMessagesCount > 9 ? '9+' : unreadMessagesCount}
               </span>
             )}
@@ -148,7 +148,7 @@ export const Header: React.FC<HeaderProps> = ({
             >
               <Bell className="w-4 h-4 sm:w-4.5 sm:h-4.5" />
               {unreadNotifsCount > 0 && (
-                <span className="absolute -top-1 -right-1 min-w-[16px] sm:min-w-[18px] h-4 sm:h-[18px] px-1 rounded-full bg-[#FF2A6D] text-white text-[9px] sm:text-[10px] font-extrabold flex items-center justify-center shadow-xs">
+                <span className="absolute -top-1 -right-1 min-w-[16px] sm:min-w-[18px] h-4 sm:h-[18px] px-1 rounded-full bg-[#10B981] text-white text-[9px] sm:text-[10px] font-extrabold flex items-center justify-center shadow-xs">
                   {unreadNotifsCount > 9 ? '9+' : unreadNotifsCount}
                 </span>
               )}

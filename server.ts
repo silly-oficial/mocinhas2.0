@@ -1,3 +1,5 @@
+import { randomBytes } from 'node:crypto';
+import { installConsumptionPolicy } from './server/consumption.ts';
 import dotenv from 'dotenv';
 dotenv.config();
 
@@ -14,7 +16,9 @@ import { checkSupabaseConnection, isSupabaseConfigured, updateSupabaseCredential
 
 const app = express();
 const PORT = 3000;
-const JWT_SECRET = process.env.JWT_SECRET || 'yume-kawaii-super-secret-pink-token-key-2026';
+const JWT_SECRET = process.env.JWT_SECRET || DB.get().authSecret || randomBytes(48).toString('hex');
+if (!process.env.JWT_SECRET && !DB.get().authSecret) { DB.get().authSecret = JWT_SECRET; DB.save(); }
+if (process.env.TRUST_PROXY) app.set('trust proxy', process.env.TRUST_PROXY);
 
 // Storage setup for real file uploads
 const UPLOADS_DIR = path.join(process.cwd(), 'uploads');
@@ -37,7 +41,7 @@ const upload = multer({ storage, limits: { fileSize: 50 * 1024 * 1024 } });
 // Middlewares
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
-app.use('/uploads', express.static(UPLOADS_DIR));
+// Media is served after the consumption policy below.
 
 // SSE Clients for Live Real-Time Notifications & Messages
 interface SSEClient {
@@ -80,8 +84,11 @@ function requireAuth(req: express.Request, res: express.Response, next: express.
   next();
 }
 
+installConsumptionPolicy(app, DB, JWT_SECRET, getAuthUserId, requireAdmin);
+app.use('/uploads', express.static(UPLOADS_DIR, { maxAge: 0, setHeaders: res => res.setHeader('Cache-Control', 'private, no-store') }));
+
 // ----------------------------------------------------
-// ⚡ SUPABASE INTEGRATION & STATUS
+//  SUPABASE INTEGRATION & STATUS
 // ----------------------------------------------------
 app.get('/api/supabase/status', async (_req, res) => {
   const status = await checkSupabaseConnection();
@@ -93,7 +100,7 @@ app.get('/api/supabase/status', async (_req, res) => {
     tablesFound: status.tablesFound || [],
     tablesMissing: status.tablesMissing || [],
     message: status.connected
-      ? 'Supabase conectado com sucesso! 🌸'
+      ? 'Supabase conectado com sucesso! '
       : (status.configured ? (status.error || 'Credenciais fornecidas, aguardando validação das tabelas.') : 'Aguardando configuração de SUPABASE_URL e SUPABASE_ANON_KEY.'),
     error: status.error,
   });
@@ -112,7 +119,7 @@ app.get('/api/supabase/schema', (_req, res) => {
   }
 });
 
-app.post('/api/supabase/config', express.json(), async (req, res) => {
+app.post('/api/supabase/config', requireAdmin, express.json(), async (req, res) => {
   const { url, key, serviceRoleKey } = req.body;
   if (!url || !key) {
     return res.status(400).json({ error: 'URL e Anon Key do Supabase são obrigatórios.' });
@@ -128,7 +135,7 @@ app.post('/api/supabase/config', express.json(), async (req, res) => {
 });
 
 // ----------------------------------------------------
-// 🌟 SERVER-SENT-EVENTS (SSE) FOR REAL-TIME SYNC
+//  SERVER-SENT-EVENTS (SSE) FOR REAL-TIME SYNC
 // ----------------------------------------------------
 app.get('/api/events', (req, res) => {
   const token = req.query.token as string;
@@ -161,12 +168,12 @@ app.get('/api/events', (req, res) => {
 });
 
 // ----------------------------------------------------
-// 🎀 AUTHENTICATION ENDPOINTS
+//  AUTHENTICATION ENDPOINTS
 // ----------------------------------------------------
 app.post('/api/auth/register', (req, res) => {
   const { username, displayName, email, password, gender, avatar, banner, acceptedTerms } = req.body;
   if (!username || !displayName || !email || !password) {
-    return res.status(400).json({ error: 'Por favor preencha todos os campos obrigatórios! 🌸' });
+    return res.status(400).json({ error: 'Por favor preencha todos os campos obrigatórios! ' });
   }
 
   if (!acceptedTerms) {
@@ -179,7 +186,7 @@ app.post('/api/auth/register', (req, res) => {
   }
 
   if (DB.findUserByUsername(cleanUsername)) {
-    return res.status(400).json({ error: 'Esse username já está sendo usado por outro usuário! ✨' });
+    return res.status(400).json({ error: 'Esse username já está sendo usado por outro usuário! ' });
   }
   if (DB.findUserByEmail(email)) {
     return res.status(400).json({ error: 'Este e-mail já está cadastrado.' });
@@ -221,12 +228,7 @@ app.post('/api/auth/register', (req, res) => {
   }
 
   const passwordHash = bcrypt.hashSync(password, 10);
-  const isSuperAdmin =
-    cleanUsername === 'admin' ||
-    cleanUsername === 'papaidasmocinhas' ||
-    email.trim().toLowerCase() === 'papaidasmocinhas@gmail.com' ||
-    email.trim().toLowerCase() === 'papaidasmocinhas@gmail*com' ||
-    email.trim().toLowerCase() === 'admin@mocinhas.com';
+  const isSuperAdmin = false; // Public signup never grants administrator privileges.
 
   const newUser: DBUser = {
     id: `u_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
@@ -236,12 +238,12 @@ app.post('/api/auth/register', (req, res) => {
     passwordHash,
     avatar: selectedAvatar,
     gender: gender === 'masculino' || gender === 'feminino' || gender === 'outro' ? gender : 'feminino',
-    bio: isSuperAdmin ? 'Administrador Oficial da Plataforma 👑' : '✨ Bem-vindo ao meu perfil no mocinhas! 💕',
+    bio: isSuperAdmin ? 'Administrador Oficial da Plataforma ' : ' Bem-vindo ao meu perfil no mocinhas! ',
     banner: banner || 'https://images.unsplash.com/photo-1522383225653-ed111181a951?w=1200&auto=format&fit=crop&q=80',
     isPrivate: false,
     isVerified: isSuperAdmin,
     isAdmin: isSuperAdmin,
-    animeTitle: isSuperAdmin ? 'Administrador Chefe 👑' : 'Criador Digital 🌸',
+    animeTitle: isSuperAdmin ? 'Administrador Chefe ' : 'Criador Digital ',
     themeColor: '#FF69B4',
     website: '',
     createdAt: new Date().toISOString(),
@@ -271,26 +273,12 @@ app.post('/api/auth/login', (req, res) => {
     DB.findUserByEmail(normalizedIdent);
 
   if (!user) {
-    return res.status(400).json({ error: 'Usuário ou e-mail não encontrado 💔' });
+    return res.status(400).json({ error: 'Usuário ou e-mail não encontrado ' });
   }
 
   const isMatch = bcrypt.compareSync(password, user.passwordHash);
   if (!isMatch) {
-    return res.status(400).json({ error: 'Senha incorreta. Tente novamente! 🌸' });
-  }
-
-  const isTargetAdmin =
-    cleanIdent === 'papaidasmocinhas@gmail.com' ||
-    cleanIdent === 'papaidasmocinhas@gmail*com' ||
-    cleanIdent === 'papaidasmocinhas' ||
-    normalizedIdent === 'papaidasmocinhas@gmail.com' ||
-    cleanIdent === 'admin@mocinhas.com' ||
-    cleanIdent === 'admin';
-
-  if (isTargetAdmin) {
-    user.isAdmin = true;
-    user.isVerified = true;
-    DB.save();
+    return res.status(400).json({ error: 'Senha incorreta. Tente novamente! ' });
   }
 
   const token = jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: '30d' });
@@ -320,7 +308,7 @@ app.post('/api/auth/recover', (req, res) => {
   DB.updateUser(user.id, { recoveryToken: code });
   res.json({
     success: true,
-    message: `Código de recuperação gerado: ${code} ✨ (Use-o para redefinir sua senha)`,
+    message: `Código de recuperação gerado: ${code}  (Use-o para redefinir sua senha)`,
     demoCode: code
   });
 });
@@ -333,7 +321,7 @@ app.post('/api/auth/reset-password', (req, res) => {
   }
   const passwordHash = bcrypt.hashSync(newPassword, 10);
   DB.updateUser(user.id, { passwordHash, recoveryToken: undefined });
-  res.json({ success: true, message: 'Senha atualizada com sucesso! 💖' });
+  res.json({ success: true, message: 'Senha atualizada com sucesso! ' });
 });
 
 app.post('/api/auth/update-password', requireAuth, (req, res) => {
@@ -347,24 +335,24 @@ app.post('/api/auth/update-password', requireAuth, (req, res) => {
   }
   const passwordHash = bcrypt.hashSync(newPassword, 10);
   DB.updateUser(userId, { passwordHash });
-  res.json({ success: true, message: 'Senha alterada com sucesso! ✨' });
+  res.json({ success: true, message: 'Senha alterada com sucesso! ' });
 });
 
 app.delete('/api/auth/delete-account', requireAuth, (req, res) => {
   const userId = (req as any).userId;
   DB.deleteUser(userId);
-  res.json({ success: true, message: 'Conta excluída com sucesso. Sentiremos sua falta! 🌸' });
+  res.json({ success: true, message: 'Conta excluída com sucesso. Sentiremos sua falta! ' });
 });
 
 // ----------------------------------------------------
-// 👥 USERS & PROFILES ENDPOINTS
+//  USERS & PROFILES ENDPOINTS
 // ----------------------------------------------------
 app.get('/api/users/:username', (req, res) => {
   const currentUserId = getAuthUserId(req) || undefined;
   const { username } = req.params;
   const user = DB.findUserByUsername(username) || DB.findUserById(username);
   if (!user) {
-    return res.status(404).json({ error: 'Perfil não encontrado 💔' });
+    return res.status(404).json({ error: 'Perfil não encontrado ' });
   }
 
   const publicUser = DB.toPublicUser(user, currentUserId);
@@ -431,7 +419,7 @@ app.post('/api/users/:id/follow', requireAuth, (req, res) => {
     type: targetUser.isPrivate ? 'follow_request' : 'follow',
     targetId: currentUserId,
     targetType: 'user',
-    textSnippet: targetUser.isPrivate ? 'solicitou para seguir seu perfil privado' : 'começou a seguir você ✨',
+    textSnippet: targetUser.isPrivate ? 'solicitou para seguir seu perfil privado' : 'começou a seguir você ',
     isRead: false,
     createdAt: new Date().toISOString(),
   };
@@ -489,7 +477,7 @@ app.post('/api/users/follow-requests/:id/accept', requireAuth, (req, res) => {
     type: 'follow_accept',
     targetId: currentUserId,
     targetType: 'user',
-    textSnippet: 'aceitou sua solicitação para seguir 💖',
+    textSnippet: 'aceitou sua solicitação para seguir ',
     isRead: false,
     createdAt: new Date().toISOString(),
   };
@@ -595,11 +583,11 @@ app.post('/api/reports', requireAuth, (req, res) => {
     createdAt: new Date().toISOString()
   });
   DB.save();
-  res.json({ success: true, message: 'Denúncia recebida. Nossa equipe kawaii analisará! 🌸' });
+  res.json({ success: true, message: 'Denúncia recebida. Nossa equipe kawaii analisará! ' });
 });
 
 // ----------------------------------------------------
-// 📸 POSTS & MEDIA ENDPOINTS
+//  POSTS & MEDIA ENDPOINTS
 // ----------------------------------------------------
 app.get('/api/posts', (req, res) => {
   const currentUserId = getAuthUserId(req) || undefined;
@@ -678,18 +666,18 @@ app.post('/api/admin/emergency-cleanup', requireAdmin, (req, res) => {
   DB.save();
   res.json({
     success: true,
-    message: `Limpeza de emergência executada com sucesso! Removidos ${removedPosts} posts e ${removedStories} stories expirados. 🧹✨`,
+    message: `Limpeza de emergência executada com sucesso! Removidos ${removedPosts} posts e ${removedStories} stories expirados. `,
     removedPosts,
     removedStories
   });
 });
 
-app.post('/api/posts', requireAuth, (req, res) => {
+app.post('/api/posts', requireAdmin, (req, res) => {
   const currentUserId = (req as any).userId;
   const { media, caption, location, allowComments, isTemporary, durationHours } = req.body;
 
   if (!media || !Array.isArray(media) || media.length === 0) {
-    return res.status(400).json({ error: 'Adicione pelo menos uma foto ou vídeo kawaii! 🌸' });
+    return res.status(400).json({ error: 'Adicione pelo menos uma foto ou vídeo kawaii! ' });
   }
 
   let expiresAt: string | undefined = undefined;
@@ -704,7 +692,7 @@ app.post('/api/posts', requireAuth, (req, res) => {
   const hashtags = hashtagMatches.map((h: string) => h.replace('#', '').toLowerCase());
 
   const mentionMatches = textCaption.match(/@[a-zA-Z0-9_.]+/g) || [];
-  const mentions = mentionMatches.map((m: string) => m.replace('@', '').toLowerCase());
+  const mentions: string[] = [];
 
   const newPost: DBPost = {
     id: `p_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
@@ -722,9 +710,9 @@ app.post('/api/posts', requireAuth, (req, res) => {
     hashtags,
     mentions,
     location,
-    allowComments: allowComments !== false,
-    isTemporary: !!isTemporary,
-    expiresAt,
+    allowComments: false,
+    isTemporary: false,
+    expiresAt: undefined,
     createdAt: new Date().toISOString(),
   };
 
@@ -744,7 +732,7 @@ app.post('/api/posts', requireAuth, (req, res) => {
         targetId: newPost.id,
         targetType: 'post',
         targetThumbnail: newPost.media[0]?.url,
-        textSnippet: 'marcou você em uma publicação 🌸',
+        textSnippet: 'marcou você em uma publicação ',
         isRead: false,
         createdAt: new Date().toISOString()
       };
@@ -770,30 +758,11 @@ app.get('/api/posts/:id', (req, res) => {
   res.json({ post: DB.toPublicPost(post, currentUserId) });
 });
 
-app.delete('/api/posts/:id', (req, res) => {
+app.delete('/api/posts/:id', requireAdmin, (req, res) => {
   const currentUserId = getAuthUserId(req) || undefined;
   const rawDb = DB.get();
   const post = rawDb.posts.find(p => p.id === req.params.id);
   if (!post) return res.status(404).json({ error: 'Publicação não encontrada' });
-
-  // If the post has expired (older than 1 hour), allow immediate permanent cleanup
-  const isExpired = Date.now() - new Date(post.createdAt).getTime() >= 3600000;
-
-  if (!isExpired) {
-    if (!currentUserId) {
-      return res.status(401).json({ error: 'Não autorizado' });
-    }
-    const currentUser = DB.findUserById(currentUserId);
-    const postAuthor = DB.findUserById(post.userId);
-
-    const isOwner = post.userId === currentUserId ||
-      (currentUser && postAuthor && currentUser.username.toLowerCase() === postAuthor.username.toLowerCase()) ||
-      (currentUser && currentUser.username.toLowerCase() === 'sakura_chan');
-
-    if (!isOwner) {
-      return res.status(403).json({ error: 'Você só pode excluir suas próprias publicações!' });
-    }
-  }
 
   rawDb.posts = rawDb.posts.filter(p => p.id !== req.params.id);
   rawDb.likes = rawDb.likes.filter(l => l.postId !== req.params.id);
@@ -801,20 +770,20 @@ app.delete('/api/posts/:id', (req, res) => {
   rawDb.saves = rawDb.saves.filter(s => s.postId !== req.params.id);
   DB.save();
 
-  res.json({ success: true, message: 'Publicação excluída com sucesso! 🌸' });
+  res.json({ success: true, message: 'Publicação excluída com sucesso! ' });
 });
 
 // ----------------------------------------------------
-// ⏳ EPHEMERAL 1-HOUR CLEANUP ENDPOINTS
+//  EPHEMERAL 1-HOUR CLEANUP ENDPOINTS
 // ----------------------------------------------------
-let ephemeral1HourMode = true; // Enabled by default as requested
+let ephemeral1HourMode = false; // Enabled by default as requested
 
 app.get('/api/ephemeral/settings', (_req, res) => {
   res.json({
     ephemeral1HourMode,
     expiresAfterMinutes: 60,
     message: ephemeral1HourMode
-      ? 'Modo Efêmero Ativo: Todo conteúdo expira permanentemente após 1 hora 🌸'
+      ? 'Modo Efêmero Ativo: Todo conteúdo expira permanentemente após 1 hora '
       : 'Modo Efêmero Desativado',
   });
 });
@@ -838,7 +807,7 @@ app.post('/api/ephemeral/cleanup', (_req, res) => {
       stories: results.deletedStories,
       groups: results.deletedGroups,
     },
-    message: `Limpeza efêmera concluída: ${results.deletedPosts} posts, ${results.deletedMessages} mensagens, ${results.deletedStories} stories e ${results.deletedGroups} grupos expirados removidos! 🌸`,
+    message: `Limpeza efêmera concluída: ${results.deletedPosts} posts, ${results.deletedMessages} mensagens, ${results.deletedStories} stories e ${results.deletedGroups} grupos expirados removidos! `,
   });
 });
 
@@ -875,7 +844,7 @@ app.post('/api/posts/:id/like', requireAuth, (req, res) => {
         targetId: post.id,
         targetType: 'post',
         targetThumbnail: post.media[0]?.url,
-        textSnippet: 'curtiu sua publicação 💖',
+        textSnippet: 'curtiu sua publicação ',
         isRead: false,
         createdAt: new Date().toISOString()
       };
@@ -961,7 +930,7 @@ app.post('/api/posts/:id/comments', requireAuth, (req, res) => {
   const { text, parentId } = req.body;
 
   if (!text || !text.trim()) {
-    return res.status(400).json({ error: 'Escreva algo fofo para comentar! 💬' });
+    return res.status(400).json({ error: 'Escreva algo fofo para comentar! ' });
   }
 
   const rawDb = DB.get();
@@ -1137,7 +1106,7 @@ app.get('/api/posts/user/:username', (req, res) => {
 });
 
 // ----------------------------------------------------
-// ✨ STORIES ENDPOINTS (24H EXPIRY)
+//  STORIES ENDPOINTS (24H EXPIRY)
 // ----------------------------------------------------
 app.get('/api/stories', (req, res) => {
   const currentUserId = getAuthUserId(req) || undefined;
@@ -1193,7 +1162,7 @@ app.post('/api/stories', requireAuth, (req, res) => {
   const { mediaUrl, mediaType, textOverlay, stickers, location, mentions, filter } = req.body;
 
   if (!mediaUrl) {
-    return res.status(400).json({ error: 'Mídia obrigatória para o Story ✨' });
+    return res.status(400).json({ error: 'Mídia obrigatória para o Story ' });
   }
 
   const newStory: DBStory = {
@@ -1249,13 +1218,13 @@ app.post('/api/stories/:id/react', requireAuth, (req, res) => {
 
   let view = rawDb.storyViews.find(sv => sv.storyId === storyId && sv.userId === currentUserId);
   if (view) {
-    view.reaction = reaction || '💖';
+    view.reaction = reaction || '';
   } else {
     rawDb.storyViews.push({
       id: `sv_${Date.now()}`,
       storyId,
       userId: currentUserId,
-      reaction: reaction || '💖',
+      reaction: reaction || '',
       createdAt: new Date().toISOString()
     });
   }
@@ -1270,7 +1239,7 @@ app.post('/api/stories/:id/react', requireAuth, (req, res) => {
       targetId: story.id,
       targetType: 'story',
       targetThumbnail: story.mediaUrl,
-      textSnippet: `reagiu ao seu Story com ${reaction || '💖'}`,
+      textSnippet: `reagiu ao seu Story com ${reaction || ''}`,
       isRead: false,
       createdAt: new Date().toISOString()
     };
@@ -1299,7 +1268,7 @@ app.delete('/api/stories/:id', requireAuth, (req, res) => {
 });
 
 // ----------------------------------------------------
-// 💌 DIRECT MESSAGES & GROUP CHATS
+//  DIRECT MESSAGES & GROUP CHATS
 // ----------------------------------------------------
 app.get('/api/conversations', requireAuth, (req, res) => {
   const currentUserId = (req as any).userId;
@@ -1474,7 +1443,7 @@ app.post('/api/groups', requireAuth, (req, res) => {
     id: `msg_${Date.now()}_system`,
     conversationId: newGroup.id,
     senderId: currentUserId,
-    text: `🎉 Grupo "${newGroup.name}" foi criado com sucesso!${durationText}`,
+    text: ` Grupo "${newGroup.name}" foi criado com sucesso!${durationText}`,
     status: 'read',
     createdAt: new Date().toISOString()
   };
@@ -1540,7 +1509,7 @@ app.post('/api/groups/:id/join', requireAuth, (req, res) => {
       id: `msg_${Date.now()}_join`,
       conversationId: group.id,
       senderId: currentUserId,
-      text: `👋 ${joiningUser?.displayName || 'Uma mocinha'} entrou no grupo.`,
+      text: ` ${joiningUser?.displayName || 'Uma mocinha'} entrou no grupo.`,
       status: 'read',
       createdAt: new Date().toISOString()
     };
@@ -1580,7 +1549,7 @@ app.post('/api/groups/:id/leave', requireAuth, (req, res) => {
     id: `msg_${Date.now()}_leave`,
     conversationId: group.id,
     senderId: currentUserId,
-    text: `🚪 ${leavingUser?.displayName || 'Uma mocinha'} saiu do grupo.`,
+    text: ` ${leavingUser?.displayName || 'Uma mocinha'} saiu do grupo.`,
     status: 'read',
     createdAt: new Date().toISOString()
   };
@@ -1744,7 +1713,7 @@ app.post('/api/groups/:id/clear-messages', requireAuth, (req, res) => {
     id: `msg_${Date.now()}_cleared`,
     conversationId: group.id,
     senderId: currentUserId,
-    text: `🧹 As mensagens anteriores do grupo foram limpas. O grupo continua ativo!`,
+    text: ` As mensagens anteriores do grupo foram limpas. O grupo continua ativo!`,
     status: 'read',
     createdAt: new Date().toISOString()
   };
@@ -1887,7 +1856,7 @@ app.delete('/api/messages/:id', requireAuth, (req, res) => {
 });
 
 // ----------------------------------------------------
-// 🔔 NOTIFICATIONS ENDPOINTS
+//  NOTIFICATIONS ENDPOINTS
 // ----------------------------------------------------
 app.get('/api/notifications', requireAuth, (req, res) => {
   const currentUserId = (req as any).userId;
@@ -1934,7 +1903,7 @@ app.post('/api/notifications/:id/read', requireAuth, (req, res) => {
 });
 
 // ----------------------------------------------------
-// 🔍 SEARCH ENDPOINT
+//  SEARCH ENDPOINT
 // ----------------------------------------------------
 app.get('/api/search', (req, res) => {
   const currentUserId = getAuthUserId(req) || undefined;
@@ -1974,9 +1943,9 @@ app.get('/api/search', (req, res) => {
 });
 
 // ----------------------------------------------------
-// ☁️ MEDIA UPLOAD (FILE + BASE64 SUPPORT)
+//  MEDIA UPLOAD (FILE + BASE64 SUPPORT)
 // ----------------------------------------------------
-app.post('/api/upload', upload.single('file'), (req, res) => {
+app.post('/api/upload', requireAdmin, upload.single('file'), (req, res) => {
   if (req.file) {
     const isVideo = req.file.mimetype.startsWith('video');
     const url = `/uploads/${req.file.filename}`;
@@ -2011,7 +1980,7 @@ app.post('/api/upload', upload.single('file'), (req, res) => {
 });
 
 // ----------------------------------------------------
-// 🪄 GEMINI AI KAWAII ASSISTANT (SERVER-SIDE)
+//  GEMINI AI KAWAII ASSISTANT (SERVER-SIDE)
 // ----------------------------------------------------
 app.post('/api/ai/kawaii-caption', async (req, res) => {
   const { theme, style } = req.body;
@@ -2020,9 +1989,9 @@ app.post('/api/ai/kawaii-caption', async (req, res) => {
     if (!apiKey) {
       // Fallback cute templates if key is missing
       const defaults = [
-        `🌸✨ Dias cor-de-rosa e momentos mágicos! Deixando o mundo mais doce com esse momento especial 💕🎀 #kawaii #animevibes #pinkaesthetic #cute`,
-        `🍓💖 Um pedacinho do meu universo dos sonhos para iluminar seu dia! O que acharam desse look? ✨🦄 #pinkdream #otakugirl #lovelydays #cutie`,
-        `🎀💫 Conectando corações através da arte e da fofura! Tenham um dia brilhante e cheio de estrelinhas~ ✨🌸 #chibidreams #magicalgirl #pinklife`,
+        ` Dias cor-de-rosa e momentos mágicos! Deixando o mundo mais doce com esse momento especial  #kawaii #animevibes #pinkaesthetic #cute`,
+        ` Um pedacinho do meu universo dos sonhos para iluminar seu dia! O que acharam desse look?  #pinkdream #otakugirl #lovelydays #cutie`,
+        ` Conectando corações através da arte e da fofura! Tenham um dia brilhante e cheio de estrelinhas~  #chibidreams #magicalgirl #pinklife`,
       ];
       return res.json({ caption: defaults[Math.floor(Math.random() * defaults.length)] });
     }
@@ -2030,7 +1999,7 @@ app.post('/api/ai/kawaii-caption', async (req, res) => {
     const ai = new GoogleGenAI({ apiKey });
     const prompt = `Escreva uma legenda super fofa, aesthetic, estilo anime/kawaii/Sanrio em Português para uma rede social rosa e branca.
 Tema/Ideia da foto: "${theme || 'um dia lindo e cheio de fofura'}".
-Estilo: "${style || 'doce, com emojis delicados (🌸, 🎀, ✨, 💖, 🍓, 🐰), hashtags fofas'}".
+Estilo: "${style || 'doce, com emojis delicados (, , , , , ), hashtags fofas'}".
 A legenda deve ter entre 2 e 4 frases encantadoras, emojis fofos e 4-6 hashtags anime/kawaii populares. Retorne apenas o texto da legenda.`;
 
     const response = await ai.models.generateContent({
@@ -2038,16 +2007,16 @@ A legenda deve ter entre 2 e 4 frases encantadoras, emojis fofos e 4-6 hashtags 
       contents: prompt,
     });
 
-    const caption = response.text?.trim() || '🌸✨ Momento mágico e cheio de amor cor-de-rosa! 💕🎀 #kawaii #pinkaesthetic';
+    const caption = response.text?.trim() || ' Momento mágico e cheio de amor cor-de-rosa!  #kawaii #pinkaesthetic';
     res.json({ caption });
   } catch (err) {
     console.error('Gemini error:', err);
-    res.json({ caption: '🌸✨ Momentos especiais cheios de brilho e doçura! 🎀💖 #kawaii #pinkvibes #animecute' });
+    res.json({ caption: ' Momentos especiais cheios de brilho e doçura!  #kawaii #pinkvibes #animecute' });
   }
 });
 
 // ----------------------------------------------------
-// 🌐 AUTOMATIC TRANSLATION SERVICE (FAST CACHED PROXY + GEMINI FALLBACK)
+//  AUTOMATIC TRANSLATION SERVICE (FAST CACHED PROXY + GEMINI FALLBACK)
 // ----------------------------------------------------
 const translationCache = new Map<string, string>();
 
@@ -2141,7 +2110,7 @@ app.post('/api/translate', async (req, res) => {
 });
 
 // ----------------------------------------------------
-// 👑 ADMIN ENDPOINTS & MANAGEMENT
+//  ADMIN ENDPOINTS & MANAGEMENT
 // ----------------------------------------------------
 function requireAdmin(req: express.Request, res: express.Response, next: express.NextFunction) {
   const userId = getAuthUserId(req);
@@ -2152,14 +2121,7 @@ function requireAdmin(req: express.Request, res: express.Response, next: express
   if (!user) {
     return res.status(401).json({ error: 'Usuário não encontrado.' });
   }
-  const isAdmin = Boolean(
-    user.isAdmin ||
-    user.email?.toLowerCase() === 'papaidasmocinhas@gmail.com' ||
-    user.email?.toLowerCase() === 'papaidasmocinhas@gmail*com' ||
-    user.username?.toLowerCase() === 'papaidasmocinhas' ||
-    user.email?.toLowerCase() === 'admin@mocinhas.com' ||
-    user.username?.toLowerCase() === 'admin'
-  );
+  const isAdmin = user.isAdmin === true;
   if (!isAdmin) {
     return res.status(403).json({ error: 'Acesso restrito à administração da plataforma.' });
   }
@@ -2258,7 +2220,7 @@ app.post('/api/translate/batch', async (req, res) => {
 });
 
 // ----------------------------------------------------
-// 💎 SYNCPAY PAYMENT & PREMIUM ENDPOINTS
+//  SYNCPAY PAYMENT & PREMIUM ENDPOINTS
 // ----------------------------------------------------
 app.get('/api/syncpay/config', (_req, res) => {
   const rawDb = DB.get();
@@ -2303,7 +2265,7 @@ app.post('/api/admin/syncpay', requireAdmin, (req, res) => {
     price: Number(price) > 0 ? Number(price) : 9.99,
   };
   DB.save();
-  res.json({ success: true, settings: rawDb.syncpaySettings, message: 'Configurações da Syncpay salvas com sucesso! 💎' });
+  res.json({ success: true, settings: rawDb.syncpaySettings, message: 'Configurações da Syncpay salvas com sucesso! ' });
 });
 
 app.put('/api/admin/users/:id/premium', requireAdmin, (req, res) => {
@@ -2344,7 +2306,7 @@ app.post('/api/syncpay/create-charge', requireAuth, (req, res) => {
     pixCopyAndPaste,
     qrCodeUrl: `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(pixCopyAndPaste)}`,
     expiresInMinutes: 30,
-    message: 'Cobrança Pix gerada com sucesso via Syncpay! 💖',
+    message: 'Cobrança Pix gerada com sucesso via Syncpay! ',
   });
 });
 
@@ -2364,7 +2326,7 @@ app.post('/api/syncpay/confirm-charge', requireAuth, (req, res) => {
     recipientId: currentUserId,
     actorId: 'u_admin_official',
     type: 'mention',
-    textSnippet: '✨ Parabéns! Sua assinatura Syncpay Premium de R$ 9,99 foi confirmada com sucesso! Você agora tem acesso ilimitado às publicações de todos os perfis. 💎💖',
+    textSnippet: ' Parabéns! Sua assinatura Syncpay Premium de R$ 9,99 foi confirmada com sucesso! Você agora tem acesso ilimitado às publicações de todos os perfis. ',
     isRead: false,
     createdAt: new Date().toISOString(),
   };
@@ -2376,7 +2338,7 @@ app.post('/api/syncpay/confirm-charge', requireAuth, (req, res) => {
   res.json({
     success: true,
     user: DB.toPublicUser(user, currentUserId),
-    message: 'Assinatura Premium ativada com sucesso! OBRIGADA por apoiar nossos servidores! 👑💖',
+    message: 'Assinatura Premium ativada com sucesso! OBRIGADA por apoiar nossos servidores! ',
   });
 });
 
@@ -2395,7 +2357,7 @@ app.post('/api/syncpay/webhook', (req, res) => {
         recipientId: targetUser.id,
         actorId: 'u_admin_official',
         type: 'mention',
-        textSnippet: '✨ Pagamento Pix confirmado via Webhook Syncpay! Seu status Premium foi ativado automaticamente! 👑💖',
+        textSnippet: ' Pagamento Pix confirmado via Webhook Syncpay! Seu status Premium foi ativado automaticamente! ',
         isRead: false,
         createdAt: new Date().toISOString()
       });
@@ -2405,7 +2367,7 @@ app.post('/api/syncpay/webhook', (req, res) => {
 });
 
 // ----------------------------------------------------
-// 🌐 VITE MIDDLEWARE & STATIC SERVING
+//  VITE MIDDLEWARE & STATIC SERVING
 // ----------------------------------------------------
 async function startServer() {
   if (process.env.NODE_ENV !== 'production') {
@@ -2422,15 +2384,8 @@ async function startServer() {
     });
   }
 
-  // Start recurring 1-hour auto cleanup every 60 seconds
-  setInterval(() => {
-    if (ephemeral1HourMode) {
-      DB.cleanEphemeral1HourContent(3600000);
-    }
-  }, 60000);
-
   app.listen(PORT, '0.0.0.0', () => {
-    console.log(`🎀 Mocinhas Kawaii Social Network rodando na porta ${PORT}! 🌸`);
+    console.log(` Mocinhas Kawaii Social Network rodando na porta ${PORT}! `);
     // Run initial cleanup on startup
     if (ephemeral1HourMode) {
       DB.cleanEphemeral1HourContent(3600000);

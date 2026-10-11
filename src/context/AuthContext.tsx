@@ -69,14 +69,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const res = await api.getMe();
       setUser(res.user);
-      // Fetch initial notifications & messages count
-      try {
-        const notifs = await api.getNotifications();
-        setUnreadNotifsCount(notifs.unreadCount);
-        const convs = await api.getConversations();
-        const totalUnread = convs.conversations.reduce((acc, c) => acc + (c.unreadCount || 0), 0);
-        setUnreadMessagesCount(totalUnread);
-      } catch (e) {}
+
     } catch (e) {
       console.error('Failed to load user profile:', e);
       localStorage.removeItem('mocinhas_token');
@@ -117,7 +110,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Real-time Supabase Channels + SSE Connection for notifications & messages
   useEffect(() => {
-    if (!user) return;
+    return; // Social realtime disabled; implementation retained below.
 
     // 1. Supabase Real-time Channel (if configured)
     let supabaseChannel: any = null;

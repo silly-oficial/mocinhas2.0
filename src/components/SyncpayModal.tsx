@@ -99,7 +99,7 @@ export const SyncpayModal: React.FC<SyncpayModalProps> = ({ onClose, onSuccess }
             <Crown className="w-9 h-9 text-yellow-300 drop-shadow-md animate-bounce" />
           </div>
           <h2 className="text-xl font-black text-white tracking-tight flex items-center justify-center gap-2">
-            Mocinhas Premium 💎
+            Mocinhas Premium 
           </h2>
           <p className="text-xs text-white/90 font-medium mt-1">
             Sua assinatura VIP para acesso irrestrito
@@ -229,7 +229,7 @@ export const SyncpayModal: React.FC<SyncpayModalProps> = ({ onClose, onSuccess }
                 className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-emerald-600 via-teal-500 to-emerald-500 hover:opacity-95 text-white font-black text-xs shadow-lg shadow-emerald-500/25 flex items-center justify-center gap-2 cursor-pointer transition-all"
               >
                 <CheckCircle2 className="w-4 h-4" />
-                <span>{isLoading ? 'Confirmando Pagamento...' : 'Já Paguei! Ativar Meu Premium Agora ✨'}</span>
+                <span>{isLoading ? 'Confirmando Pagamento...' : 'Já Paguei! Ativar Meu Premium Agora '}</span>
               </button>
 
               <p className="text-[10px] text-zinc-300/80">
@@ -246,11 +246,11 @@ export const SyncpayModal: React.FC<SyncpayModalProps> = ({ onClose, onSuccess }
               </div>
 
               <h3 className="text-lg font-black text-emerald-300">
-                Parabéns! Você é Premium! 💎✨
+                Parabéns! Você é Premium! 
               </h3>
 
               <p className="text-xs text-white leading-relaxed max-w-xs mx-auto">
-                Sua assinatura foi ativada com sucesso. Agora você pode visualizar todas as publicações de qualquer perfil e apoiar os servidores do app! 💖
+                Sua assinatura foi ativada com sucesso. Agora você pode visualizar todas as publicações de qualquer perfil e apoiar os servidores do app! 
               </p>
 
               <button
@@ -260,7 +260,7 @@ export const SyncpayModal: React.FC<SyncpayModalProps> = ({ onClose, onSuccess }
                 }}
                 className="w-full py-3.5 rounded-2xl bg-white text-black font-black text-xs shadow-lg shadow-white/5 cursor-pointer hover:bg-zinc-200 transition-colors"
               >
-                Explorar Todos os Perfis Agora ✦
+                Explorar Todos os Perfis Agora 
               </button>
             </div>
           )}

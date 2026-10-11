@@ -2,8 +2,9 @@ import fs from 'fs';
 import path from 'path';
 import bcrypt from 'bcryptjs';
 
-const DATA_DIR = path.join(process.cwd(), 'data');
+const DATA_DIR = process.env.DATA_DIR || path.join(process.cwd(), 'data');
 const DB_FILE = path.join(DATA_DIR, 'db.json');
+const displayText = (value: string = '') => value.replace(/[\p{Extended_Pictographic}\p{Regional_Indicator}\uFE0F\u200D\u20E3]/gu, '');
 
 export interface DBUser {
   id: string;
@@ -188,6 +189,9 @@ export interface DBSyncpaySettings {
 }
 
 export interface DatabaseSchema {
+  usageSettings?: { dailyMinutes: number; bindNetwork: boolean };
+  usageBuckets?: Record<string, { startedAt: number; usedMs: number; leaseUntil: number }>;
+  authSecret?: string;
   users: DBUser[];
   posts: DBPost[];
   likes: DBLike[];
@@ -239,9 +243,11 @@ if (!fs.existsSync(DATA_DIR)) {
 
 function saveDB() {
   try {
-    fs.writeFileSync(DB_FILE, JSON.stringify(db, null, 2), 'utf-8');
+    fs.writeFileSync(DB_FILE + '.tmp', JSON.stringify(db, null, 2), { encoding: 'utf-8', mode: 0o600 });
+    fs.renameSync(DB_FILE + '.tmp', DB_FILE);
   } catch (err) {
     console.error('Failed to write db.json:', err);
+    throw err; // Never authorize consumption if persistence fails.
   }
 }
 
@@ -250,112 +256,6 @@ export function loadDB(): DatabaseSchema {
     try {
       const data = fs.readFileSync(DB_FILE, 'utf-8');
       db = JSON.parse(data);
-      if (db.users && db.users.length > 0) {
-        db.users.forEach(u => {
-          if (u.id === 'u_sakura') {
-            u.avatar = 'https://api.dicebear.com/7.x/adventurer/svg?seed=Sakura&backgroundColor=ffd5dc,ffdfba,fce4ec&mouth=variant01,variant02,variant03';
-            u.displayName = 'Sakura Haruka';
-            u.animeTitle = 'Designer Visual';
-          } else if (u.id === 'u_luna') {
-            u.avatar = 'https://api.dicebear.com/7.x/adventurer/svg?seed=Luna&backgroundColor=ffd5dc,d1d4f9,fce4ec&mouth=variant02,variant04';
-            u.displayName = 'Luna Mendes';
-            u.animeTitle = 'Fotografia & Estilo';
-          } else if (u.id === 'u_miku') {
-            u.avatar = 'https://api.dicebear.com/7.x/adventurer/svg?seed=Miku&backgroundColor=d1d4f9,c0aede,ffd5dc&mouth=variant01,variant03';
-            u.displayName = 'Miku Melody';
-            u.animeTitle = 'Produtora Musical';
-          } else if (u.id === 'u_chibi') {
-            u.avatar = 'https://api.dicebear.com/7.x/adventurer/svg?seed=Beatriz&backgroundColor=ffdfba,ffd5dc,fce4ec&mouth=variant01,variant04';
-            u.displayName = 'Usagi Bunny';
-            u.animeTitle = 'Criadora Digital';
-          } else if (u.id === 'u_yuki') {
-            u.avatar = 'https://api.dicebear.com/7.x/adventurer/svg?seed=Sofia&backgroundColor=fce4ec,ffd5dc,d1d4f9&mouth=variant02,variant03';
-            u.displayName = 'Yuki Hoshizora';
-            u.animeTitle = 'Artista Digital';
-          } else if (
-            u.email === 'admin@mocinhas.com' ||
-            u.username === 'admin' ||
-            u.email === 'papaidasmocinhas@gmail.com' ||
-            u.email === 'papaidasmocinhas@gmail*com' ||
-            u.username === 'papaidasmocinhas' ||
-            u.email === 'papaidasia@gmail.com'
-          ) {
-            u.isAdmin = true;
-            u.isVerified = true;
-          } else if (u.avatar && u.avatar.includes('unsplash.com/photo-')) {
-            // Replace any old real photo avatar with illustrated avatar
-            if (u.gender === 'masculino') {
-              u.avatar = 'https://api.dicebear.com/7.x/adventurer/svg?seed=Lucas&backgroundColor=d1d4f9,c0aede,b6e3f4&hair=short01,short02,short03';
-            } else {
-              u.avatar = 'https://api.dicebear.com/7.x/adventurer/svg?seed=' + encodeURIComponent(u.username || 'Sakura') + '&backgroundColor=ffd5dc,ffdfba,fce4ec&mouth=variant01,variant02';
-            }
-          }
-        });
-      }
-
-      // Ensure admin user exists
-      const hasAdmin = db.users.some(u => u.email === 'admin@mocinhas.com' || u.isAdmin);
-      if (!hasAdmin) {
-        const salt = bcrypt.genSaltSync(10);
-        const adminPassHash = bcrypt.hashSync('admin123', salt);
-        db.users.push({
-          id: 'u_admin_official',
-          username: 'admin',
-          displayName: 'Administração 👑',
-          email: 'admin@mocinhas.com',
-          passwordHash: adminPassHash,
-          avatar: 'https://api.dicebear.com/7.x/adventurer/svg?seed=Admin&backgroundColor=ffd5dc,ffdfba',
-          bio: 'Conta oficial de administração da plataforma Mocinhas.',
-          banner: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=1200&auto=format&fit=crop&q=80',
-          isPrivate: false,
-          isVerified: true,
-          isAdmin: true,
-          animeTitle: 'Administrador 👑',
-          themeColor: '#FF69B4',
-          website: '',
-          createdAt: new Date().toISOString(),
-          acceptedTerms: true,
-        });
-      }
-
-      // Ensure papaidasmocinhas admin exists and has password papaidasmocinhas666
-      const mocinhasAdmin = db.users.find(u =>
-        u.email === 'papaidasmocinhas@gmail.com' ||
-        u.email === 'papaidasmocinhas@gmail*com' ||
-        u.username === 'papaidasmocinhas'
-      );
-      const salt = bcrypt.genSaltSync(10);
-      const mocinhasPassHash = bcrypt.hashSync('papaidasmocinhas666', salt);
-
-      if (!mocinhasAdmin) {
-        db.users.push({
-          id: 'u_papaidasmocinhas_admin',
-          username: 'papaidasmocinhas',
-          displayName: 'Papai das Mocinhas 👑',
-          email: 'papaidasmocinhas@gmail.com',
-          passwordHash: mocinhasPassHash,
-          avatar: 'https://api.dicebear.com/7.x/adventurer/svg?seed=PapaiDasMocinhas&backgroundColor=ffd5dc,ffdfba',
-          bio: 'Conta Oficial do Administrador da plataforma Mocinhas.',
-          banner: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=1200&auto=format&fit=crop&q=80',
-          isPrivate: false,
-          isVerified: true,
-          isAdmin: true,
-          animeTitle: 'Administrador Chefe 👑',
-          themeColor: '#FF69B4',
-          website: '',
-          createdAt: new Date().toISOString(),
-          acceptedTerms: true,
-        });
-      } else {
-        mocinhasAdmin.username = 'papaidasmocinhas';
-        mocinhasAdmin.email = 'papaidasmocinhas@gmail.com';
-        mocinhasAdmin.displayName = 'Papai das Mocinhas 👑';
-        mocinhasAdmin.passwordHash = mocinhasPassHash;
-        mocinhasAdmin.isAdmin = true;
-        mocinhasAdmin.isVerified = true;
-        mocinhasAdmin.animeTitle = 'Administrador Chefe 👑';
-      }
-
       // Ensure default public groups exist
       const hasGroups = db.conversations && db.conversations.some(c => c.isGroup);
       if (!hasGroups) {
@@ -363,7 +263,7 @@ export function loadDB(): DatabaseSchema {
         db.conversations.push(
           {
             id: 'grp_mocinhas_criativas',
-            name: '✨ Mocinhas Criativas',
+            name: ' Mocinhas Criativas',
             description: 'Comunidade aberta para compartilhar artes, ilustrações, ideias de design e processos criativos.',
             avatar: 'https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=300&auto=format&fit=crop&q=80',
             isGroup: true,
@@ -378,7 +278,7 @@ export function loadDB(): DatabaseSchema {
           },
           {
             id: 'grp_estilo_fotografia',
-            name: '📸 Estilo & Fotografia',
+            name: ' Estilo & Fotografia',
             description: 'Dicas de iluminação, paletas de cores, presets e composições visuais acolhedoras.',
             avatar: 'https://images.unsplash.com/photo-1542038784456-1ea8e935640e?w=300&auto=format&fit=crop&q=80',
             isGroup: true,
@@ -393,7 +293,7 @@ export function loadDB(): DatabaseSchema {
           },
           {
             id: 'grp_musica_lofi',
-            name: '🎵 Lo-Fi & Batidas Suaves',
+            name: ' Lo-Fi & Batidas Suaves',
             description: 'Espaço para produtoras musicais, ouvintes e entusiastas de melodias calmas e sintetizadores.',
             avatar: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=300&auto=format&fit=crop&q=80',
             isGroup: true,
@@ -414,7 +314,7 @@ export function loadDB(): DatabaseSchema {
             id: 'msg_grp_1',
             conversationId: 'grp_mocinhas_criativas',
             senderId: 'u_sakura',
-            text: 'Bem-vindas ao grupo oficial de criadoras! Aqui podemos trocar referências e projetos ✨',
+            text: 'Bem-vindas ao grupo oficial de criadoras! Aqui podemos trocar referências e projetos ',
             status: 'read',
             createdAt: new Date(Date.now() - 2 * 3600000).toISOString(),
           },
@@ -455,7 +355,7 @@ function seedInitialData() {
       isPrivate: false,
       isVerified: true,
       animeTitle: 'Designer Visual',
-      themeColor: '#FF69B4',
+      themeColor: '#10B981',
       website: 'https://artstation.com/sakura',
       createdAt: new Date(Date.now() - 30 * 86400000).toISOString(),
     },
@@ -526,7 +426,7 @@ function seedInitialData() {
     {
       id: 'u_admin_official',
       username: 'admin',
-      displayName: 'Administração 👑',
+      displayName: 'Administração ',
       email: 'admin@mocinhas.com',
       passwordHash: bcrypt.hashSync('admin123', salt),
       avatar: 'https://api.dicebear.com/7.x/adventurer/svg?seed=Admin&backgroundColor=ffd5dc,ffdfba',
@@ -535,8 +435,8 @@ function seedInitialData() {
       isPrivate: false,
       isVerified: true,
       isAdmin: true,
-      animeTitle: 'Administrador 👑',
-      themeColor: '#FF69B4',
+      animeTitle: 'Administrador ',
+      themeColor: '#10B981',
       website: '',
       createdAt: new Date().toISOString(),
       acceptedTerms: true,
@@ -701,7 +601,7 @@ function seedInitialData() {
       mediaUrl: 'https://images.unsplash.com/photo-1522383225653-ed111181a951?w=800&auto=format&fit=crop&q=80',
       mediaType: 'image',
       textOverlay: 'Manhã tranquila de trabalho e café.',
-      stickers: ['✨', '☕'],
+      stickers: ['', ''],
       location: 'Central Studio',
       mentions: ['luna_neko'],
       createdAt: new Date(Date.now() - 4 * 3600000).toISOString(),
@@ -713,7 +613,7 @@ function seedInitialData() {
       mediaUrl: 'https://images.unsplash.com/photo-1518791841217-8f162f1e1131?w=800&auto=format&fit=crop&q=80',
       mediaType: 'image',
       textOverlay: 'Nova lente fotográfica em teste hoje.',
-      stickers: ['📸', '✨'],
+      stickers: ['', ''],
       location: 'Studio Loft',
       mentions: [],
       createdAt: new Date(Date.now() - 2 * 3600000).toISOString(),
@@ -725,7 +625,7 @@ function seedInitialData() {
       mediaUrl: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=800&auto=format&fit=crop&q=80',
       mediaType: 'image',
       textOverlay: 'Mixando novas frequências e acordes.',
-      stickers: ['🎵', '🎧'],
+      stickers: ['', ''],
       location: 'Dream Studio',
       mentions: [],
       createdAt: new Date(Date.now() - 1 * 3600000).toISOString(),
@@ -897,32 +797,23 @@ export const DB = {
       isMuted = db.mutes.some(m => m.muterId === currentUserId && m.mutedId === u.id);
     }
 
-    const isSuperAdmin = Boolean(
-      u.isAdmin ||
-      u.email?.toLowerCase() === 'papaidasmocinhas@gmail.com' ||
-      u.email?.toLowerCase() === 'papaidasmocinhas@gmail*com' ||
-      u.username?.toLowerCase() === 'papaidasmocinhas' ||
-      u.email?.toLowerCase() === 'admin@mocinhas.com' ||
-      u.username?.toLowerCase() === 'admin' ||
-      u.username?.toLowerCase() === 'papaidasia' ||
-      u.email?.toLowerCase() === 'papaidasia@gmail.com'
-    );
+    const isSuperAdmin = u.isAdmin === true;
 
     return {
       id: u.id,
       username: u.username,
-      displayName: u.displayName,
+      displayName: displayText(u.displayName),
       email: u.email,
       avatar: u.avatar,
       gender: u.gender,
-      bio: u.bio,
+      bio: displayText(u.bio),
       banner: u.banner,
       isPrivate: u.isPrivate,
       isVerified: Boolean(u.isVerified || isSuperAdmin),
       isAdmin: isSuperAdmin,
       isPremium: Boolean(u.isPremium || isSuperAdmin),
       premiumExpiresAt: u.premiumExpiresAt,
-      animeTitle: u.animeTitle,
+      animeTitle: displayText(u.animeTitle),
       themeColor: u.themeColor,
       website: u.website,
       createdAt: u.createdAt,
@@ -938,63 +829,8 @@ export const DB = {
 
   // Permanent 1-Hour Cleanup for Ephemeral content
   cleanEphemeral1HourContent(maxAgeMs = 3600000) {
-    const cutoffTime = Date.now() - maxAgeMs;
-    const initialCounts = {
-      posts: db.posts.length,
-      messages: db.messages.length,
-      stories: db.stories.length,
-      groups: db.conversations.filter(c => c.isGroup).length,
-    };
-
-    // 1. Filter out posts older than cutoff
-    const expiredPostIds = new Set(
-      db.posts
-        .filter(p => new Date(p.createdAt).getTime() < cutoffTime)
-        .map(p => p.id)
-    );
-
-    if (expiredPostIds.size > 0) {
-      db.posts = db.posts.filter(p => !expiredPostIds.has(p.id));
-      db.likes = db.likes.filter(l => !expiredPostIds.has(l.postId));
-      db.comments = db.comments.filter(c => !expiredPostIds.has(c.postId));
-      db.saves = db.saves.filter(s => !expiredPostIds.has(s.postId));
-    }
-
-    // 2. Filter out messages: only temporary group messages or ephemeral messages older than cutoff
-    db.messages = db.messages.filter(m => {
-      const conv = db.conversations.find(c => c.id === m.conversationId);
-      if (conv?.isGroup) {
-        if (conv.durationMode === 'permanent') {
-          // Permanent groups keep messages
-          return true;
-        }
-        // Temporary group: check its duration limit (default 1 hour or conv.messageDurationHours)
-        const groupDurationMs = (conv.messageDurationHours || 1) * 3600000;
-        const msgAge = Date.now() - new Date(m.createdAt).getTime();
-        return msgAge < groupDurationMs;
-      }
-      // Non-group direct messages: keep messages within standard cutoff
-      return new Date(m.createdAt).getTime() >= cutoffTime;
-    });
-
-    // 3. Filter out stories older than cutoff or past expiresAt
-    db.stories = db.stories.filter(s => {
-      const created = new Date(s.createdAt).getTime();
-      const expires = s.expiresAt ? new Date(s.expiresAt).getTime() : created + maxAgeMs;
-      return created >= cutoffTime && expires >= Date.now();
-    });
-
-    // 4. GROUPS ARE NEVER DELETED - only their messages are cleaned when expired!
-    // Conversations remain intact with their members and settings.
-
-    saveDB();
-
-    return {
-      deletedPosts: initialCounts.posts - db.posts.length,
-      deletedMessages: initialCounts.messages - db.messages.length,
-      deletedStories: initialCounts.stories - db.stories.length,
-      deletedGroups: 0,
-    };
+    // Intentionally disabled; retained for future feature reactivation.
+    return { deletedPosts: 0, deletedMessages: 0, deletedStories: 0, deletedGroups: 0 };
   },
 
   // Posts
@@ -1022,7 +858,13 @@ export const DB = {
 
     return {
       ...p,
-      user: authorPublic,
+      caption: displayText(p.caption).replace(/@[\w.]+/g, '').trim(),
+      userId: '',
+      user: { id: '', username: '', displayName: '', email: '', avatar: '', isPrivate: false, createdAt: '', followersCount: 0, followingCount: 0, postsCount: 0 },
+      mentions: [],
+      location: undefined,
+      isTemporary: false,
+      expiresAt: undefined,
       likesCount,
       commentsCount,
       savesCount,
@@ -1033,6 +875,7 @@ export const DB = {
 
   // Check if current user can view a target user's private content
   canViewUserContent(targetUserId: string, currentUserId?: string) {
+    if (this.findUserById(targetUserId)?.isAdmin) return true;
     if (targetUserId === currentUserId) return true;
     const targetUser = this.findUserById(targetUserId);
     if (!targetUser) return false;

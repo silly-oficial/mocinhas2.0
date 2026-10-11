@@ -80,10 +80,10 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
 
   // Trending categories styled like the vibrant category pods from Image 3
   const categoryPods = [
-    { tag: 'design', label: 'Design & Criatividade', count: '14.2k', podClass: 'pod-emerald', emoji: '🎨' },
-    { tag: 'estilo', label: 'Estilo & Tendências', count: '8.9k', podClass: 'pod-orange', emoji: '✨' },
-    { tag: 'fotografia', label: 'Fotografia & Momentos', count: '6.4k', podClass: 'pod-purple', emoji: '📸' },
-    { tag: 'musica', label: 'Música & Vibes', count: '5.1k', podClass: 'pod-cyan', emoji: '🎧' },
+    { tag: 'design', label: 'Design & Criatividade', count: '14.2k', podClass: 'pod-emerald', emoji: '' },
+    { tag: 'estilo', label: 'Estilo & Tendências', count: '8.9k', podClass: 'pod-orange', emoji: '' },
+    { tag: 'fotografia', label: 'Fotografia & Momentos', count: '6.4k', podClass: 'pod-purple', emoji: '' },
+    { tag: 'musica', label: 'Música & Vibes', count: '5.1k', podClass: 'pod-cyan', emoji: '' },
   ];
 
   return (
@@ -107,7 +107,7 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
                   {user.displayName}
                 </h4>
                 {user.isVerified && (
-                  <span className="text-xs text-[#FACC15]">✦</span>
+                  <span className="text-xs text-[#FACC15]"></span>
                 )}
               </div>
               <p className="text-xs text-zinc-400 truncate">@{user.username}</p>
@@ -260,7 +260,7 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({
 
       {/* Footer Info */}
       <div className="px-3 text-[10px] text-zinc-500 flex flex-wrap gap-x-2 gap-y-1">
-        <span>mocinhas © 2026</span>
+        <span>mocinhas  2026</span>
         <span>•</span>
         <span>Privacidade</span>
         <span>•</span>

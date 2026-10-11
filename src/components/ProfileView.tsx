@@ -37,7 +37,7 @@ interface ProfileViewProps {
   onOpenAdminPanel?: () => void;
 }
 
-// ⏳ Live Countdown Badge for Ephemeral Content (1-Hour Lifetime)
+//  Live Countdown Badge for Ephemeral Content (1-Hour Lifetime)
 const LiveCountdownBadge: React.FC<{ createdAt: string; onExpire?: () => void }> = ({ createdAt, onExpire }) => {
   const [timeLeftStr, setTimeLeftStr] = useState<string>('');
   const [isExpiringSoon, setIsExpiringSoon] = useState<boolean>(false);
@@ -215,7 +215,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
         <div className="niuniu-card p-6 sm:p-8 text-center relative overflow-hidden">
           {/* Badge */}
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/5 border border-white/10 text-white text-xs font-bold mb-5 shadow-xs">
-            <span className="text-emerald-400">✦</span>
+            <span className="text-emerald-400"></span>
             <span>Rede Social Exclusiva</span>
           </div>
 
@@ -326,7 +326,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                           className="flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-white/10 hover:bg-white/20 border border-white/15 text-white text-xs font-extrabold cursor-pointer transition-all"
                         >
                           <Crown className="w-3.5 h-3.5 text-amber-400" />
-                          <span>Admin 👑</span>
+                          <span>Admin </span>
                         </button>
                       )}
                       <button
@@ -394,7 +394,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                     {profileUser.displayName}
                   </h1>
                   {profileUser.isVerified && (
-                    <span className="text-xs text-[#FACC15]">✦</span>
+                    <span className="text-xs text-[#FACC15]"></span>
                   )}
                   {profileUser.isPremium && (
                     <span className="flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 text-[10px] font-extrabold border border-amber-500/30" title="Usuário VIP">
@@ -565,14 +565,14 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                     />
                   )}
 
-                  {/* 🔒 LOCKED PREMIUM OVERLAY */}
+                  {/*  LOCKED PREMIUM OVERLAY */}
                   {isLocked ? (
                     <div className="absolute inset-0 bg-black/60 backdrop-blur-xs flex flex-col items-center justify-center p-2 text-center gap-1.5 z-20">
                       <div className="w-9 h-9 rounded-full bg-white text-black flex items-center justify-center shadow-lg">
                         <Lock className="w-4 h-4" />
                       </div>
                       <span className="px-2.5 py-0.5 rounded-full bg-white text-black text-[10px] font-black tracking-tight">
-                        🔒 VIP Premium
+                         VIP Premium
                       </span>
                       <span className="text-[10px] text-zinc-300 font-medium">
                         Clique para desbloquear
@@ -580,7 +580,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                     </div>
                   ) : (
                     <>
-                      {/* ⏳ Ephemeral Live Countdown Badge */}
+                      {/*  Ephemeral Live Countdown Badge */}
                       <div className="absolute bottom-2 left-2 z-10">
                         <LiveCountdownBadge createdAt={post.createdAt} onExpire={() => handlePostExpired(post.id)} />
                       </div>
@@ -602,7 +602,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
               );
             })}
 
-            {/* 🔒 Paywall Banner Card for Non-Premium Users */}
+            {/*  Paywall Banner Card for Non-Premium Users */}
             {requiresPremium && posts.length > 5 && (
               <div className="col-span-2 sm:col-span-3 p-6 sm:p-8 rounded-[28px] pod-orange shadow-2xl text-center space-y-4 my-2 relative overflow-hidden animate-fadeIn">
                 <div className="w-14 h-14 mx-auto rounded-2xl bg-black text-white flex items-center justify-center shadow-lg">
@@ -684,7 +684,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                         <Lock className="w-4 h-4" />
                       </div>
                       <span className="px-2.5 py-0.5 rounded-full bg-white text-black text-[10px] font-black tracking-tight">
-                        🔒 Vídeo VIP
+                         Vídeo VIP
                       </span>
                       <span className="text-[10px] text-zinc-300 font-medium">
                         Clique para assistir

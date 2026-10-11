@@ -47,6 +47,9 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
 }
 
 export const api = {
+  consumeUsage: () => request<any>('/usage/consume', { method: 'POST' }),
+  getUsageSettings: () => request<{ dailyMinutes: number; bindNetwork: boolean }>('/admin/usage-settings'),
+  setUsageSettings: (value: { dailyMinutes: number; bindNetwork: boolean }) => request('/admin/usage-settings', { method: 'PUT', body: JSON.stringify(value) }),
   // Auth
   async register(body: { username: string; displayName: string; email: string; password: string; gender?: string; avatar?: string; banner?: string; acceptedTerms?: boolean }): Promise<AuthResponse> {
     return request('/auth/register', { method: 'POST', body: JSON.stringify(body) });

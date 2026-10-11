@@ -294,7 +294,7 @@ export const StoryViewerModal: React.FC<StoryViewerModalProps> = ({
         >
           {/* Reaction Buttons */}
           <div className="flex items-center justify-center gap-3 bg-black/40 backdrop-blur-md py-1.5 px-3 rounded-full border border-white/10">
-            {['❤️', '🔥', '👏', '😍', '✨', '🙌'].map(emoji => (
+            {['', '', '', '', '', ''].map(emoji => (
               <button
                 key={emoji}
                 type="button"

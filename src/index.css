@@ -146,7 +146,7 @@
   animation: heart-burst 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
 }
 
-/* ============ 🌌 Feed Universo ============ */
+/* ============  Feed Universo ============ */
 .uni-sky {
   position: absolute;
   inset: 0;
@@ -192,3 +192,9 @@
 @media (prefers-reduced-motion: reduce) {
   .uni-float { animation: none; }
 }
+
+/* Shared palette for the read-only publication mode. */
+.tag-chip { flex-shrink:0; border:1px solid #ffffff26; border-radius:999px; padding:.5rem 1rem; color:#a1a1aa; background:var(--surface-card); font-size:.8rem; }
+.tag-chip.selected { background:#10b98125; border-color:var(--accent-emerald); color:var(--accent-lime); }
+button { cursor:pointer; }
+button:focus-visible, input:focus-visible { outline:2px solid var(--accent-emerald); outline-offset:3px; }

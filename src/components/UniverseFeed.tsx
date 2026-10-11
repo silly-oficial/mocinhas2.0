@@ -17,7 +17,7 @@ import { Post, PostMedia } from '../types';
 import { detectLiteDevice, isDataSaver, prefersReducedMotion } from '../utils/deviceTier';
 
 /* ==========================================================================
- * 🌌 UNIVERSO — feed de vídeos em zoom infinito
+ *  UNIVERSO — feed de vídeos em zoom infinito
  *
  * Como funciona (e por que roda em celular fraco):
  *  1. Cada vídeo é um "planeta" numa posição fixa do universo (espiral).
@@ -110,7 +110,7 @@ function buildNodes(posts: Post[]): UNode[] {
     const y = Math.sin(a) * r + (rnd(h, 3) - 0.5) * jitter * 2;
     const d = i === 0 || p.isPinned ? 250 : 165 + rnd(h, 4) * 80;
     const hue = 205 + Math.floor(rnd(h, 5) * 135); // azul → roxo → rosa
-    const title = (p.caption || '').trim().split('\n')[0].slice(0, 60) || `Publicação de ${p.user.displayName}`;
+    const title = (p.caption || '').trim().split('\n')[0].slice(0, 60) || 'Publicação';
     const isVid = m.type === 'video';
     const poster = isVid ? (posterOf(m) || m.thumbnail || m.url) : (m.url || m.thumbnail);
     return {
@@ -861,7 +861,7 @@ export const UniverseFeed: React.FC<UniverseFeedProps> = ({
       )}
       {!isLoading && nodes.length === 0 && (
         <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-center px-8 pointer-events-none">
-          <div className="text-4xl">🪐</div>
+          <div className="text-4xl"></div>
           <h3 className="font-heading text-base font-extrabold text-white">Nenhum vídeo no universo ainda</h3>
           <p className="text-xs text-zinc-400 max-w-xs">Quando novos vídeos forem publicados, eles aparecem aqui como planetas.</p>
         </div>
@@ -908,7 +908,7 @@ export const UniverseFeed: React.FC<UniverseFeedProps> = ({
                   </span>
                   <span className="min-w-0">
                     <span className="block text-xs font-bold text-white truncate">{n.title}</span>
-                    <span className="block text-[11px] text-zinc-400 truncate">@{n.post.user.username}</span>
+                    
                   </span>
                 </button>
               ))}
@@ -972,33 +972,7 @@ export const UniverseFeed: React.FC<UniverseFeedProps> = ({
             lite ? 'bg-black/85' : 'bg-black/60 backdrop-blur-md'
           }`}
         >
-          <button
-            onClick={() => onNavigateUser?.(focusNode.post.user.username)}
-            className="shrink-0 cursor-pointer"
-            aria-label={`Perfil de ${focusNode.post.user.displayName}`}
-          >
-            <img
-              src={focusNode.post.user.avatar}
-              alt=""
-              loading="lazy"
-              referrerPolicy="no-referrer"
-              className="w-10 h-10 rounded-full object-cover border border-white/30"
-            />
-          </button>
-          <div className="min-w-0 flex-1">
-            <div className="text-xs font-extrabold text-white truncate">{focusNode.post.user.displayName}</div>
-            <div className="text-[11px] text-zinc-300 line-clamp-2">{focusNode.title}</div>
-            <div className="mt-0.5 flex items-center gap-3 text-[11px] text-zinc-400">
-              <span className="flex items-center gap-1">
-                <Heart className="w-3 h-3" />
-                {focusNode.post.likesCount}
-              </span>
-              <span className="flex items-center gap-1">
-                <MessageCircle className="w-3 h-3" />
-                {focusNode.post.commentsCount}
-              </span>
-            </div>
-          </div>
+          <div className="min-w-0 flex-1 text-sm text-white line-clamp-2">{focusNode.title}</div>
           {allowVideo && (
             <button
               onClick={() => setSoundOn(v => !v)}

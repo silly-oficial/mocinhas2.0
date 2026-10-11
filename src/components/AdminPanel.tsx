@@ -1,3 +1,4 @@
+import { UsageSettings } from './UsageSettings';
 import React, { useState, useEffect } from 'react';
 import { 
   ShieldAlert, Users, FileText, Bell, Trash2, CheckCircle2, XCircle, 
@@ -67,7 +68,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose, onPostCreated }
     setNewCatName('');
     setNewCatDesc('');
     sounds.playSparkle();
-    setStatusMessage('Categoria criada com sucesso! 🏷️✨');
+    setStatusMessage('Categoria criada com sucesso! ');
     setTimeout(() => setStatusMessage(null), 3000);
   };
 
@@ -96,10 +97,10 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose, onPostCreated }
   const [caption, setCaption] = useState<string>('');
   const [isTemporary, setIsTemporary] = useState<boolean>(false);
   const [durationHours, setDurationHours] = useState<number>(24);
-  const [location, setLocation] = useState<string>('Painel Oficial Mocinhas 👑');
+  const [location, setLocation] = useState<string>('');
 
   // Broadcast State
-  const [broadcastTitle, setBroadcastTitle] = useState<string>('✨ Anúncio Oficial da Administração');
+  const [broadcastTitle, setBroadcastTitle] = useState<string>(' Anúncio Oficial da Administração');
   const [broadcastText, setBroadcastText] = useState<string>('');
 
   const sampleImages = [
@@ -193,7 +194,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose, onPostCreated }
     navigator.clipboard.writeText(rawSql);
     setCopiedSql(true);
     sounds.playSparkle();
-    setStatusMessage('Código SQL copiado para a área de transferência! Cole no SQL Editor do Supabase. 📋🌸');
+    setStatusMessage('Código SQL copiado para a área de transferência! Cole no SQL Editor do Supabase. ');
     setTimeout(() => {
       setCopiedSql(false);
       setStatusMessage(null);
@@ -215,7 +216,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose, onPostCreated }
       });
       setSupabaseStatus(res.status);
       sounds.playSparkle();
-      setStatusMessage('Configurações do Supabase salvas e conectadas com sucesso! 🌸✨');
+      setStatusMessage('Configurações do Supabase salvas e conectadas com sucesso! ');
       setTimeout(() => setStatusMessage(null), 4000);
     } catch (err: any) {
       sounds.playPop();
@@ -249,7 +250,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose, onPostCreated }
       if (!res.ok) throw new Error(data.error || 'Erro ao salvar Syncpay');
 
       sounds.playSparkle();
-      setStatusMessage('Configurações da Syncpay salvas e ativadas com sucesso! 💳✨');
+      setStatusMessage('Configurações da Syncpay salvas e ativadas com sucesso! ');
       setTimeout(() => setStatusMessage(null), 4000);
     } catch (err: any) {
       setStatusMessage(err.message || 'Erro ao salvar configurações Syncpay.');
@@ -290,13 +291,13 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose, onPostCreated }
     const isPdf = file.type === 'application/pdf' || ['pdf', 'doc', 'docx', 'txt'].includes(ext);
 
     if (!isImage && !isGif && !isVideo && !isAudio && !isPdf) {
-      setStatusMessage('⚠️ Formato não suportado. Envie fotos, GIFs, vídeos, PDFs ou áudios válidos.');
+      setStatusMessage(' Formato não suportado. Envie fotos, GIFs, vídeos, PDFs ou áudios válidos.');
       return;
     }
 
     const maxSize = isVideo ? 50 * 1024 * 1024 : isAudio ? 25 * 1024 * 1024 : isPdf ? 20 * 1024 * 1024 : 15 * 1024 * 1024;
     if (file.size > maxSize) {
-      setStatusMessage(`⚠️ Arquivo muito grande. Tamanho máximo: ${Math.round(maxSize / (1024 * 1024))}MB.`);
+      setStatusMessage(` Arquivo muito grande. Tamanho máximo: ${Math.round(maxSize / (1024 * 1024))}MB.`);
       return;
     }
 
@@ -331,7 +332,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose, onPostCreated }
           else if (selectedFile.type === 'application/pdf' || ['pdf', 'doc', 'docx', 'txt'].includes(ext)) finalMediaType = 'pdf';
           else finalMediaType = 'image';
         }
-        // 🪐 poster leve para o feed Universo (só para vídeos enviados do aparelho)
+        //  poster leve para o feed Universo (só para vídeos enviados do aparelho)
         if (finalMediaType === 'video') {
           setStatusMessage('Gerando miniatura do vídeo...');
           posterUrl = await uploadVideoPoster(selectedFile);
@@ -362,7 +363,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose, onPostCreated }
       }
 
       sounds.playSparkle();
-      setStatusMessage(isTemporary ? 'Publicação temporária criada com sucesso! ⏰' : 'Publicação permanente criada com sucesso! ✨');
+      setStatusMessage(isTemporary ? 'Publicação temporária criada com sucesso! ' : 'Publicação permanente criada com sucesso! ');
       setCaption('');
       setMediaUrl('');
       setSelectedFile(null);
@@ -494,7 +495,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose, onPostCreated }
       });
       if (res.ok) {
         sounds.playSparkle();
-        setStatusMessage('Alerta global disparado com sucesso para todos os usuários! 📢');
+        setStatusMessage('Alerta global disparado com sucesso para todos os usuários! ');
         setBroadcastText('');
         setTimeout(() => setStatusMessage(null), 4000);
       }
@@ -517,7 +518,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose, onPostCreated }
             </div>
             <div>
               <h2 className="text-lg font-black text-white flex items-center gap-2">
-                Painel Administrativo <span className="text-xs px-2 py-0.5 rounded-full bg-white/10 text-zinc-300 font-bold border border-white/15">Admin 👑</span>
+                Painel Administrativo <span className="text-xs px-2 py-0.5 rounded-full bg-white/10 text-zinc-300 font-bold border border-white/15">Admin </span>
               </h2>
               <p className="text-xs text-zinc-300/75">Gerenciamento completo, postagens temporárias/permanentes e moderação</p>
             </div>
@@ -637,7 +638,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose, onPostCreated }
             }`}
           >
             <Database className="w-4 h-4 text-emerald-400" />
-            <span>⚡ Integração Supabase</span>
+            <span> Integração Supabase</span>
           </button>
         </div>
 
@@ -653,9 +654,9 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose, onPostCreated }
 
           {/* TAB 1: STATS */}
           {activeTab === 'stats' && (
-            <div className="space-y-6 animate-fadeIn">
+            <div className="space-y-6 animate-fadeIn"><UsageSettings />
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                <div className="p-5 rounded-2xl bg-[#240C1D] border border-white/10 flex flex-col justify-between">
+                <div className="p-5 rounded-2xl bg-[#13131D] border border-white/10 flex flex-col justify-between">
                   <div className="flex items-center justify-between text-zinc-300">
                     <span className="text-xs font-semibold">Total Usuários</span>
                     <Users className="w-5 h-5 text-zinc-400" />
@@ -666,7 +667,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose, onPostCreated }
                   </div>
                 </div>
 
-                <div className="p-5 rounded-2xl bg-[#240C1D] border border-white/10 flex flex-col justify-between">
+                <div className="p-5 rounded-2xl bg-[#13131D] border border-white/10 flex flex-col justify-between">
                   <div className="flex items-center justify-between text-zinc-300">
                     <span className="text-xs font-semibold">Publicações</span>
                     <FileText className="w-5 h-5 text-zinc-400" />
@@ -677,7 +678,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose, onPostCreated }
                   </div>
                 </div>
 
-                <div className="p-5 rounded-2xl bg-[#240C1D] border border-white/10 flex flex-col justify-between">
+                <div className="p-5 rounded-2xl bg-[#13131D] border border-white/10 flex flex-col justify-between">
                   <div className="flex items-center justify-between text-zinc-300">
                     <span className="text-xs font-semibold">Histórias (Stories)</span>
                     <Clock className="w-5 h-5 text-zinc-400" />
@@ -688,7 +689,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose, onPostCreated }
                   </div>
                 </div>
 
-                <div className="p-5 rounded-2xl bg-[#240C1D] border border-white/10 flex flex-col justify-between">
+                <div className="p-5 rounded-2xl bg-[#13131D] border border-white/10 flex flex-col justify-between">
                   <div className="flex items-center justify-between text-zinc-300">
                     <span className="text-xs font-semibold">Mensagens DMs</span>
                     <Radio className="w-5 h-5 text-zinc-400" />
@@ -706,42 +707,21 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose, onPostCreated }
                   Privilégios de Administrador Ativos
                 </h3>
                 <ul className="text-xs text-zinc-300/80 space-y-2 list-disc pl-4">
-                  <li>Criação de publicações e vídeos em formato <strong>Permanente</strong> ou <strong>Temporário (Expiração automática)</strong>.</li>
+                  <li>Criação de publicações e vídeos permanentes.</li>
                   <li>Gerenciamento de contas de usuários, conceder selo de verificação oficial e privilégios de admin.</li>
                   <li>Moderação em tempo real com exclusão de publicações ou comentários inadequados.</li>
                   <li>Disparo de alertas e avisos globais no painel de notificações de todos os usuários.</li>
                 </ul>
               </div>
 
-              {/* Emergency Cleanup Card */}
-              <div className="p-6 rounded-2xl bg-[#161622] border border-white/20 space-y-4 flex flex-col sm:flex-row items-center justify-between gap-4">
-                <div>
-                  <h4 className="text-sm font-bold text-zinc-200 flex items-center gap-2">
-                    <Trash2 className="w-4 h-4 text-zinc-400" />
-                    Limpeza de Emergência de Conteúdo Obsoleto
-                  </h4>
-                  <p className="text-xs text-zinc-300/80 mt-1">
-                    Força a remoção imediata de todos os posts e stories expirados na base de dados.
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  onClick={handleEmergencyCleanup}
-                  disabled={isLoading}
-                  className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-red-600 to-red-700 hover:opacity-90 text-white font-bold text-xs shadow-lg shadow-red-500/30 flex items-center gap-2 cursor-pointer whitespace-nowrap"
-                >
-                  <Trash2 className="w-4 h-4" />
-                  <span>{isLoading ? 'Limpando...' : 'Executar limpeza agora'}</span>
-                </button>
-              </div>
+              <p className="text-sm text-zinc-400">Exclusão automática desativada. Posts só são removidos manualmente pela administração.</p>
             </div>
           )}
 
-          {/* TAB: ANALYTICS & USAGE CHARTS */}
           {activeTab === 'analytics' && (
             <div className="space-y-6 animate-fadeIn">
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div className="p-5 rounded-2xl bg-[#240C1D] border border-white/10 flex flex-col justify-between">
+                <div className="p-5 rounded-2xl bg-[#13131D] border border-white/10 flex flex-col justify-between">
                   <div className="flex items-center justify-between text-zinc-300">
                     <span className="text-xs font-semibold">Posts (Últimas 24h)</span>
                     <FileText className="w-5 h-5 text-zinc-400" />
@@ -757,7 +737,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose, onPostCreated }
                   </div>
                 </div>
 
-                <div className="p-5 rounded-2xl bg-[#240C1D] border border-white/10 flex flex-col justify-between">
+                <div className="p-5 rounded-2xl bg-[#13131D] border border-white/10 flex flex-col justify-between">
                   <div className="flex items-center justify-between text-zinc-300">
                     <span className="text-xs font-semibold">Usuários Ativos (24h)</span>
                     <Users className="w-5 h-5 text-zinc-400" />
@@ -774,7 +754,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose, onPostCreated }
                   </div>
                 </div>
 
-                <div className="p-5 rounded-2xl bg-[#240C1D] border border-white/10 flex flex-col justify-between">
+                <div className="p-5 rounded-2xl bg-[#13131D] border border-white/10 flex flex-col justify-between">
                   <div className="flex items-center justify-between text-zinc-300">
                     <span className="text-xs font-semibold">Taxa de Engajamento</span>
                     <TrendingUp className="w-5 h-5 text-zinc-400" />
@@ -964,44 +944,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose, onPostCreated }
                   </div>
                 </div>
 
-                {/* Permanent vs Temporary Toggle */}
-                <div className="p-4 rounded-2xl bg-[#111118] border border-white/15 space-y-3">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <span className="text-xs font-bold text-white block">Modo de Publicação</span>
-                      <span className="text-[10px] text-zinc-300/70">Escolha se o post fica permanente ou expira após um tempo</span>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => setIsTemporary(!isTemporary)}
-                      className={`px-4 py-2 rounded-xl text-xs font-extrabold transition-all cursor-pointer ${
-                        isTemporary 
-                          ? 'bg-amber-500 text-black shadow-md shadow-amber-500/30' 
-                          : 'bg-emerald-600 text-white shadow-md shadow-emerald-600/30'
-                      }`}
-                    >
-                      {isTemporary ? '⏰ Temporário (Expira)' : '📌 Permanente'}
-                    </button>
-                  </div>
-
-                  {isTemporary && (
-                    <div className="pt-2 border-t border-white/10 flex items-center gap-3">
-                      <span className="text-xs text-zinc-300 font-semibold">Duração da Expiração:</span>
-                      <select
-                        value={durationHours}
-                        onChange={(e) => setDurationHours(Number(e.target.value))}
-                        className="px-3 py-1.5 rounded-xl bg-[#171724] border border-white/15 text-white text-xs font-bold focus:outline-none"
-                      >
-                        <option value={1}>1 Hora</option>
-                        <option value={6}>6 Horas</option>
-                        <option value={12}>12 Horas</option>
-                        <option value={24}>24 Horas (1 Dia)</option>
-                        <option value={72}>72 Horas (3 Dias)</option>
-                        <option value={168}>168 Horas (7 Dias)</option>
-                      </select>
-                    </div>
-                  )}
-                </div>
+                <p className="text-xs text-zinc-400">Publicações permanentes. Exclusão automática desativada.</p>
 
                 {/* Caption */}
                 <div className="space-y-1.5">
@@ -1033,7 +976,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose, onPostCreated }
               <h3 className="text-xs font-bold text-zinc-200 uppercase tracking-wider">Usuários Registrados na Plataforma</h3>
               <div className="space-y-2.5">
                 {usersList.map((u) => (
-                  <div key={u.id} className="p-3.5 rounded-2xl bg-[#240C1D] border border-white/10 flex items-center justify-between gap-3">
+                  <div key={u.id} className="p-3.5 rounded-2xl bg-[#13131D] border border-white/10 flex items-center justify-between gap-3">
                     <div className="flex items-center gap-3">
                       <img src={u.avatar} alt={u.username} className="w-10 h-10 rounded-full object-cover border border-white/15" />
                       <div>
@@ -1041,7 +984,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose, onPostCreated }
                           <span className="text-xs font-bold text-white">{u.displayName}</span>
                           {u.isVerified && <span className="text-zinc-400 text-xs">✓</span>}
                           {u.isAdmin && <span className="px-1.5 py-0.5 rounded bg-white/10 text-zinc-300 text-[9px] font-bold">Admin</span>}
-                          {u.isPremium && <span className="px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 text-[9px] font-bold">VIP 💎</span>}
+                          {u.isPremium && <span className="px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 text-[9px] font-bold">VIP </span>}
                         </div>
                         <span className="text-[11px] text-zinc-400">@{u.username} • {u.email}</span>
                       </div>
@@ -1055,7 +998,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose, onPostCreated }
                         }`}
                         title="Alternar Premium VIP"
                       >
-                        {u.isPremium ? 'Premium 💎' : 'Dar Premium'}
+                        {u.isPremium ? 'Premium ' : 'Dar Premium'}
                       </button>
 
                       <button
@@ -1100,7 +1043,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose, onPostCreated }
               <h3 className="text-xs font-bold text-zinc-200 uppercase tracking-wider">Moderação de Publicações Recentes</h3>
               <div className="space-y-3">
                 {postsList.map((p) => (
-                  <div key={p.id} className="p-4 rounded-2xl bg-[#240C1D] border border-white/10 flex items-start justify-between gap-4">
+                  <div key={p.id} className="p-4 rounded-2xl bg-[#13131D] border border-white/10 flex items-start justify-between gap-4">
                     <div className="flex items-start gap-3">
                       {p.media[0] && (
                         <img src={p.media[0].thumbnail || p.media[0].url} alt="Post" className="w-14 h-14 rounded-xl object-cover shrink-0 border border-white/10" />
@@ -1131,7 +1074,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose, onPostCreated }
           {/* TAB 5: BROADCAST */}
           {activeTab === 'broadcast' && (
             <form onSubmit={handleSendBroadcast} className="space-y-4 animate-fadeIn">
-              <div className="p-5 rounded-2xl bg-[#240C1D] border border-white/10 space-y-4">
+              <div className="p-5 rounded-2xl bg-[#13131D] border border-white/10 space-y-4">
                 <h3 className="text-xs font-bold text-zinc-200 uppercase tracking-wider flex items-center gap-2">
                   <Radio className="w-4 h-4 text-zinc-400" />
                   Enviar Alerta Global para Todos os Usuários
@@ -1457,7 +1400,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose, onPostCreated }
                     className="px-4 py-2.5 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/40 text-xs font-bold flex items-center justify-center gap-2 cursor-pointer transition-all shrink-0"
                   >
                     {copiedSql ? <CheckCircle2 className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
-                    <span>{copiedSql ? 'Copiado com Sucesso! 🌸' : 'Copiar Código SQL'}</span>
+                    <span>{copiedSql ? 'Copiado com Sucesso! ' : 'Copiar Código SQL'}</span>
                   </button>
                 </div>
 

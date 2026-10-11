@@ -47,7 +47,7 @@ export const TermsModal: React.FC<TermsModalProps> = ({
                 </span>
               </div>
               <p className="text-[11px] text-zinc-300/70">
-                Diretrizes de convivência, moderação efêmera e segurança jurídica • mocinhas ✦
+                Diretrizes de convivência, moderação efêmera e segurança jurídica • mocinhas 
               </p>
             </div>
           </div>

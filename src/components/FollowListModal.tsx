@@ -132,7 +132,7 @@ export const FollowListModal: React.FC<FollowListModalProps> = ({
           {isLoading ? (
             <div className="flex flex-col items-center justify-center h-40 gap-2">
               <div className="w-8 h-8 border-3 border-white/20 border-t-transparent rounded-full animate-spin" />
-              <span className="text-xs text-zinc-400 font-medium">Carregando conexões... ✦</span>
+              <span className="text-xs text-zinc-400 font-medium">Carregando conexões... </span>
             </div>
           ) : filteredList.length === 0 ? (
             <div className="text-center py-12 text-zinc-400 text-xs">
