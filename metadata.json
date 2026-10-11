@@ -1,0 +1,11 @@
+{
+  "name": " mocinhas",
+  "description": "Rede social exclusiva mocinhas com chat profissional, grupos públicos e privados, reels, stories, publicações e design escuro moderno.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
