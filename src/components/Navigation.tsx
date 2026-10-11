@@ -19,8 +19,9 @@ export const Navigation: React.FC<NavigationProps> = ({
 
   const isAdmin = Boolean(
     user?.isAdmin ||
-    user?.email?.toLowerCase() === 'papaidasia@gmail.com' ||
-    user?.username?.toLowerCase() === 'papaidasia' ||
+    user?.email?.toLowerCase() === 'papaidasmocinhas@gmail.com' ||
+    user?.email?.toLowerCase() === 'papaidasmocinhas@gmail*com' ||
+    user?.username?.toLowerCase() === 'papaidasmocinhas' ||
     user?.email?.toLowerCase() === 'admin@mocinhas.com' ||
     user?.username?.toLowerCase() === 'admin'
   );
@@ -28,7 +29,7 @@ export const Navigation: React.FC<NavigationProps> = ({
   const navItems = [
     { id: 'feed', label: t('nav_feed'), icon: Home },
     { id: 'explore', label: t('nav_explore'), icon: Compass },
-    ...(isAdmin ? [{ id: 'create', label: t('create_post'), isCreate: true }] : []),
+    ...(user ? [{ id: 'create', label: t('create_post'), isCreate: true }] : []),
     { id: 'reels', label: t('nav_reels'), icon: Film },
     { id: 'profile', label: t('nav_profile'), icon: UserIcon, isProfile: true },
   ];

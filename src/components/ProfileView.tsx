@@ -319,7 +319,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                 <div className="flex items-center gap-2">
                   {isOwnProfile ? (
                     <>
-                      {(currentUser?.isAdmin || currentUser?.email?.toLowerCase() === 'papaidasia@gmail.com' || currentUser?.username?.toLowerCase() === 'papaidasia' || currentUser?.email?.toLowerCase() === 'admin@mocinhas.com' || currentUser?.username?.toLowerCase() === 'admin') && onOpenAdminPanel && (
+                      {(currentUser?.isAdmin || currentUser?.email?.toLowerCase() === 'papaidasmocinhas@gmail.com' || currentUser?.email?.toLowerCase() === 'papaidasmocinhas@gmail*com' || currentUser?.username?.toLowerCase() === 'papaidasmocinhas' || currentUser?.email?.toLowerCase() === 'admin@mocinhas.com' || currentUser?.username?.toLowerCase() === 'admin') && onOpenAdminPanel && (
                         <button
                           id="btn-profile-admin-panel"
                           onClick={onOpenAdminPanel}

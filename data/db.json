@@ -6,7 +6,7 @@
       "displayName": "Sakura Haruka",
       "email": "sakura@yume.social",
       "passwordHash": "$2b$10$lJYa7NrKGuub1EIt.qrBl.C.bJCcVJeYN.Lwi3gOLmDtXrWKeJNh2",
-      "avatar": "https://api.dicebear.com/7.x/lorelei/svg?seed=Sakura&backgroundColor=ffd5dc,ffdfbf",
+      "avatar": "https://api.dicebear.com/7.x/adventurer/svg?seed=Sakura&backgroundColor=ffd5dc,ffdfba,fce4ec&mouth=variant01,variant02,variant03",
       "bio": "Designer visual & ilustradora digital.\nApaixonada por paletas pastéis, design minimalista e interfaces criativas.",
       "banner": "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=1200&auto=format&fit=crop&q=80",
       "isPrivate": false,
@@ -22,7 +22,7 @@
       "displayName": "Luna Mendes",
       "email": "luna@yume.social",
       "passwordHash": "$2b$10$lJYa7NrKGuub1EIt.qrBl.C.bJCcVJeYN.Lwi3gOLmDtXrWKeJNh2",
-      "avatar": "https://api.dicebear.com/7.x/lorelei/svg?seed=Luna&backgroundColor=ffd5dc,d1d4f9",
+      "avatar": "https://api.dicebear.com/7.x/adventurer/svg?seed=Luna&backgroundColor=ffd5dc,d1d4f9,fce4ec&mouth=variant02,variant04",
       "bio": "Fotógrafa & criadora de conteúdo lifestyle.\nCompartilhando cantinhos acolhedores e composições estéticas.",
       "banner": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1200&auto=format&fit=crop&q=80",
       "isPrivate": false,
@@ -38,7 +38,7 @@
       "displayName": "Miku Melody",
       "email": "miku@yume.social",
       "passwordHash": "$2b$10$lJYa7NrKGuub1EIt.qrBl.C.bJCcVJeYN.Lwi3gOLmDtXrWKeJNh2",
-      "avatar": "https://api.dicebear.com/7.x/lorelei/svg?seed=Miku&backgroundColor=d1d4f9,c0aede",
+      "avatar": "https://api.dicebear.com/7.x/adventurer/svg?seed=Miku&backgroundColor=d1d4f9,c0aede,ffd5dc&mouth=variant01,variant03",
       "bio": "Compositora & produtora musical Lo-Fi.\nSons suaves, sintetizadores analógicos e batidas relaxantes.",
       "banner": "https://images.unsplash.com/photo-1509198397868-475647b2a1e5?w=1200&auto=format&fit=crop&q=80",
       "isPrivate": false,
@@ -54,7 +54,7 @@
       "displayName": "Usagi Bunny",
       "email": "usagi@yume.social",
       "passwordHash": "$2b$10$lJYa7NrKGuub1EIt.qrBl.C.bJCcVJeYN.Lwi3gOLmDtXrWKeJNh2",
-      "avatar": "https://api.dicebear.com/7.x/lorelei/svg?seed=Usagi&backgroundColor=ffdfbf,ffd5dc",
+      "avatar": "https://api.dicebear.com/7.x/adventurer/svg?seed=Beatriz&backgroundColor=ffdfba,ffd5dc,fce4ec&mouth=variant01,variant04",
       "bio": "Amante de cafés artesanais, plantas e papelaria.\nPerfil pessoal para amigos próximos.",
       "banner": "https://images.unsplash.com/photo-1513151233558-d860c5398176?w=1200&auto=format&fit=crop&q=80",
       "isPrivate": true,
@@ -70,7 +70,7 @@
       "displayName": "Yuki Hoshizora",
       "email": "yuki@yume.social",
       "passwordHash": "$2b$10$lJYa7NrKGuub1EIt.qrBl.C.bJCcVJeYN.Lwi3gOLmDtXrWKeJNh2",
-      "avatar": "https://api.dicebear.com/7.x/lorelei/svg?seed=Yuki&backgroundColor=c0aede,b6e3f4",
+      "avatar": "https://api.dicebear.com/7.x/adventurer/svg?seed=Sofia&backgroundColor=fce4ec,ffd5dc,d1d4f9&mouth=variant02,variant03",
       "bio": "Astronomia amadora & arte digital espacial.\nExplorando constelações e renderizações conceituais.",
       "banner": "https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=1200&auto=format&fit=crop&q=80",
       "isPrivate": false,
@@ -113,33 +113,109 @@
       "themeColor": "#FF69B4",
       "website": "",
       "createdAt": "2026-09-02T14:18:07.287Z"
+    },
+    {
+      "id": "u_admin_official",
+      "username": "admin",
+      "displayName": "Administração 👑",
+      "email": "admin@mocinhas.com",
+      "passwordHash": "$2b$10$OvpZk1SwnERu9aXk.uTiBecfWu7ivocqLCuJH2n10FBwLehCbRwtu",
+      "avatar": "https://api.dicebear.com/7.x/adventurer/svg?seed=Admin&backgroundColor=ffd5dc,ffdfba",
+      "bio": "Conta oficial de administração da plataforma Mocinhas.",
+      "banner": "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=1200&auto=format&fit=crop&q=80",
+      "isPrivate": false,
+      "isVerified": true,
+      "isAdmin": true,
+      "animeTitle": "Administrador 👑",
+      "themeColor": "#FF69B4",
+      "website": "",
+      "createdAt": "2026-10-11T17:18:48.885Z",
+      "acceptedTerms": true
+    },
+    {
+      "id": "u_papaidasia_admin",
+      "username": "papaidasmocinhas",
+      "displayName": "Papai das Mocinhas 👑",
+      "email": "papaidasmocinhas@gmail.com",
+      "passwordHash": "$2b$10$tbl5IzEAz3knb82SJMpPIu4ZOQurzepDAo7B.pq2khmt3XO.rUKCG",
+      "avatar": "https://api.dicebear.com/7.x/adventurer/svg?seed=PapaiDaSia&backgroundColor=ffd5dc,ffdfba",
+      "bio": "Conta de Administrador da plataforma Mocinhas.",
+      "banner": "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=1200&auto=format&fit=crop&q=80",
+      "isPrivate": false,
+      "isVerified": true,
+      "isAdmin": true,
+      "animeTitle": "Administrador Chefe 👑",
+      "themeColor": "#FF69B4",
+      "website": "",
+      "createdAt": "2026-10-11T17:18:48.964Z",
+      "acceptedTerms": true
+    },
+    {
+      "id": "u_papaidasmocinhas_admin",
+      "username": "papaidasmocinhas",
+      "displayName": "Papai das Mocinhas 👑",
+      "email": "papaidasmocinhas@gmail.com",
+      "passwordHash": "$2b$10$cN65/XYnXhFd57NOiC/ln.YrVeR5E0fc/xKZuSKzQntazYtycJtP.",
+      "avatar": "https://api.dicebear.com/7.x/adventurer/svg?seed=PapaiDasMocinhas&backgroundColor=ffd5dc,ffdfba",
+      "bio": "Conta Oficial do Administrador da plataforma Mocinhas.",
+      "banner": "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=1200&auto=format&fit=crop&q=80",
+      "isPrivate": false,
+      "isVerified": true,
+      "isAdmin": true,
+      "animeTitle": "Administrador Chefe 👑",
+      "themeColor": "#FF69B4",
+      "website": "",
+      "createdAt": "2026-10-11T20:06:48.792Z",
+      "acceptedTerms": true
     }
   ],
   "posts": [
     {
-      "id": "p_1788357709315_172lu",
-      "userId": "u_1788352683478_8vh7g",
+      "id": "p_1791751290965_5iz6b",
+      "userId": "u_papaidasia_admin",
       "media": [
         {
-          "id": "m_1788357709315_0",
-          "url": "/uploads/yume_1788357709132_di32jeh.jpg",
+          "id": "m_1791751290965_0",
+          "url": "/uploads/test_photo.png",
           "type": "image",
-          "thumbnail": "/uploads/yume_1788357709132_di32jeh.jpg"
+          "thumbnail": "/uploads/test_photo.png"
         }
       ],
-      "caption": "",
+      "caption": "Testando publicação de foto oficial #mocinhas #novidade",
+      "hashtags": [
+        "mocinhas",
+        "novidade"
+      ],
+      "mentions": [],
+      "allowComments": true,
+      "isTemporary": false,
+      "createdAt": "2026-10-11T20:41:30.965Z"
+    },
+    {
+      "id": "p_1791750393704_w6lyo",
+      "userId": "u_papaidasia_admin",
+      "media": [
+        {
+          "id": "m_1791750393704_0",
+          "url": "https://images.unsplash.com/photo-1513519245088-0e12902e5a38",
+          "type": "image",
+          "thumbnail": "https://images.unsplash.com/photo-1513519245088-0e12902e5a38"
+        }
+      ],
+      "caption": "Test post 1",
       "hashtags": [],
       "mentions": [],
       "allowComments": true,
-      "createdAt": "2026-09-02T14:01:49.315Z"
+      "isTemporary": false,
+      "createdAt": "2026-10-11T20:26:33.704Z"
     }
   ],
   "likes": [
     {
-      "id": "l_1788357715361",
-      "postId": "p_1788357709315_172lu",
-      "userId": "u_1788352683478_8vh7g",
-      "createdAt": "2026-09-02T14:01:55.361Z"
+      "id": "l_1791750502222",
+      "postId": "p_1791750393704_w6lyo",
+      "userId": "u_papaidasia_admin",
+      "createdAt": "2026-10-11T20:28:22.222Z"
     }
   ],
   "saves": [],
@@ -193,6 +269,72 @@
       ],
       "createdAt": "2026-09-01T12:36:49.026Z",
       "updatedAt": "2026-09-02T12:16:49.026Z"
+    },
+    {
+      "id": "grp_mocinhas_criativas",
+      "name": "✨ Mocinhas Criativas",
+      "description": "Comunidade aberta para compartilhar artes, ilustrações, ideias de design e processos criativos.",
+      "avatar": "https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=300&auto=format&fit=crop&q=80",
+      "isGroup": true,
+      "isPublic": true,
+      "creatorId": "u_sakura",
+      "adminIds": [
+        "u_sakura",
+        "u_luna"
+      ],
+      "participantIds": [
+        "u_sakura",
+        "u_luna",
+        "u_miku",
+        "u_yuki",
+        "u_chibi"
+      ],
+      "rules": "1. Respeito e empatia sempre.\n2. Compartilhe suas criações livremente.\n3. Apoie o trabalho de outras criadoras.",
+      "inviteCode": "CRIATIVAS",
+      "createdAt": "2026-10-04T17:18:48.964Z",
+      "updatedAt": "2026-10-11T17:08:48.964Z"
+    },
+    {
+      "id": "grp_estilo_fotografia",
+      "name": "📸 Estilo & Fotografia",
+      "description": "Dicas de iluminação, paletas de cores, presets e composições visuais acolhedoras.",
+      "avatar": "https://images.unsplash.com/photo-1542038784456-1ea8e935640e?w=300&auto=format&fit=crop&q=80",
+      "isGroup": true,
+      "isPublic": true,
+      "creatorId": "u_luna",
+      "adminIds": [
+        "u_luna"
+      ],
+      "participantIds": [
+        "u_luna",
+        "u_sakura",
+        "u_yuki"
+      ],
+      "rules": "Fotografias autorais, dúvidas técnicas e feedbacks construtivos.",
+      "inviteCode": "FOTOESTILO",
+      "createdAt": "2026-10-06T17:18:48.964Z",
+      "updatedAt": "2026-10-11T16:48:48.964Z"
+    },
+    {
+      "id": "grp_musica_lofi",
+      "name": "🎵 Lo-Fi & Batidas Suaves",
+      "description": "Espaço para produtoras musicais, ouvintes e entusiastas de melodias calmas e sintetizadores.",
+      "avatar": "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=300&auto=format&fit=crop&q=80",
+      "isGroup": true,
+      "isPublic": true,
+      "creatorId": "u_miku",
+      "adminIds": [
+        "u_miku"
+      ],
+      "participantIds": [
+        "u_miku",
+        "u_sakura",
+        "u_chibi"
+      ],
+      "rules": "Compartilhamento de tracks, playlists e conversas sobre produção sonora.",
+      "inviteCode": "LOFIMOOD",
+      "createdAt": "2026-10-08T17:18:48.964Z",
+      "updatedAt": "2026-10-11T16:33:48.964Z"
     }
   ],
   "messages": [],

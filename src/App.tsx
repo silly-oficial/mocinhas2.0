@@ -41,12 +41,12 @@ const MainApp: React.FC = () => {
   // Feed Data
   const [feedPosts, setFeedPosts] = useState<Post[]>([]);
   const [feedTab, setFeedTab] = useState<'for_you' | 'following'>('for_you');
-  // 'universe' = feed de vídeos em zoom (padrão) | 'list' = feed clássico em lista
+  // 'list' = feed clássico em lista (padrão) | 'universe' = feed cósmico em zoom
   const [feedMode, setFeedMode] = useState<'universe' | 'list'>(() => {
     try {
-      return localStorage.getItem('mocinhas_feed_mode') === 'list' ? 'list' : 'universe';
+      return localStorage.getItem('mocinhas_feed_mode') === 'universe' ? 'universe' : 'list';
     } catch {
-      return 'universe';
+      return 'list';
     }
   });
   const [isFeedLoading, setIsFeedLoading] = useState<boolean>(true);
@@ -286,7 +286,7 @@ const MainApp: React.FC = () => {
                       >
                         Explorar Criadoras
                       </button>
-                      {(user?.isAdmin || user?.email?.toLowerCase() === 'papaidasia@gmail.com' || user?.username?.toLowerCase() === 'papaidasia' || user?.email?.toLowerCase() === 'admin@mocinhas.com' || user?.username?.toLowerCase() === 'admin') && (
+                      {user && (
                         <button
                           onClick={() => handleOpenCreateModal('post')}
                           className="px-5 py-2 rounded-full bg-white text-black text-xs font-black shadow-md cursor-pointer hover:bg-neutral-200 transition-colors"
@@ -492,8 +492,17 @@ const MainApp: React.FC = () => {
         <CreatePostModal
           defaultMode={createDefaultMode}
           onClose={() => setIsCreateModalOpen(false)}
-          onPostCreated={() => {
+          onPostCreated={(newPost) => {
+            if (newPost) {
+              setFeedPosts(prev => [newPost, ...prev.filter(p => p.id !== newPost.id)]);
+            }
+            setFeedTab('for_you');
+            setFeedMode('list');
+            setActiveView('feed');
             loadFeedData();
+            try {
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            } catch {}
           }}
         />
       )}

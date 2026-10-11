@@ -79,7 +79,7 @@ export const LanguageModal: React.FC<LanguageModalProps> = ({ isOpen = true, onC
                 onChange={(e) => setAutoTranslateEnabled(e.target.checked)}
                 className="sr-only peer"
               />
-              <div className="w-10 h-5 bg-stone-700 peer-focus:outline-hidden rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-stone-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-white/50" />
+              <div className="w-10 h-5 bg-[#252538] peer-focus:outline-hidden rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-white" />
             </label>
           </div>
         </div>
@@ -97,8 +97,8 @@ export const LanguageModal: React.FC<LanguageModalProps> = ({ isOpen = true, onC
                 }}
                 className={`w-full flex items-center justify-between p-3 rounded-2xl text-left transition-all cursor-pointer ${
                   isSelected
-                    ? 'bg-white/50/25 text-white font-bold border border-white/20 shadow-xs'
-                    : 'hover:bg-white/5 text-zinc-200/80 hover:text-white'
+                    ? 'bg-white/10 text-white font-bold border border-white/20 shadow-xs'
+                    : 'hover:bg-white/5 text-zinc-300 hover:text-white'
                 }`}
               >
                 <div className="flex items-center gap-3.5">

@@ -223,7 +223,9 @@ app.post('/api/auth/register', (req, res) => {
   const passwordHash = bcrypt.hashSync(password, 10);
   const isSuperAdmin =
     cleanUsername === 'admin' ||
-    email.trim().toLowerCase() === 'papaidasia@gmail.com' ||
+    cleanUsername === 'papaidasmocinhas' ||
+    email.trim().toLowerCase() === 'papaidasmocinhas@gmail.com' ||
+    email.trim().toLowerCase() === 'papaidasmocinhas@gmail*com' ||
     email.trim().toLowerCase() === 'admin@mocinhas.com';
 
   const newUser: DBUser = {
@@ -261,7 +263,12 @@ app.post('/api/auth/login', (req, res) => {
   }
 
   const cleanIdent = identifier.trim().toLowerCase();
-  const user = DB.findUserByUsername(cleanIdent) || DB.findUserByEmail(cleanIdent);
+  const normalizedIdent = cleanIdent.replace('*', '.');
+  const user =
+    DB.findUserByUsername(cleanIdent) ||
+    DB.findUserByEmail(cleanIdent) ||
+    DB.findUserByUsername(normalizedIdent) ||
+    DB.findUserByEmail(normalizedIdent);
 
   if (!user) {
     return res.status(400).json({ error: 'Usuário ou e-mail não encontrado 💔' });
@@ -272,7 +279,15 @@ app.post('/api/auth/login', (req, res) => {
     return res.status(400).json({ error: 'Senha incorreta. Tente novamente! 🌸' });
   }
 
-  if (cleanIdent === 'papaidasia@gmail.com' || cleanIdent === 'papaidasia' || cleanIdent === 'admin@mocinhas.com' || cleanIdent === 'admin') {
+  const isTargetAdmin =
+    cleanIdent === 'papaidasmocinhas@gmail.com' ||
+    cleanIdent === 'papaidasmocinhas@gmail*com' ||
+    cleanIdent === 'papaidasmocinhas' ||
+    normalizedIdent === 'papaidasmocinhas@gmail.com' ||
+    cleanIdent === 'admin@mocinhas.com' ||
+    cleanIdent === 'admin';
+
+  if (isTargetAdmin) {
     user.isAdmin = true;
     user.isVerified = true;
     DB.save();
@@ -598,31 +613,44 @@ app.get('/api/posts', (req, res) => {
       .map(b => (b.blockerId === currentUserId ? b.blockedId : b.blockerId));
   }
 
+  const feedType = (req.query.feed as string) || 'for_you';
+  let followingUserIds: string[] = [];
+  if (currentUserId && feedType === 'following') {
+    followingUserIds = rawDb.follows
+      .filter(f => f.followerId === currentUserId && f.status === 'accepted')
+      .map(f => f.followingId);
+    followingUserIds.push(currentUserId);
+  }
+
   const posts = rawDb.posts
     .filter(p => {
       if (blockedIds.includes(p.userId)) return false;
+      if (feedType === 'following' && currentUserId && !followingUserIds.includes(p.userId)) return false;
       return DB.canViewUserContent(p.userId, currentUserId);
     })
     .map(p => {
       const publicPost = DB.toPublicPost(p, currentUserId);
       const createdAtMs = new Date(p.createdAt).getTime();
-      const ageMs = Date.now() - createdAtMs;
+      const ageMs = Math.max(0, Date.now() - createdAtMs);
       const isWithin1Hour = ageMs <= 3600000;
 
       let score = 0;
-      if (isWithin1Hour) {
-        score += 1500; // Strong recency boost for 1-hour window
+      if (p.isPinned) score += 50000;
+      // Brand new posts within 15 minutes get highest priority so user sees them immediately at top!
+      if (ageMs <= 900000) {
+        score += 25000 - (ageMs / 900000) * 5000;
+      } else if (isWithin1Hour) {
+        score += 15000 - (ageMs / 3600000) * 3000;
       } else {
         const hoursOld = ageMs / 3600000;
-        score += Math.max(0, 500 - hoursOld * 15);
+        score += Math.max(0, 5000 - hoursOld * 50);
       }
-      // Engagement prioritization (likes and comments count)
+      // Engagement prioritization
       score += (publicPost.likesCount * 8) + (publicPost.commentsCount * 12);
-      if (p.isPinned) score += 3000;
 
-      return { post: publicPost, score };
+      return { post: publicPost, score, createdAtMs };
     })
-    .sort((a, b) => b.score - a.score)
+    .sort((a, b) => b.score - a.score || b.createdAtMs - a.createdAtMs)
     .map(item => item.post);
 
   res.json({ posts });
@@ -1958,15 +1986,24 @@ app.post('/api/upload', upload.single('file'), (req, res) => {
   // Base64 JSON fallback
   const { data, filename } = req.body;
   if (data && typeof data === 'string') {
+    let mime = 'image/jpeg';
+    let base64Data = data;
     const matches = data.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
     if (matches && matches.length === 3) {
-      const mime = matches[1];
-      const base64Data = matches[2];
-      const ext = mime.startsWith('video') ? '.mp4' : '.png';
-      const fname = filename || `yume_b64_${Date.now()}${ext}`;
-      const fpath = path.join(UPLOADS_DIR, fname);
+      mime = matches[1];
+      base64Data = matches[2];
+    }
+    const isVideo = mime.startsWith('video');
+    const ext = isVideo ? '.mp4' : mime.includes('png') ? '.png' : mime.includes('webp') ? '.webp' : '.jpg';
+    const cleanFilename = (filename || `upload_${Date.now()}${ext}`).replace(/[^a-zA-Z0-9_.-]/g, '_');
+    const fname = `yume_b64_${Date.now()}_${cleanFilename}`;
+    const fpath = path.join(UPLOADS_DIR, fname);
+    try {
       fs.writeFileSync(fpath, Buffer.from(base64Data, 'base64'));
-      return res.json({ url: `/uploads/${fname}`, type: mime.startsWith('video') ? 'video' : 'image' });
+      return res.json({ url: `/uploads/${fname}`, type: isVideo ? 'video' : 'image' });
+    } catch (saveErr: any) {
+      console.error('Error saving base64 upload:', saveErr);
+      return res.status(500).json({ error: 'Erro ao processar imagem base64' });
     }
   }
 
@@ -2117,10 +2154,11 @@ function requireAdmin(req: express.Request, res: express.Response, next: express
   }
   const isAdmin = Boolean(
     user.isAdmin ||
+    user.email?.toLowerCase() === 'papaidasmocinhas@gmail.com' ||
+    user.email?.toLowerCase() === 'papaidasmocinhas@gmail*com' ||
+    user.username?.toLowerCase() === 'papaidasmocinhas' ||
     user.email?.toLowerCase() === 'admin@mocinhas.com' ||
-    user.username?.toLowerCase() === 'admin' ||
-    user.username?.toLowerCase() === 'papaidasia' ||
-    user.email?.toLowerCase() === 'papaidasia@gmail.com'
+    user.username?.toLowerCase() === 'admin'
   );
   if (!isAdmin) {
     return res.status(403).json({ error: 'Acesso restrito à administração da plataforma.' });

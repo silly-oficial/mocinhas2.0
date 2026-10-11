@@ -370,42 +370,42 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             )}
 
             {mode === 'register' && (
-              <div className="p-3 rounded-2xl bg-[#171724]/90 border border-white/20/25 space-y-2">
-                <label className="flex items-start gap-2.5 cursor-pointer select-none group">
-                  <input
-                    type="checkbox"
-                    checked={acceptedTerms}
-                    onChange={e => setAcceptedTerms(e.target.checked)}
-                    className="sr-only"
-                  />
-                  <div
+              <div className="p-3.5 rounded-2xl bg-[#171724] border border-white/10 space-y-2.5">
+                <div className="flex items-start gap-2.5 select-none">
+                  <button
+                    type="button"
+                    role="checkbox"
+                    aria-checked={acceptedTerms}
+                    id="checkbox-terms"
                     onClick={() => setAcceptedTerms(!acceptedTerms)}
-                    className={`w-4 h-4 rounded-md mt-0.5 flex items-center justify-center border transition-all shrink-0 ${
+                    className={`w-5 h-5 rounded-lg mt-0.5 flex items-center justify-center border transition-all shrink-0 cursor-pointer ${
                       acceptedTerms
-                        ? 'bg-white text-black border-white/25 text-white shadow-xs'
-                        : 'bg-[#0E0E15] border-white/20 group-hover:border-white/25'
+                        ? 'bg-white text-black border-white shadow-xs'
+                        : 'bg-[#0E0E15] border-white/30 hover:border-white/60'
                     }`}
                   >
-                    {acceptedTerms && <Check className="w-3 h-3 stroke-[3]" />}
-                  </div>
-                  <div className="text-[11px] text-zinc-200 leading-tight">
-                    <span>Li e concordo com os </span>
+                    {acceptedTerms && <Check className="w-3.5 h-3.5 stroke-[3] text-black" />}
+                  </button>
+                  <div className="text-[11px] text-zinc-200 leading-tight pt-0.5">
+                    <span
+                      onClick={() => setAcceptedTerms(!acceptedTerms)}
+                      className="cursor-pointer hover:text-white"
+                    >
+                      Li e concordo com os{' '}
+                    </span>
                     <button
                       type="button"
-                      onClick={e => {
-                        e.stopPropagation();
-                        setShowTermsModal(true);
-                      }}
-                      className="font-bold text-zinc-300 hover:text-zinc-200 underline underline-offset-2 inline-flex items-center gap-0.5 cursor-pointer"
+                      onClick={() => setShowTermsModal(true)}
+                      className="font-bold text-zinc-300 hover:text-white underline underline-offset-2 inline-flex items-center gap-0.5 cursor-pointer ml-0.5"
                     >
                       <span>Termos de Uso e Responsabilidade</span>
                       <ShieldCheck className="w-3.5 h-3.5 inline text-zinc-400" />
                     </button>
                     <span className="text-zinc-400 font-bold ml-1">*obrigatório</span>
                   </div>
-                </label>
+                </div>
 
-                <p className="text-[10px] text-zinc-300/70 leading-relaxed border-t border-white/5 pt-1.5">
+                <p className="text-[10px] text-zinc-400 leading-relaxed border-t border-white/5 pt-2">
                   ✦ <strong>Aviso legal:</strong> Conteúdos efêmeros expiram em 1 hora sem análise manual prévia. O autor responde integralmente pelo material veiculado e colaboramos estritamente com as autoridades policiais e judiciais.
                 </p>
               </div>

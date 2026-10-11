@@ -836,7 +836,7 @@ export const ChatView: React.FC<ChatViewProps> = ({
                     <p className="text-xs text-zinc-400">Você ainda não está em nenhum grupo.</p>
                     <button
                       onClick={() => setShowCreateGroupModal(true)}
-                      className="px-4 py-2 rounded-xl bg-white text-black text-white text-xs font-bold shadow-xs cursor-pointer"
+                      className="px-4 py-2 rounded-xl bg-white text-black font-extrabold text-xs shadow-xs hover:bg-neutral-200 cursor-pointer transition-colors"
                     >
                       + Criar Primeiro Grupo
                     </button>
@@ -1133,7 +1133,7 @@ export const ChatView: React.FC<ChatViewProps> = ({
                                   <div
                                     className={`p-3 text-xs leading-relaxed break-words font-sans transition-all ${
                                       isMe
-                                        ? 'bg-white text-black text-white shadow-xs'
+                                        ? 'bg-white text-black font-medium shadow-xs'
                                         : 'bg-[#171724] text-white border border-white/10 shadow-xs'
                                     } ${
                                       isMe
@@ -1346,7 +1346,7 @@ export const ChatView: React.FC<ChatViewProps> = ({
                 <button
                   type="submit"
                   disabled={isSending || !inputText.trim()}
-                  className="w-9 h-9 rounded-2xl bg-white text-black text-white flex items-center justify-center shadow-md shadow-white/5 hover:scale-105 active:scale-95 disabled:opacity-40 cursor-pointer shrink-0 transition-all"
+                  className="w-9 h-9 rounded-2xl bg-white text-black flex items-center justify-center shadow-md hover:scale-105 active:scale-95 disabled:opacity-40 cursor-pointer shrink-0 transition-all"
                 >
                   <Send className="w-4 h-4" />
                 </button>
@@ -1650,7 +1650,7 @@ export const ChatView: React.FC<ChatViewProps> = ({
                 <button
                   type="submit"
                   disabled={isCreatingGroup || !groupName.trim()}
-                  className="px-5 py-2 rounded-xl bg-white text-black text-white text-xs font-bold shadow-md shadow-white/5 hover:opacity-95 disabled:opacity-50 cursor-pointer"
+                  className="px-5 py-2.5 rounded-full bg-white text-black font-extrabold text-xs shadow-md hover:bg-neutral-200 disabled:opacity-50 cursor-pointer transition-colors"
                 >
                   {isCreatingGroup ? 'Criando...' : 'Criar Grupo'}
                 </button>
@@ -2040,7 +2040,7 @@ export const ChatView: React.FC<ChatViewProps> = ({
               <button
                 onClick={handleAddMembers}
                 disabled={selectedMemberIds.length === 0}
-                className="px-4 py-1.5 rounded-xl bg-white text-black text-white text-xs font-bold disabled:opacity-40 cursor-pointer shadow-xs"
+                className="px-4 py-2 rounded-full bg-white text-black font-extrabold text-xs disabled:opacity-40 hover:bg-neutral-200 cursor-pointer shadow-xs transition-colors"
               >
                 Adicionar ({selectedMemberIds.length})
               </button>

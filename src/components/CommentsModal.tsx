@@ -128,19 +128,15 @@ export const CommentsModal: React.FC<CommentsModalProps> = ({
   const quickEmojis = ['❤️', '👏', '🔥', '✨', '🙌', '😍', '🎉', '💯'];
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4">
-      <div
-        className={`w-full max-w-lg max-h-[85vh] h-[85vh] sm:h-[620px] rounded-t-3xl sm:rounded-[28px] ${
-          darkMode ? 'bg-[#12121A] text-white border-white/10' : 'bg-white text-stone-900 border-zinc-200'
-        } border shadow-2xl flex flex-col overflow-hidden animate-bento-fade`}
-      >
+    <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4">
+      <div className="w-full max-w-lg max-h-[85vh] h-[85vh] sm:h-[620px] rounded-t-3xl sm:rounded-[28px] bg-[#12121B] text-white border border-white/10 shadow-2xl flex flex-col overflow-hidden animate-bento-fade">
         {/* Header */}
-        <div className="p-4 border-b border-white/10 dark:border-white/10 flex items-center justify-between">
+        <div className="p-4 border-b border-white/10 flex items-center justify-between bg-[#12121B]">
           <div className="flex items-center gap-2">
-            <h2 className="font-heading text-base font-bold text-stone-900 dark:text-white">
+            <h2 className="font-heading text-base font-bold text-white">
               Comentários
             </h2>
-            <span className="text-xs px-2 py-0.5 rounded-full bg-white/10 dark:bg-white/10 text-white dark:text-zinc-200 font-bold">
+            <span className="text-xs px-2 py-0.5 rounded-full bg-white/10 text-zinc-200 font-bold">
               {comments.length}
             </span>
           </div>
@@ -159,16 +155,16 @@ export const CommentsModal: React.FC<CommentsModalProps> = ({
           {isLoading ? (
             <div className="flex flex-col items-center justify-center h-48 gap-3">
               <div className="w-7 h-7 border-2 border-white/30 border-t-transparent rounded-full animate-spin" />
-              <span className="text-xs text-stone-400 dark:text-zinc-400 font-medium">
+              <span className="text-xs text-zinc-400 font-medium">
                 Carregando comentários...
               </span>
             </div>
           ) : comments.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-48 text-center p-6">
-              <p className="font-heading text-sm font-bold text-stone-800 dark:text-white">
+              <p className="font-heading text-sm font-bold text-white">
                 Nenhum comentário por aqui ainda
               </p>
-              <p className="text-xs text-stone-400 dark:text-zinc-400 mt-1">
+              <p className="text-xs text-zinc-400 mt-1">
                 Deixe a primeira mensagem nesta publicação!
               </p>
             </div>
@@ -192,26 +188,22 @@ export const CommentsModal: React.FC<CommentsModalProps> = ({
                     />
                   </button>
                   <div className="flex-1 min-w-0">
-                    <div
-                      className={`p-3 rounded-2xl ${
-                        darkMode ? 'bg-[#181824]' : 'bg-stone-50'
-                      } border border-white/10 dark:border-white/10 shadow-2xs`}
-                    >
+                    <div className="p-3 rounded-2xl bg-[#181824] border border-white/10 shadow-2xs">
                       <div className="flex items-center justify-between gap-1 mb-1">
                         <button
                           onClick={() => {
                             onNavigateUser(c.user.username);
                             onClose();
                           }}
-                          className="font-heading text-xs font-bold text-stone-900 dark:text-white hover:underline text-left truncate"
+                          className="font-heading text-xs font-bold text-white hover:underline text-left truncate"
                         >
                           {c.user.displayName}
                         </button>
-                        <span className="text-[10px] text-stone-400 dark:text-zinc-400 shrink-0">
+                        <span className="text-[10px] text-zinc-400 shrink-0">
                           @{c.user.username}
                         </span>
                       </div>
-                      <div className="text-xs text-stone-800 dark:text-white break-words leading-relaxed">
+                      <div className="text-xs text-zinc-200 break-words leading-relaxed">
                         <AutoTranslatedText text={c.text} inline />
                       </div>
                     </div>
@@ -275,15 +267,11 @@ export const CommentsModal: React.FC<CommentsModalProps> = ({
                           />
                         </button>
                         <div className="flex-1 min-w-0">
-                          <div
-                            className={`p-2.5 rounded-2xl ${
-                              darkMode ? 'bg-[#181824]' : 'bg-stone-50'
-                            } border border-white/10 dark:border-white/10`}
-                          >
-                            <span className="font-heading text-[11px] font-bold text-stone-900 dark:text-white mr-1.5">
+                          <div className="p-2.5 rounded-2xl bg-[#181824] border border-white/10">
+                            <span className="font-heading text-[11px] font-bold text-white mr-1.5">
                               {r.user.displayName}
                             </span>
-                            <div className="text-xs text-stone-800 dark:text-white break-words mt-0.5">
+                            <div className="text-xs text-zinc-200 break-words mt-0.5">
                               <AutoTranslatedText text={r.text} inline />
                             </div>
                           </div>
@@ -322,7 +310,7 @@ export const CommentsModal: React.FC<CommentsModalProps> = ({
 
         {/* Replying banner indicator */}
         {replyingTo && (
-          <div className="px-4 py-1.5 bg-white/5 dark:bg-white/5/50 flex items-center justify-between text-xs text-white dark:text-zinc-200 border-t border-white/10 dark:border-white/10">
+          <div className="px-4 py-1.5 bg-white/5 flex items-center justify-between text-xs text-zinc-200 border-t border-white/10">
             <div className="flex items-center gap-1">
               <CornerDownRight className="w-3.5 h-3.5 text-white" />
               <span>
@@ -354,7 +342,7 @@ export const CommentsModal: React.FC<CommentsModalProps> = ({
         {/* Input Form */}
         <form
           onSubmit={handleAddComment}
-          className="p-3 bg-white dark:bg-[#12121A] border-t border-white/10 dark:border-white/10 flex items-center gap-2"
+          className="p-3 bg-[#12121B] border-t border-white/10 flex items-center gap-2"
         >
           <input
             type="text"
@@ -365,12 +353,12 @@ export const CommentsModal: React.FC<CommentsModalProps> = ({
                 ? `${t('reply')} @${replyingTo.username}...`
                 : t('type_comment')
             }
-            className="flex-1 bg-stone-50 dark:bg-[#181824] text-xs text-stone-900 dark:text-white placeholder-stone-400 dark:placeholder-zinc-500 px-4 py-2.5 rounded-full border border-white/10 dark:border-white/15 focus:outline-none focus:ring-1 focus:ring-white/40"
+            className="flex-1 bg-[#181824] text-xs text-white placeholder-zinc-500 px-4 py-2.5 rounded-full border border-white/15 focus:outline-none focus:border-white/30"
           />
           <button
             type="submit"
             disabled={isSubmitting || !inputText.trim()}
-            className="w-10 h-10 rounded-full bg-white text-black flex items-center justify-center shadow-xs hover:scale-105 active:scale-95 disabled:opacity-50 cursor-pointer shrink-0"
+            className="w-10 h-10 rounded-full bg-white text-black hover:bg-neutral-200 flex items-center justify-center shadow-xs hover:scale-105 active:scale-95 disabled:opacity-50 cursor-pointer shrink-0 transition-colors"
           >
             <Send className="w-4 h-4" />
           </button>

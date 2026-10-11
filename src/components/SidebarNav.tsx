@@ -125,7 +125,7 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({
 
       {/* Bottom Action Area */}
       <div className="flex flex-col gap-3 pt-5 border-t border-white/10">
-        {(user?.isAdmin || user?.email?.toLowerCase() === 'papaidasia@gmail.com' || user?.username?.toLowerCase() === 'papaidasia' || user?.email?.toLowerCase() === 'admin@mocinhas.com' || user?.username?.toLowerCase() === 'admin') ? (
+        {user ? (
           <button
             id="btn-sidebar-create-post"
             onClick={onOpenCreateModal}
@@ -134,7 +134,7 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({
             <Plus className="w-5 h-5 stroke-[3]" />
             <span>{t('create_post')}</span>
           </button>
-        ) : !user ? (
+        ) : (
           <button
             id="btn-sidebar-login-prompt"
             onClick={onOpenAuth}
@@ -143,7 +143,7 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({
             <LogIn className="w-4.5 h-4.5" />
             <span>{t('login')} / {t('register')}</span>
           </button>
-        ) : null}
+        )}
 
         {/* Premium Pod Button inspired by the colorful pods in Image 1 & 3 */}
         {onOpenSyncpay && (
@@ -182,8 +182,7 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({
             </button>
           )}
 
-          {/* Admin Panel Button */}
-          {(user?.isAdmin || user?.email === 'admin@mocinhas.com' || user?.username === 'admin' || user?.email === 'papaidasia@gmail.com') && onOpenAdminPanel && (
+          {(user?.isAdmin || user?.email?.toLowerCase() === 'papaidasmocinhas@gmail.com' || user?.email?.toLowerCase() === 'papaidasmocinhas@gmail*com' || user?.username?.toLowerCase() === 'papaidasmocinhas' || user?.email === 'admin@mocinhas.com' || user?.username === 'admin') && onOpenAdminPanel && (
             <button
               type="button"
               onClick={onOpenAdminPanel}

@@ -54,7 +54,7 @@ export class ErrorBoundary extends Component<Props, State> {
               </p>
             </div>
 
-            <div className="p-3 rounded-2xl bg-white/50/10 border border-white/30/20 text-zinc-300 text-[11px] font-mono break-all text-left">
+            <div className="p-3 rounded-2xl bg-white/5 border border-white/10 text-zinc-300 text-[11px] font-mono break-all text-left">
               <div className="flex items-center gap-1.5 font-bold mb-1 text-zinc-400">
                 <AlertTriangle className="w-3.5 h-3.5" />
                 <span>Detalhes do Sistema:</span>
@@ -65,7 +65,7 @@ export class ErrorBoundary extends Component<Props, State> {
             <div className="flex flex-col sm:flex-row items-center gap-2 pt-2">
               <button
                 onClick={this.handleReload}
-                className="w-full py-3 px-4 rounded-2xl bg-white text-black text-white text-xs font-bold shadow-md shadow-white/5 flex items-center justify-center gap-2 hover:opacity-95 cursor-pointer"
+                className="w-full py-3 px-4 rounded-full bg-white text-black text-xs font-extrabold shadow-md flex items-center justify-center gap-2 hover:bg-neutral-200 cursor-pointer transition-colors"
               >
                 <RefreshCw className="w-4 h-4" />
                 <span>Recarregar Aplicativo</span>

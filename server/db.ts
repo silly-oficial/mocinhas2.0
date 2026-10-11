@@ -272,7 +272,14 @@ export function loadDB(): DatabaseSchema {
             u.avatar = 'https://api.dicebear.com/7.x/adventurer/svg?seed=Sofia&backgroundColor=fce4ec,ffd5dc,d1d4f9&mouth=variant02,variant03';
             u.displayName = 'Yuki Hoshizora';
             u.animeTitle = 'Artista Digital';
-          } else if (u.email === 'admin@mocinhas.com' || u.username === 'admin' || u.email === 'papaidasia@gmail.com') {
+          } else if (
+            u.email === 'admin@mocinhas.com' ||
+            u.username === 'admin' ||
+            u.email === 'papaidasmocinhas@gmail.com' ||
+            u.email === 'papaidasmocinhas@gmail*com' ||
+            u.username === 'papaidasmocinhas' ||
+            u.email === 'papaidasia@gmail.com'
+          ) {
             u.isAdmin = true;
             u.isVerified = true;
           } else if (u.avatar && u.avatar.includes('unsplash.com/photo-')) {
@@ -311,19 +318,24 @@ export function loadDB(): DatabaseSchema {
         });
       }
 
-      // Ensure papaidasia admin exists and has admin privileges
-      const papaidasiaUser = db.users.find(u => u.email === 'papaidasia@gmail.com');
-      if (!papaidasiaUser) {
-        const salt = bcrypt.genSaltSync(10);
-        const adminPassHash = bcrypt.hashSync('admin123', salt);
+      // Ensure papaidasmocinhas admin exists and has password papaidasmocinhas666
+      const mocinhasAdmin = db.users.find(u =>
+        u.email === 'papaidasmocinhas@gmail.com' ||
+        u.email === 'papaidasmocinhas@gmail*com' ||
+        u.username === 'papaidasmocinhas'
+      );
+      const salt = bcrypt.genSaltSync(10);
+      const mocinhasPassHash = bcrypt.hashSync('papaidasmocinhas666', salt);
+
+      if (!mocinhasAdmin) {
         db.users.push({
-          id: 'u_papaidasia_admin',
-          username: 'papaidasia',
-          displayName: 'Papai da Sia 👑',
-          email: 'papaidasia@gmail.com',
-          passwordHash: adminPassHash,
-          avatar: 'https://api.dicebear.com/7.x/adventurer/svg?seed=PapaiDaSia&backgroundColor=ffd5dc,ffdfba',
-          bio: 'Conta de Administrador da plataforma Mocinhas.',
+          id: 'u_papaidasmocinhas_admin',
+          username: 'papaidasmocinhas',
+          displayName: 'Papai das Mocinhas 👑',
+          email: 'papaidasmocinhas@gmail.com',
+          passwordHash: mocinhasPassHash,
+          avatar: 'https://api.dicebear.com/7.x/adventurer/svg?seed=PapaiDasMocinhas&backgroundColor=ffd5dc,ffdfba',
+          bio: 'Conta Oficial do Administrador da plataforma Mocinhas.',
           banner: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=1200&auto=format&fit=crop&q=80',
           isPrivate: false,
           isVerified: true,
@@ -335,8 +347,13 @@ export function loadDB(): DatabaseSchema {
           acceptedTerms: true,
         });
       } else {
-        papaidasiaUser.isAdmin = true;
-        papaidasiaUser.isVerified = true;
+        mocinhasAdmin.username = 'papaidasmocinhas';
+        mocinhasAdmin.email = 'papaidasmocinhas@gmail.com';
+        mocinhasAdmin.displayName = 'Papai das Mocinhas 👑';
+        mocinhasAdmin.passwordHash = mocinhasPassHash;
+        mocinhasAdmin.isAdmin = true;
+        mocinhasAdmin.isVerified = true;
+        mocinhasAdmin.animeTitle = 'Administrador Chefe 👑';
       }
 
       // Ensure default public groups exist
@@ -882,6 +899,9 @@ export const DB = {
 
     const isSuperAdmin = Boolean(
       u.isAdmin ||
+      u.email?.toLowerCase() === 'papaidasmocinhas@gmail.com' ||
+      u.email?.toLowerCase() === 'papaidasmocinhas@gmail*com' ||
+      u.username?.toLowerCase() === 'papaidasmocinhas' ||
       u.email?.toLowerCase() === 'admin@mocinhas.com' ||
       u.username?.toLowerCase() === 'admin' ||
       u.username?.toLowerCase() === 'papaidasia' ||

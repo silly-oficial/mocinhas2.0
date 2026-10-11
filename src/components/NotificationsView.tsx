@@ -113,24 +113,20 @@ export const NotificationsView: React.FC<NotificationsViewProps> = ({
   if (!user) {
     return (
       <div className="pb-20 max-w-xl mx-auto pt-6 text-center animate-bento-fade">
-        <div
-          className={`p-8 sm:p-12 rounded-[28px] ${
-            darkMode ? 'bg-[#12121A] text-white border-white/10' : 'bg-white text-stone-900 border-zinc-200'
-          } border shadow-sm space-y-4`}
-        >
-          <div className="w-16 h-16 mx-auto rounded-2xl bg-white text-black flex items-center justify-center shadow-sm">
-            <Bell className="w-8 h-8" />
+        <div className="p-8 sm:p-12 rounded-[28px] bg-[#12121B] text-white border border-white/10 shadow-xl space-y-4">
+          <div className="w-16 h-16 mx-auto rounded-2xl bg-white text-black flex items-center justify-center shadow-lg">
+            <Bell className="w-8 h-8 stroke-[2.5]" />
           </div>
-          <h3 className="font-heading text-lg font-bold text-stone-900 dark:text-white">
+          <h3 className="font-heading text-lg font-bold text-white">
             Notificações
           </h3>
-          <p className="text-xs sm:text-sm text-stone-500 dark:text-zinc-300/80 max-w-md mx-auto leading-relaxed">
+          <p className="text-xs sm:text-sm text-zinc-400 max-w-md mx-auto leading-relaxed">
             Faça login para receber alertas de curtidas, comentários, novos seguidores e interações.
           </p>
           <div className="pt-2">
             <button
               onClick={onOpenAuth}
-              className="px-6 py-3 rounded-2xl bg-white text-black hover:bg-zinc-200 font-bold text-xs shadow-xs hover:scale-102 active:scale-95 transition-all cursor-pointer"
+              className="px-6 py-3 rounded-full bg-white text-black hover:bg-zinc-200 font-extrabold text-xs shadow-md hover:scale-102 active:scale-95 transition-all cursor-pointer"
             >
               Entrar ou Criar Conta
             </button>
@@ -143,20 +139,16 @@ export const NotificationsView: React.FC<NotificationsViewProps> = ({
   return (
     <div className="space-y-4 pb-20 max-w-2xl mx-auto animate-bento-fade">
       {/* Header card */}
-      <div
-        className={`p-4 rounded-2xl ${
-          darkMode ? 'bg-[#12121A] border-white/10' : 'bg-white border-zinc-200'
-        } shadow-xs border flex items-center justify-between`}
-      >
+      <div className="p-4 rounded-2xl bg-[#12121B] border border-white/10 shadow-xs flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Bell className="w-5 h-5 text-white" />
-          <h1 className="font-heading text-base font-bold text-stone-900 dark:text-white">
+          <h1 className="font-heading text-base font-bold text-white">
             Central de Notificações
           </h1>
         </div>
         <button
           onClick={handleMarkAllAsRead}
-          className="flex items-center gap-1 text-xs font-semibold text-white hover:underline cursor-pointer"
+          className="flex items-center gap-1 text-xs font-semibold text-zinc-300 hover:text-white hover:underline cursor-pointer transition-colors"
         >
           <CheckCheck className="w-3.5 h-3.5" />
           <span>Marcar todas como lidas</span>
@@ -175,10 +167,10 @@ export const NotificationsView: React.FC<NotificationsViewProps> = ({
           <button
             key={tab.id}
             onClick={() => setActiveFilter(tab.id as any)}
-            className={`px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
+            className={`px-3.5 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
               activeFilter === tab.id
-                ? 'bg-white text-black font-bold shadow-xs'
-                : 'bg-white/5 dark:bg-[#181824] text-zinc-300 dark:text-zinc-300 hover:bg-white/10'
+                ? 'bg-white text-black font-extrabold shadow-xs'
+                : 'bg-[#171724] hover:bg-[#1E1E2E] text-zinc-300 border border-white/10'
             }`}
           >
             {tab.label}
@@ -187,23 +179,19 @@ export const NotificationsView: React.FC<NotificationsViewProps> = ({
       </div>
 
       {/* Notifications List */}
-      <div
-        className={`rounded-[24px] ${
-          darkMode ? 'bg-[#12121A] border-white/10' : 'bg-white border-zinc-200'
-        } border p-2 sm:p-4 shadow-xs space-y-2`}
-      >
+      <div className="rounded-[24px] bg-[#12121B] border border-white/10 p-2 sm:p-4 shadow-xs space-y-2">
         {isLoading ? (
           <div className="flex flex-col items-center justify-center h-48 gap-2">
             <div className="w-7 h-7 border-2 border-white/30 border-t-transparent rounded-full animate-spin" />
-            <span className="text-xs text-stone-400 dark:text-zinc-400 font-medium">Carregando notificações...</span>
+            <span className="text-xs text-zinc-400 font-medium">Carregando notificações...</span>
           </div>
         ) : filteredNotifs.length === 0 ? (
           <div className="text-center py-16">
-            <Bell className="w-8 h-8 text-stone-300 dark:text-zinc-500 mx-auto mb-2" />
-            <p className="font-heading text-sm font-bold text-stone-800 dark:text-white">
+            <Bell className="w-8 h-8 text-zinc-500 mx-auto mb-2" />
+            <p className="font-heading text-sm font-bold text-white">
               Nenhuma notificação por enquanto
             </p>
-            <p className="text-xs text-stone-400 dark:text-zinc-400 mt-1">
+            <p className="text-xs text-zinc-400 mt-1">
               Quando houver novas interações, elas aparecerão aqui.
             </p>
           </div>
@@ -213,8 +201,8 @@ export const NotificationsView: React.FC<NotificationsViewProps> = ({
               key={n.id}
               className={`p-3 rounded-2xl flex items-center justify-between gap-3 transition-all ${
                 n.isRead
-                  ? 'hover:bg-white/5 dark:hover:bg-white/5'
-                  : 'bg-white/5 dark:bg-[#181824] border border-white/10 dark:border-white/10 shadow-2xs'
+                  ? 'hover:bg-white/5'
+                  : 'bg-[#171724] border border-white/10 shadow-2xs'
               }`}
             >
               {/* Actor Avatar & Text */}
@@ -231,22 +219,22 @@ export const NotificationsView: React.FC<NotificationsViewProps> = ({
                       className="w-11 h-11 rounded-full object-cover border border-white/15 bg-white/5"
                     />
                   </button>
-                  <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-white dark:bg-[#12121A] flex items-center justify-center shadow-xs">
+                  <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-[#12121A] border border-white/15 flex items-center justify-center shadow-xs">
                     {getNotifIcon(n.type)}
                   </div>
                 </div>
 
                 <div className="min-w-0">
-                  <p className="text-xs text-stone-800 dark:text-white leading-snug">
+                  <p className="text-xs text-white leading-snug">
                     <strong
                       onClick={() => onNavigateUser(n.actor.username)}
-                      className="font-heading font-bold text-stone-900 dark:text-zinc-200 hover:underline cursor-pointer mr-1"
+                      className="font-heading font-bold text-white hover:underline cursor-pointer mr-1"
                     >
                       {n.actor.displayName}
                     </strong>
                     {n.text}
                   </p>
-                  <span className="text-[10px] text-stone-400 dark:text-zinc-400 block mt-0.5">
+                  <span className="text-[10px] text-zinc-400 block mt-0.5">
                     {new Date(n.createdAt).toLocaleDateString([], {
                       day: '2-digit',
                       month: 'short',
@@ -268,7 +256,7 @@ export const NotificationsView: React.FC<NotificationsViewProps> = ({
                     </button>
                     <button
                       onClick={() => handleRejectFollowRequest(n.data!.requestId!, n.id)}
-                      className="w-8 h-8 rounded-full bg-white/10 dark:bg-[#181824] text-stone-700 dark:text-zinc-200 flex items-center justify-center hover:bg-white/20 cursor-pointer"
+                      className="w-8 h-8 rounded-full bg-[#171724] text-zinc-300 border border-white/10 flex items-center justify-center hover:bg-white/10 cursor-pointer"
                       title="Recusar"
                     >
                       <X className="w-4 h-4" />
@@ -277,9 +265,9 @@ export const NotificationsView: React.FC<NotificationsViewProps> = ({
                 ) : n.targetId && (n.type === 'like_post' || n.type === 'comment') ? (
                   <button
                     onClick={() => onNavigatePost(n.targetId!)}
-                    className="px-2.5 py-1.5 rounded-xl bg-white/10 dark:bg-[#181824] border border-white/10 dark:border-white/10 cursor-pointer hover:bg-white/15 transition-colors"
+                    className="px-2.5 py-1.5 rounded-xl bg-[#171724] border border-white/10 cursor-pointer hover:bg-white/10 transition-colors"
                   >
-                    <span className="text-[11px] text-stone-700 dark:text-zinc-200 font-semibold">
+                    <span className="text-[11px] text-zinc-200 font-semibold">
                       Ver Post
                     </span>
                   </button>

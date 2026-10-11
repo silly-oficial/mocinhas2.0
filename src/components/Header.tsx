@@ -101,8 +101,7 @@ export const Header: React.FC<HeaderProps> = ({
             </button>
           )}
 
-          {/* Admin Panel Button */}
-          {(user?.isAdmin || user?.email?.toLowerCase() === 'admin@mocinhas.com' || user?.username?.toLowerCase() === 'admin' || user?.username?.toLowerCase() === 'papaidasia' || user?.email?.toLowerCase() === 'papaidasia@gmail.com') && onOpenAdminPanel && (
+          {(user?.isAdmin || user?.email?.toLowerCase() === 'papaidasmocinhas@gmail.com' || user?.email?.toLowerCase() === 'papaidasmocinhas@gmail*com' || user?.username?.toLowerCase() === 'papaidasmocinhas' || user?.email?.toLowerCase() === 'admin@mocinhas.com' || user?.username?.toLowerCase() === 'admin') && onOpenAdminPanel && (
             <button
               id="btn-header-admin-panel"
               onClick={onOpenAdminPanel}

@@ -110,7 +110,7 @@ export const SyncpayModal: React.FC<SyncpayModalProps> = ({ onClose, onSuccess }
         <div className="p-6 space-y-5">
           
           {statusMessage && (
-            <div className="p-3 rounded-2xl bg-white/50/20 border border-white/20 text-zinc-200 text-xs font-bold text-center animate-fadeIn">
+            <div className="p-3 rounded-2xl bg-white/10 border border-white/20 text-zinc-200 text-xs font-bold text-center animate-fadeIn">
               {statusMessage}
             </div>
           )}

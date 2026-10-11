@@ -517,7 +517,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose, onPostCreated }
             </div>
             <div>
               <h2 className="text-lg font-black text-white flex items-center gap-2">
-                Painel Administrativo <span className="text-xs px-2 py-0.5 rounded-full bg-white/50/20 text-zinc-300 font-bold border border-white/15">Admin 👑</span>
+                Painel Administrativo <span className="text-xs px-2 py-0.5 rounded-full bg-white/10 text-zinc-300 font-bold border border-white/15">Admin 👑</span>
               </h2>
               <p className="text-xs text-zinc-300/75">Gerenciamento completo, postagens temporárias/permanentes e moderação</p>
             </div>
@@ -536,7 +536,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose, onPostCreated }
             onClick={() => { sounds.playPop(); setActiveTab('stats'); }}
             className={`px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${
               activeTab === 'stats' 
-                ? 'bg-white text-black text-white shadow-md shadow-white/5' 
+                ? 'bg-white text-black font-extrabold shadow-md' 
                 : 'bg-[#171724] text-zinc-300 hover:bg-[#242436] border border-white/10'
             }`}
           >
@@ -548,7 +548,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose, onPostCreated }
             onClick={() => { sounds.playPop(); setActiveTab('analytics'); }}
             className={`px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${
               activeTab === 'analytics' 
-                ? 'bg-white text-black text-white shadow-md shadow-white/5' 
+                ? 'bg-white text-black font-extrabold shadow-md' 
                 : 'bg-[#171724] text-zinc-300 hover:bg-[#242436] border border-white/10'
             }`}
           >
@@ -560,7 +560,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose, onPostCreated }
             onClick={() => { sounds.playPop(); setActiveTab('poster'); }}
             className={`px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${
               activeTab === 'poster' 
-                ? 'bg-white text-black text-white shadow-md shadow-white/5' 
+                ? 'bg-white text-black font-extrabold shadow-md' 
                 : 'bg-[#171724] text-zinc-300 hover:bg-[#242436] border border-white/10'
             }`}
           >
@@ -572,7 +572,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose, onPostCreated }
             onClick={() => { sounds.playPop(); setActiveTab('users'); }}
             className={`px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${
               activeTab === 'users' 
-                ? 'bg-white text-black text-white shadow-md shadow-white/5' 
+                ? 'bg-white text-black font-extrabold shadow-md' 
                 : 'bg-[#171724] text-zinc-300 hover:bg-[#242436] border border-white/10'
             }`}
           >
@@ -584,7 +584,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose, onPostCreated }
             onClick={() => { sounds.playPop(); setActiveTab('moderation'); }}
             className={`px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${
               activeTab === 'moderation' 
-                ? 'bg-white text-black text-white shadow-md shadow-white/5' 
+                ? 'bg-white text-black font-extrabold shadow-md' 
                 : 'bg-[#171724] text-zinc-300 hover:bg-[#242436] border border-white/10'
             }`}
           >
@@ -596,7 +596,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose, onPostCreated }
             onClick={() => { sounds.playPop(); setActiveTab('broadcast'); }}
             className={`px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${
               activeTab === 'broadcast' 
-                ? 'bg-white text-black text-white shadow-md shadow-white/5' 
+                ? 'bg-white text-black font-extrabold shadow-md' 
                 : 'bg-[#171724] text-zinc-300 hover:bg-[#242436] border border-white/10'
             }`}
           >
@@ -608,7 +608,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose, onPostCreated }
             onClick={() => { sounds.playPop(); setActiveTab('syncpay'); }}
             className={`px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${
               activeTab === 'syncpay' 
-                ? 'bg-white text-black text-white shadow-md shadow-white/5' 
+                ? 'bg-white text-black font-extrabold shadow-md' 
                 : 'bg-[#171724] text-zinc-300 hover:bg-[#242436] border border-white/10'
             }`}
           >
@@ -645,7 +645,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose, onPostCreated }
         <div className="flex-1 overflow-y-auto p-6 space-y-6">
           
           {statusMessage && (
-            <div className="p-4 rounded-2xl bg-white/50/20 border border-white/20 text-zinc-200 text-xs font-bold flex items-center gap-3 animate-fadeIn">
+            <div className="p-4 rounded-2xl bg-white/10 border border-white/20 text-zinc-200 text-xs font-bold flex items-center gap-3 animate-fadeIn">
               <Sparkles className="w-5 h-5 text-zinc-400 shrink-0" />
               <span>{statusMessage}</span>
             </div>
@@ -787,13 +787,13 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose, onPostCreated }
               </div>
 
               {/* Simple Visual Bar Chart */}
-              <div className="p-6 rounded-2xl bg-[#240C1D] border border-white/20/25 space-y-4">
+              <div className="p-6 rounded-2xl bg-[#171724] border border-white/10 space-y-4">
                 <div className="flex items-center justify-between">
                   <h3 className="text-sm font-bold text-white flex items-center gap-2">
                     <BarChart3 className="w-4 h-4 text-zinc-400" />
                     Atividade de Publicações (Últimos 7 Dias)
                   </h3>
-                  <span className="text-[10px] px-2.5 py-1 rounded-full bg-white/50/20 text-zinc-300 font-bold border border-white/15">Métricas em tempo real</span>
+                  <span className="text-[10px] px-2.5 py-1 rounded-full bg-white/10 text-zinc-300 font-bold border border-white/15">Métricas em tempo real</span>
                 </div>
 
                 <div className="pt-6 pb-2 flex items-end justify-between gap-3 h-48 px-4 bg-[#111118] rounded-xl border border-white/10">
@@ -819,7 +819,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose, onPostCreated }
           {/* TAB 2: ADMIN POSTER (PERMANENT vs TEMPORARY) */}
           {activeTab === 'poster' && (
             <form onSubmit={handleAdminPostSubmit} className="space-y-5 animate-fadeIn">
-              <div className="p-5 rounded-2xl bg-[#240C1D] border border-white/20/25 space-y-4 shadow-lg">
+              <div className="p-5 rounded-2xl bg-[#171724] border border-white/10 space-y-4 shadow-lg">
                 <h3 className="text-xs font-bold text-zinc-200 uppercase tracking-wider flex items-center gap-2">
                   <Plus className="w-4 h-4 text-zinc-400" />
                   Nova Publicação Especial da Administração
@@ -827,7 +827,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose, onPostCreated }
 
                 {/* Status / Error Message Banner */}
                 {statusMessage && (
-                  <div className="p-3 rounded-xl bg-white/50/15 border border-white/15 text-zinc-200 text-xs flex items-center gap-2">
+                  <div className="p-3 rounded-xl bg-white/10 border border-white/15 text-zinc-200 text-xs flex items-center gap-2">
                     <AlertTriangle className="w-4 h-4 shrink-0 text-zinc-400" />
                     <span>{statusMessage}</span>
                   </div>
@@ -876,8 +876,8 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose, onPostCreated }
                     onClick={() => fileInputRef.current?.click()}
                     className="w-full py-4 px-4 rounded-xl border-2 border-dashed border-white/15 bg-[#111118]/60 hover:bg-[#111118] flex items-center justify-center gap-3 cursor-pointer transition-colors text-center"
                   >
-                    <div className="w-10 h-10 rounded-xl bg-white text-black text-white flex items-center justify-center shadow-sm shrink-0">
-                      <Plus className="w-5 h-5" />
+                    <div className="w-10 h-10 rounded-xl bg-white text-black flex items-center justify-center shadow-sm shrink-0">
+                      <Plus className="w-5 h-5 stroke-[2.5]" />
                     </div>
                     <div className="text-left">
                       <p className="text-xs font-bold text-white truncate max-w-[200px] sm:max-w-xs">
@@ -894,9 +894,9 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose, onPostCreated }
                         {selectedFile.type.startsWith('video') ? (
                           <video src={filePreviewUrl} className="w-12 h-12 rounded-lg object-cover" />
                         ) : selectedFile.type.startsWith('audio') ? (
-                          <div className="w-12 h-12 rounded-lg bg-white/50/20 flex items-center justify-center text-zinc-300 font-bold text-xs">AUDIO</div>
+                          <div className="w-12 h-12 rounded-lg bg-white/10 flex items-center justify-center text-zinc-300 font-bold text-xs">AUDIO</div>
                         ) : selectedFile.type === 'application/pdf' ? (
-                          <div className="w-12 h-12 rounded-lg bg-white/50 text-white flex items-center justify-center font-bold text-[10px]">PDF</div>
+                          <div className="w-12 h-12 rounded-lg bg-white/10 text-white flex items-center justify-center font-bold text-[10px]">PDF</div>
                         ) : (
                           <img src={filePreviewUrl} alt="Preview" className="w-12 h-12 rounded-lg object-cover" />
                         )}
@@ -1040,7 +1040,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose, onPostCreated }
                         <div className="flex items-center gap-1.5 flex-wrap">
                           <span className="text-xs font-bold text-white">{u.displayName}</span>
                           {u.isVerified && <span className="text-zinc-400 text-xs">✓</span>}
-                          {u.isAdmin && <span className="px-1.5 py-0.5 rounded bg-white/50/20 text-zinc-300 text-[9px] font-bold">Admin</span>}
+                          {u.isAdmin && <span className="px-1.5 py-0.5 rounded bg-white/10 text-zinc-300 text-[9px] font-bold">Admin</span>}
                           {u.isPremium && <span className="px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 text-[9px] font-bold">VIP 💎</span>}
                         </div>
                         <span className="text-[11px] text-zinc-400">@{u.username} • {u.email}</span>
@@ -1071,7 +1071,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose, onPostCreated }
                       <button
                         onClick={() => handleToggleAdminUser(u.id, !!u.isAdmin)}
                         className={`px-2.5 py-1.5 rounded-xl text-[10px] font-bold transition-colors cursor-pointer ${
-                          u.isAdmin ? 'bg-white/50/30 text-zinc-200 border border-white/20' : 'bg-[#111118] text-zinc-300 border border-white/10'
+                          u.isAdmin ? 'bg-white/20 text-zinc-100 border border-white/25' : 'bg-[#111118] text-zinc-300 border border-white/10'
                         }`}
                         title="Alternar Admin"
                       >
@@ -1161,9 +1161,9 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose, onPostCreated }
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="w-full py-3 rounded-xl bg-white text-black text-white font-extrabold text-xs shadow-md shadow-white/5 flex items-center justify-center gap-2 cursor-pointer transition-all"
+                  className="w-full py-3.5 rounded-full bg-white text-black font-extrabold text-xs shadow-md flex items-center justify-center gap-2 cursor-pointer hover:bg-neutral-200 transition-all"
                 >
-                  <Radio className="w-4 h-4" />
+                  <Radio className="w-4 h-4 stroke-[2.5]" />
                   <span>Disparar Comunicado Global</span>
                 </button>
               </div>
@@ -1173,7 +1173,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose, onPostCreated }
           {/* TAB 6: SYNCPAY INTEGRATION & PREMIUM CONFIG */}
           {activeTab === 'syncpay' && (
             <form onSubmit={handleSaveSyncpaySettings} className="space-y-5 animate-fadeIn">
-              <div className="p-5 rounded-2xl bg-[#240C1D] border border-white/20/25 space-y-4 shadow-lg">
+              <div className="p-5 rounded-2xl bg-[#171724] border border-white/10 space-y-4 shadow-lg">
                 <div className="flex items-center justify-between">
                   <h3 className="text-xs font-bold text-zinc-200 uppercase tracking-wider flex items-center gap-2">
                     <CreditCard className="w-4 h-4 text-yellow-300" />

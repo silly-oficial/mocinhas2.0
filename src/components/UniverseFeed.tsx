@@ -90,18 +90,18 @@ const GOLDEN_ANGLE = 2.399963229728653;
 const SPIRAL_K = 310;
 
 function buildNodes(posts: Post[]): UNode[] {
-  const videos = posts
-    .map(p => ({ p, m: p.media.find(m => m.type === 'video') }))
+  const mediaItems = posts
+    .map(p => ({ p, m: p.media?.[0] }))
     .filter((v): v is { p: Post; m: PostMedia } => Boolean(v.m));
 
   // fixados primeiro, depois os mais novos → o mais novo fica no centro do universo
-  videos.sort(
+  mediaItems.sort(
     (a, b) =>
       Number(Boolean(b.p.isPinned)) - Number(Boolean(a.p.isPinned)) ||
       new Date(b.p.createdAt).getTime() - new Date(a.p.createdAt).getTime()
   );
 
-  const nodes: UNode[] = videos.map(({ p, m }, i) => {
+  const nodes: UNode[] = mediaItems.map(({ p, m }, i) => {
     const h = hash32(p.id);
     const r = i === 0 ? 0 : SPIRAL_K * Math.sqrt(i);
     const a = i * GOLDEN_ANGLE + (rnd(h, 1) - 0.5) * 0.45;
@@ -110,8 +110,20 @@ function buildNodes(posts: Post[]): UNode[] {
     const y = Math.sin(a) * r + (rnd(h, 3) - 0.5) * jitter * 2;
     const d = i === 0 || p.isPinned ? 250 : 165 + rnd(h, 4) * 80;
     const hue = 205 + Math.floor(rnd(h, 5) * 135); // azul → roxo → rosa
-    const title = (p.caption || '').trim().split('\n')[0].slice(0, 60) || `Vídeo de ${p.user.displayName}`;
-    return { id: p.id, post: p, x, y, d, hue, poster: posterOf(m), videoUrl: m.url, title };
+    const title = (p.caption || '').trim().split('\n')[0].slice(0, 60) || `Publicação de ${p.user.displayName}`;
+    const isVid = m.type === 'video';
+    const poster = isVid ? (posterOf(m) || m.thumbnail || m.url) : (m.url || m.thumbnail);
+    return {
+      id: p.id,
+      post: p,
+      x,
+      y,
+      d,
+      hue,
+      poster,
+      videoUrl: isVid ? m.url : '',
+      title,
+    };
   });
 
   relaxOverlaps(nodes);
@@ -240,13 +252,13 @@ const NodeView = React.memo(function NodeView({ node, tier, focused, lite, sound
             />
           )}
 
-          {tier !== 'dot' && !poster && !focused && (
+          {tier !== 'dot' && !poster && !focused && Boolean(node.videoUrl) && (
             <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <Play style={{ width: '24%', height: '24%', color: 'rgba(255,255,255,.9)', fill: 'rgba(255,255,255,.9)' }} />
             </div>
           )}
 
-          {focused && allowVideo && (
+          {focused && allowVideo && Boolean(node.videoUrl) && (
             <video
               ref={el => {
                 videoRef.current = el;

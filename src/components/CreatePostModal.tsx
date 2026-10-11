@@ -28,7 +28,7 @@ import confetti from 'canvas-confetti';
 
 interface CreatePostModalProps {
   onClose: () => void;
-  onPostCreated: () => void;
+  onPostCreated: (post?: any) => void;
   defaultMode?: 'post' | 'story' | 'video';
 }
 
@@ -277,13 +277,22 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({
     });
   };
 
+  const fileToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  };
+
   const handlePublish = async () => {
     if (mediaFiles.length === 0 || isUploading) return;
     setIsUploading(true);
     setUploadProgress(20);
 
     try {
-      // Upload media files to backend with fallback
+      // Upload media files to backend with reliable fallback
       const uploadedMediaItems: {
         url: string;
         type: 'image' | 'video' | 'audio' | 'pdf' | 'gif';
@@ -295,8 +304,8 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({
       for (let i = 0; i < mediaFiles.length; i++) {
         const item = mediaFiles[i];
         let finalUrl = item.url;
-
         let posterUrl: string | undefined;
+
         if (item.file) {
           try {
             const uploadRes = await api.uploadFile(item.file);
@@ -304,24 +313,61 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({
               finalUrl = uploadRes.url;
             }
           } catch (uploadErr) {
-            console.warn('Direct file upload fallback:', uploadErr);
+            console.warn('FormData upload error, trying base64 fallback:', uploadErr);
+            try {
+              const b64 = await fileToBase64(item.file);
+              const b64Res = await api.uploadBase64(b64, item.file.name);
+              if (b64Res?.url) {
+                finalUrl = b64Res.url;
+              }
+            } catch (b64Err) {
+              console.error('Base64 upload error:', b64Err);
+            }
           }
-          // 🪐 poster leve (JPEG pequeno) usado pelo feed Universo e pelas miniaturas
+
+          // Poster leve para feed e miniaturas se for vídeo
           if (item.type === 'video') {
-            posterUrl = await uploadVideoPoster(item.file);
+            try {
+              posterUrl = await uploadVideoPoster(item.file);
+            } catch (pErr) {
+              console.warn('Poster error:', pErr);
+            }
           }
         }
+
+        // Se a URL ainda for temporária blob:..., converte para base64 e envia para o servidor
+        if (finalUrl.startsWith('blob:')) {
+          try {
+            const response = await fetch(finalUrl);
+            const blob = await response.blob();
+            const b64 = await new Promise<string>((res, rej) => {
+              const r = new FileReader();
+              r.onload = () => res(r.result as string);
+              r.onerror = rej;
+              r.readAsDataURL(blob);
+            });
+            const b64Res = await api.uploadBase64(b64, item.fileName || 'upload.jpg');
+            if (b64Res?.url) {
+              finalUrl = b64Res.url;
+            }
+          } catch (blobErr) {
+            console.warn('Blob persistence fallback error:', blobErr);
+          }
+        }
+
         uploadedMediaItems.push({
           url: finalUrl,
           type: item.type,
           filter: (item.type === 'image' || item.type === 'gif') && activeFilter !== 'none' ? activeFilter : undefined,
           fileName: item.fileName,
-          thumbnail: posterUrl || item.thumbnail,
+          thumbnail: posterUrl || item.thumbnail || finalUrl,
         });
         setUploadProgress(40 + Math.round(((i + 1) / mediaFiles.length) * 40));
       }
 
       setUploadProgress(85);
+
+      let createdPostResult: any = null;
 
       if (contentType === 'story') {
         await api.createStory({
@@ -333,7 +379,7 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({
           filter: activeFilter,
         });
       } else {
-        await api.createPost({
+        const res = await api.createPost({
           media: uploadedMediaItems,
           caption: caption.trim(),
           location: location.trim() || undefined,
@@ -342,19 +388,20 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({
           durationHours,
           category: selectedCategory,
         });
+        createdPostResult = res?.post;
       }
 
       setUploadProgress(100);
       sounds.playSparkle();
 
       confetti({
-        particleCount: 35,
+        particleCount: 40,
         spread: 60,
         origin: { y: 0.6 },
         colors: ['#FFFFFF', '#38BDF8', '#818CF8', '#A78BFA'],
       });
 
-      onPostCreated();
+      onPostCreated(createdPostResult);
       onClose();
     } catch (err: any) {
       console.error('Publish error:', err);
@@ -368,28 +415,35 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({
   const activeMedia = mediaFiles[selectedMediaIdx] || mediaFiles[0];
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4">
-      <div
-        className={`w-full max-w-lg max-h-[90vh] h-[90vh] sm:h-[650px] rounded-t-[28px] sm:rounded-[28px] ${
-          darkMode ? 'bg-[#12121A] text-white border-white/10' : 'bg-white text-stone-900 border-white/10'
-        } border shadow-xl flex flex-col overflow-hidden animate-in slide-in-from-bottom duration-200`}
-      >
+    <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4">
+      <div className="w-full max-w-lg max-h-[90vh] h-[90vh] sm:h-[650px] rounded-t-[32px] sm:rounded-[32px] bg-[#12121B] text-white border border-white/10 shadow-2xl flex flex-col overflow-hidden animate-in slide-in-from-bottom duration-200">
         {/* Modal Header */}
-        <div className="p-4 border-b border-white/10 dark:border-white/10 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <h2 className="font-heading text-base font-bold text-stone-900 dark:text-white">
-              {contentType === 'story'
-                ? 'Criar Story'
-                : contentType === 'video'
-                ? 'Criar Vídeo / Reel'
-                : 'Nova Publicação'}
-            </h2>
+        <div className="p-4 sm:p-4.5 border-b border-white/10 flex items-center justify-between bg-[#12121B]">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-2xl bg-[#171724] border border-white/10 flex items-center justify-center text-white shadow-xs">
+              {contentType === 'story' ? (
+                <Sparkles className="w-4 h-4 text-amber-300" />
+              ) : contentType === 'video' ? (
+                <Video className="w-4 h-4 text-sky-400" />
+              ) : (
+                <ImageIcon className="w-4 h-4 text-emerald-400" />
+              )}
+            </div>
+            <div>
+              <h2 className="font-heading text-sm font-extrabold text-white">
+                {contentType === 'story'
+                  ? 'Criar Story'
+                  : contentType === 'video'
+                  ? 'Criar Vídeo / Reel'
+                  : 'Nova Publicação'}
+              </h2>
+            </div>
           </div>
           <button
             id="btn-create-modal-close"
             onClick={onClose}
             aria-label="Fechar"
-            className="w-8 h-8 rounded-full flex items-center justify-center text-stone-400 hover:text-stone-700 hover:bg-white/5 dark:hover:bg-white/10 cursor-pointer transition-colors"
+            className="w-8 h-8 rounded-full flex items-center justify-center text-zinc-400 hover:text-white hover:bg-white/10 cursor-pointer transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
@@ -397,7 +451,7 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({
 
         {/* Content Type Selector Tabs */}
         {step === 'media' && (
-          <div className="p-2.5 bg-stone-50 dark:bg-[#0E0E14] border-b border-white/10 dark:border-white/10 flex items-center justify-center gap-2">
+          <div className="p-2 bg-[#0E0E15] border-b border-white/10 flex items-center justify-center gap-1.5">
             {[
               { id: 'post', label: 'Foto / Galeria' },
               { id: 'video', label: 'Reel / Vídeo' },
@@ -406,10 +460,10 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({
               <button
                 key={tab.id}
                 onClick={() => setContentType(tab.id as any)}
-                className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
+                className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
                   contentType === tab.id
-                    ? 'bg-white/50 text-white shadow-xs'
-                    : 'text-stone-600 dark:text-zinc-300 hover:bg-white/10/50'
+                    ? 'bg-white text-black shadow-md font-extrabold'
+                    : 'text-zinc-400 hover:text-white hover:bg-white/5'
                 }`}
               >
                 {tab.label}
@@ -419,10 +473,10 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({
         )}
 
         {/* Modal Body */}
-        <div className="flex-1 overflow-y-auto p-4">
+        <div className="flex-1 overflow-y-auto p-4 sm:p-5 bg-[#12121B]">
           {/* STEP 1: SELECT MEDIA */}
           {step === 'media' && (
-            <div className="space-y-5">
+            <div className="space-y-4">
               {/* File Upload Drop Area */}
               <input
                 ref={fileInputRef}
@@ -435,27 +489,27 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({
 
               <div
                 onClick={() => fileInputRef.current?.click()}
-                className="w-full h-52 rounded-2xl border-2 border-dashed border-white/15 dark:border-white/15 bg-white/5/40 dark:bg-[#181824]/40 flex flex-col items-center justify-center gap-2.5 p-6 text-center hover:bg-white/5 dark:hover:bg-[#181824]/60 cursor-pointer transition-colors"
+                className="w-full h-48 rounded-2xl border-2 border-dashed border-white/15 bg-[#171724]/60 hover:bg-[#171724] hover:border-white/30 flex flex-col items-center justify-center gap-2.5 p-6 text-center cursor-pointer transition-all"
               >
-                <div className="w-12 h-12 rounded-2xl bg-white text-black text-white flex items-center justify-center shadow-sm">
-                  <Upload className="w-6 h-6" />
+                <div className="w-12 h-12 rounded-2xl bg-white text-black flex items-center justify-center shadow-lg">
+                  <Upload className="w-6 h-6 stroke-[2.5]" />
                 </div>
                 <div>
-                  <p className="font-heading text-sm font-bold text-stone-800 dark:text-white">
-                    Selecione arquivos do celular
+                  <p className="font-heading text-sm font-bold text-white">
+                    Selecione fotos ou vídeos do celular
                   </p>
-                  <p className="text-xs text-stone-500 dark:text-zinc-400 mt-1">
-                    Fotos, GIFs, vídeos, PDFs e áudios / voz
+                  <p className="text-xs text-zinc-400 mt-0.5">
+                    Fotos, GIFs, vídeos curtos, PDFs e áudios
                   </p>
                 </div>
               </div>
 
               {/* Sample Presets */}
-              <div>
+              <div className="pt-1">
                 <div className="flex items-center gap-1.5 mb-2.5">
-                  <Sparkles className="w-4 h-4 text-white" />
-                  <span className="text-xs font-bold text-stone-700 dark:text-zinc-200">
-                    Ou experimente com fotos de exemplo:
+                  <Sparkles className="w-4 h-4 text-amber-300" />
+                  <span className="text-xs font-bold text-zinc-300">
+                    Ou selecione um exemplo para testar:
                   </span>
                 </div>
                 <div className="grid grid-cols-2 gap-2.5">
@@ -463,17 +517,15 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({
                     <button
                       key={idx}
                       onClick={() => handleSelectPreset(preset)}
-                      className={`p-2 rounded-2xl ${
-                        darkMode ? 'bg-[#181824]' : 'bg-white'
-                      } border border-white/10 dark:border-white/10 text-left hover:scale-[1.01] transition-transform cursor-pointer shadow-2xs flex items-center gap-2.5`}
+                      className="p-2.5 rounded-2xl bg-[#171724] border border-white/10 text-left hover:border-white/25 hover:bg-[#1C1C2C] transition-all cursor-pointer shadow-xs flex items-center gap-2.5"
                     >
                       <img
                         src={preset.url}
                         alt={preset.name}
                         referrerPolicy="no-referrer"
-                        className="w-11 h-11 rounded-xl object-cover"
+                        className="w-11 h-11 rounded-xl object-cover bg-black/40"
                       />
-                      <span className="text-xs font-medium text-stone-800 dark:text-white truncate">
+                      <span className="text-xs font-bold text-white truncate">
                         {preset.name}
                       </span>
                     </button>
@@ -487,7 +539,7 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({
           {step === 'edit' && activeMedia && (
             <div className="space-y-4">
               {/* Preview Window */}
-              <div className="relative w-full aspect-square max-h-60 rounded-2xl overflow-hidden bg-black flex items-center justify-center shadow-inner">
+              <div className="relative w-full aspect-square max-h-60 rounded-2xl overflow-hidden bg-black flex items-center justify-center border border-white/10 shadow-inner">
                 {activeMedia.type === 'video' ? (
                   <video
                     src={activeMedia.url}
@@ -502,28 +554,28 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({
                     }}
                   />
                 ) : activeMedia.type === 'audio' ? (
-                  <div className="w-full h-full p-5 bg-[#161622] flex flex-col items-center justify-center gap-3 text-center">
-                    <div className="w-14 h-14 rounded-2xl bg-white text-black text-white flex items-center justify-center shadow-lg shadow-white/5 animate-pulse">
+                  <div className="w-full h-full p-5 bg-[#171724] flex flex-col items-center justify-center gap-3 text-center">
+                    <div className="w-14 h-14 rounded-2xl bg-white text-black flex items-center justify-center shadow-lg animate-pulse">
                       <Music className="w-7 h-7" />
                     </div>
                     <div className="max-w-[85%]">
                       <p className="font-heading text-xs font-bold text-white truncate">
-                        {activeMedia.fileName || 'Arquivo de Áudio Selecionado'}
+                        {activeMedia.fileName || 'Arquivo de Áudio'}
                       </p>
-                      <span className="text-[10px] text-zinc-300">Áudio pronto para reprodução</span>
+                      <span className="text-[10px] text-zinc-400">Pronto para reprodução</span>
                     </div>
                     <audio controls src={activeMedia.url} className="w-full max-w-xs mt-1" />
                   </div>
                 ) : activeMedia.type === 'pdf' ? (
-                  <div className="w-full h-full p-5 bg-[#161622] flex flex-col items-center justify-center gap-3 text-center">
-                    <div className="w-14 h-14 rounded-2xl bg-white/50 text-white flex items-center justify-center shadow-lg shadow-white/5">
+                  <div className="w-full h-full p-5 bg-[#171724] flex flex-col items-center justify-center gap-3 text-center">
+                    <div className="w-14 h-14 rounded-2xl bg-white text-black flex items-center justify-center shadow-lg">
                       <FileText className="w-7 h-7" />
                     </div>
                     <div className="max-w-[85%]">
                       <p className="font-heading text-xs font-bold text-white truncate">
                         {activeMedia.fileName || 'Documento PDF'}
                       </p>
-                      <span className="text-[10px] text-zinc-300">Documento anexado para download</span>
+                      <span className="text-[10px] text-zinc-400">Documento anexado</span>
                     </div>
                   </div>
                 ) : (
@@ -554,7 +606,7 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({
                 ))}
 
                 {textOverlay && (
-                  <div className="absolute inset-x-4 bottom-4 bg-black/60 backdrop-blur-sm text-white text-xs font-heading p-2 rounded-xl text-center border border-white/20">
+                  <div className="absolute inset-x-4 bottom-4 bg-black/70 backdrop-blur-sm text-white text-xs font-heading p-2 rounded-xl text-center border border-white/20">
                     {textOverlay}
                   </div>
                 )}
@@ -564,12 +616,12 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({
               {(activeMedia.type === 'image' || activeMedia.type === 'gif' || activeMedia.type === 'video') ? (
                 <>
                   <div className="flex items-center justify-between px-1">
-                    <span className="text-xs font-bold text-stone-700 dark:text-zinc-300">
+                    <span className="text-xs font-bold text-zinc-300">
                       Filtros & Ajustes
                     </span>
                     <button
                       onClick={handleRotate}
-                      className="flex items-center gap-1 text-xs font-bold text-white hover:underline cursor-pointer"
+                      className="flex items-center gap-1 text-xs font-bold text-zinc-300 hover:text-white cursor-pointer transition-colors"
                     >
                       <RotateCw className="w-3.5 h-3.5" />
                       <span>Girar 90°</span>
@@ -582,10 +634,10 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({
                       <button
                         key={f.id}
                         onClick={() => setActiveFilter(f.id)}
-                        className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
+                        className={`px-3.5 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
                           activeFilter === f.id
-                            ? 'bg-white/50 text-white shadow-xs'
-                            : 'bg-stone-100 dark:bg-[#161622] text-stone-700 dark:text-zinc-200'
+                            ? 'bg-white text-black shadow-xs font-extrabold'
+                            : 'bg-[#171724] hover:bg-[#1E1E2E] text-zinc-300 border border-white/10'
                         }`}
                       >
                         {f.label}
@@ -594,7 +646,7 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({
                   </div>
                 </>
               ) : (
-                <div className="p-3 rounded-xl bg-stone-50 dark:bg-[#181824] border border-white/10 dark:border-white/10 text-center text-xs text-stone-600 dark:text-zinc-300">
+                <div className="p-3 rounded-xl bg-[#171724] border border-white/10 text-center text-xs text-zinc-300">
                   Arquivo pronto para ser publicado! Você pode adicionar uma legenda no próximo passo.
                 </div>
               )}
@@ -602,7 +654,7 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({
               {/* Story Overlay Text */}
               {contentType === 'story' && (
                 <div>
-                  <span className="text-[11px] font-bold text-stone-600 dark:text-zinc-400 block mb-1">
+                  <span className="text-[11px] font-bold text-zinc-300 block mb-1">
                     Texto no Story:
                   </span>
                   <input
@@ -610,7 +662,7 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({
                     value={textOverlay}
                     onChange={e => setTextOverlay(e.target.value)}
                     placeholder="Adicione uma frase ao seu Story..."
-                    className="w-full bg-stone-50 dark:bg-[#161622] text-xs text-stone-900 dark:text-white px-3.5 py-2 rounded-xl border border-white/10 dark:border-white/10 focus:outline-none"
+                    className="w-full bg-[#171724] text-xs text-white placeholder-zinc-500 px-3.5 py-2.5 rounded-xl border border-white/10 focus:outline-none focus:border-white/30"
                   />
                 </div>
               )}
@@ -623,14 +675,14 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({
               {/* Caption & AI Generator */}
               <div>
                 <div className="flex items-center justify-between mb-1.5">
-                  <label className="text-xs font-bold text-stone-800 dark:text-zinc-200">
+                  <label className="text-xs font-bold text-zinc-200">
                     Legenda da Publicação:
                   </label>
                   <button
                     type="button"
                     onClick={handleAiCaption}
                     disabled={isAiGenerating}
-                    className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-white text-black text-white text-[11px] font-bold shadow-xs hover:scale-102 active:scale-95 disabled:opacity-50 cursor-pointer"
+                    className="flex items-center gap-1 px-3 py-1 rounded-full bg-white text-black text-[11px] font-extrabold shadow-xs hover:bg-neutral-200 active:scale-95 disabled:opacity-50 cursor-pointer transition-all"
                   >
                     <Wand2 className={`w-3 h-3 ${isAiGenerating ? 'animate-spin' : ''}`} />
                     <span>{isAiGenerating ? 'Gerando...' : 'Sugerir com IA'}</span>
@@ -641,13 +693,13 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({
                   value={caption}
                   onChange={e => setCaption(e.target.value)}
                   placeholder="Escreva sua legenda com @menções e #hashtags..."
-                  className="w-full bg-stone-50 dark:bg-[#161622] text-xs text-stone-900 dark:text-white placeholder-stone-400 dark:placeholder-zinc-500 p-3 rounded-2xl border border-white/10 dark:border-white/10 focus:outline-none focus:ring-1 focus:ring-white/20 leading-relaxed resize-none"
+                  className="w-full bg-[#171724] text-xs text-white placeholder-zinc-500 p-3 rounded-2xl border border-white/10 focus:outline-none focus:border-white/30 leading-relaxed resize-none"
                 />
               </div>
 
               {/* Hashtag Suggestion Chips */}
               <div>
-                <span className="text-[11px] font-bold text-stone-600 dark:text-zinc-400 block mb-1">
+                <span className="text-[11px] font-bold text-zinc-400 block mb-1.5">
                   Hashtags Sugeridas:
                 </span>
                 <div className="flex flex-wrap gap-1.5">
@@ -656,7 +708,7 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({
                       key={tag}
                       type="button"
                       onClick={() => handleAddHashtag(tag)}
-                      className="px-2.5 py-1 rounded-full bg-stone-100 dark:bg-[#161622] text-[11px] font-medium text-stone-700 dark:text-zinc-200 hover:bg-white/5 cursor-pointer transition-colors"
+                      className="px-2.5 py-1 rounded-full bg-[#171724] hover:bg-[#1E1E2E] text-[11px] font-medium text-zinc-300 border border-white/10 hover:border-white/20 cursor-pointer transition-colors"
                     >
                       {tag}
                     </button>
@@ -666,7 +718,7 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({
 
               {/* Category Selection */}
               <div>
-                <label className="text-[11px] font-bold text-stone-600 dark:text-zinc-400 block mb-1">
+                <label className="text-[11px] font-bold text-zinc-400 block mb-1.5">
                   Categoria da Publicação:
                 </label>
                 <div className="flex flex-wrap gap-1.5">
@@ -677,8 +729,8 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({
                       onClick={() => setSelectedCategory(cat.name)}
                       className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                         selectedCategory === cat.name
-                          ? 'bg-white text-black shadow-md'
-                          : 'bg-stone-100 dark:bg-[#161622] text-stone-700 dark:text-zinc-300 border border-white/10 dark:border-white/10 hover:border-white/20'
+                          ? 'bg-white text-black font-extrabold shadow-md'
+                          : 'bg-[#171724] hover:bg-[#1E1E2E] text-zinc-300 border border-white/10 hover:border-white/20'
                       }`}
                     >
                       {cat.name}
@@ -689,30 +741,30 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({
 
               {/* Location Field */}
               <div>
-                <label className="text-[11px] font-bold text-stone-600 dark:text-zinc-400 block mb-1">
+                <label className="text-[11px] font-bold text-zinc-400 block mb-1">
                   Localização:
                 </label>
-                <div className="flex items-center gap-2 bg-stone-50 dark:bg-[#161622] px-3 py-2 rounded-xl border border-white/10 dark:border-white/10">
-                  <MapPin className="w-4 h-4 text-white" />
+                <div className="flex items-center gap-2 bg-[#171724] px-3.5 py-2.5 rounded-xl border border-white/10 focus-within:border-white/25">
+                  <MapPin className="w-4 h-4 text-zinc-400" />
                   <input
                     type="text"
                     value={location}
                     onChange={e => setLocation(e.target.value)}
                     placeholder="Ex: São Paulo, Brasil / Studio Photo"
-                    className="flex-1 bg-transparent text-xs text-stone-900 dark:text-white focus:outline-none"
+                    className="flex-1 bg-transparent text-xs text-white placeholder-zinc-500 focus:outline-none"
                   />
                 </div>
               </div>
 
               {/* Comments Toggle */}
-              <div className="flex items-center justify-between p-3 rounded-2xl bg-stone-50 dark:bg-[#161622] border border-white/10 dark:border-white/10">
-                <div className="flex items-center gap-2">
-                  <MessageSquare className="w-4 h-4 text-white" />
+              <div className="flex items-center justify-between p-3.5 rounded-2xl bg-[#171724] border border-white/10">
+                <div className="flex items-center gap-2.5">
+                  <MessageSquare className="w-4 h-4 text-zinc-400" />
                   <div>
-                    <span className="text-xs font-bold text-stone-900 dark:text-white block">
+                    <span className="text-xs font-bold text-white block">
                       Permitir Comentários
                     </span>
-                    <span className="text-[10px] text-stone-500 dark:text-zinc-400">
+                    <span className="text-[10px] text-zinc-400">
                       Outros usuários poderão comentar no post
                     </span>
                   </div>
@@ -726,15 +778,15 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({
               </div>
 
               {/* Temporary / Expiration Countdown Option (Ephemeral Posts) */}
-              <div className="p-3.5 rounded-2xl bg-stone-50 dark:bg-[#161622] border border-white/10 dark:border-white/10 space-y-3">
+              <div className="p-3.5 rounded-2xl bg-[#171724] border border-white/10 space-y-3">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Timer className="w-4 h-4 text-white" />
+                  <div className="flex items-center gap-2.5">
+                    <Timer className="w-4 h-4 text-zinc-400" />
                     <div>
-                      <span className="text-xs font-bold text-stone-900 dark:text-white block">
+                      <span className="text-xs font-bold text-white block">
                         Publicação Temporária (Contagem Regressiva)
                       </span>
-                      <span className="text-[10px] text-stone-500 dark:text-zinc-400">
+                      <span className="text-[10px] text-zinc-400">
                         Ativa um contador regressivo em tempo real e auto-exclusão
                       </span>
                     </div>
@@ -748,12 +800,12 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({
                 </div>
 
                 {isTemporary && (
-                  <div className="pt-2.5 border-t border-white/10 dark:border-white/10 space-y-2 animate-fadeIn">
+                  <div className="pt-2.5 border-t border-white/10 space-y-2 animate-fadeIn">
                     <div className="flex items-center justify-between">
-                      <span className="text-[11px] font-bold text-stone-700 dark:text-zinc-300">
+                      <span className="text-[11px] font-bold text-zinc-300">
                         Tempo de duração antes de expirar:
                       </span>
-                      <span className="text-[11px] font-extrabold text-white dark:text-zinc-400">
+                      <span className="text-[11px] font-extrabold text-white">
                         {durationHours} {durationHours === 1 ? 'hora' : 'horas'}
                       </span>
                     </div>
@@ -772,8 +824,8 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({
                           onClick={() => setDurationHours(option.hours)}
                           className={`py-1.5 px-2 rounded-xl text-[10.5px] font-bold transition-all cursor-pointer text-center ${
                             durationHours === option.hours
-                              ? 'bg-white/50 text-white shadow-xs'
-                              : 'bg-white dark:bg-[#171724] text-stone-700 dark:text-zinc-200 border border-white/15 dark:border-white/10 hover:border-white/20'
+                              ? 'bg-white text-black font-extrabold shadow-xs'
+                              : 'bg-[#12121B] hover:bg-[#1A1A28] text-zinc-300 border border-white/10 hover:border-white/20'
                           }`}
                         >
                           {option.label}
@@ -786,22 +838,22 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({
 
               {/* Processing Status / Upload Progress Component */}
               {isUploading && (
-                <div className="p-4 rounded-2xl bg-white/50/10 dark:bg-white/5 border border-white/15 space-y-2.5 animate-fadeIn">
-                  <div className="flex items-center justify-between text-xs font-bold text-stone-900 dark:text-white">
+                <div className="p-4 rounded-2xl bg-[#171724] border border-white/15 space-y-2.5 animate-fadeIn">
+                  <div className="flex items-center justify-between text-xs font-bold text-white">
                     <span className="flex items-center gap-2">
-                      <span className="w-2.5 h-2.5 rounded-full bg-white/50 animate-ping"></span>
+                      <span className="w-2.5 h-2.5 rounded-full bg-white animate-ping"></span>
                       Status de Processamento & Upload
                     </span>
-                    <span className="text-white dark:text-zinc-400 font-extrabold">{uploadProgress}%</span>
+                    <span className="text-white font-extrabold">{uploadProgress}%</span>
                   </div>
-                  <div className="w-full h-2.5 rounded-full bg-stone-200 dark:bg-white/5 overflow-hidden shadow-inner">
+                  <div className="w-full h-2 rounded-full bg-black/40 overflow-hidden shadow-inner">
                     <div
-                      className="h-full bg-white text-black transition-all duration-300 rounded-full"
+                      className="h-full bg-white transition-all duration-300 rounded-full"
                       style={{ width: `${uploadProgress}%` }}
                     />
                   </div>
-                  <p className="text-[11px] text-stone-500 dark:text-zinc-300">
-                    Processando e enviando arquivos (vídeos e PDFs pesados podem levar alguns instantes)...
+                  <p className="text-[11px] text-zinc-400">
+                    Processando e salvando arquivos com segurança...
                   </p>
                 </div>
               )}
@@ -810,9 +862,9 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({
         </div>
 
         {/* Modal Footer Controls */}
-        <div className="p-4 border-t border-white/10 dark:border-white/10 flex items-center justify-between gap-3">
+        <div className="p-4 border-t border-white/10 flex items-center justify-between gap-3 bg-[#12121B]">
           {step === 'media' && (
-            <div className="text-xs text-stone-400">
+            <div className="text-xs text-zinc-400">
               Escolha uma imagem ou vídeo para continuar
             </div>
           )}
@@ -821,7 +873,7 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({
             <>
               <button
                 onClick={() => setStep('media')}
-                className="px-4 py-2 rounded-full text-xs font-bold text-stone-600 dark:text-zinc-300 hover:bg-stone-100 dark:hover:bg-white/5 cursor-pointer"
+                className="px-4 py-2 rounded-full text-xs font-bold text-zinc-400 hover:text-white hover:bg-white/5 cursor-pointer transition-colors"
               >
                 Voltar
               </button>
@@ -833,7 +885,7 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({
                     setStep('publish');
                   }
                 }}
-                className="px-6 py-2.5 rounded-2xl bg-white text-black text-white text-xs font-bold shadow-xs hover:opacity-95 active:scale-95 transition-all cursor-pointer"
+                className="px-6 py-2.5 rounded-full bg-white text-black text-xs font-extrabold shadow-lg hover:bg-neutral-200 active:scale-95 transition-all cursor-pointer"
               >
                 {contentType === 'story' ? 'Publicar Story' : 'Avançar →'}
               </button>
@@ -845,17 +897,17 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({
               <button
                 onClick={() => setStep('edit')}
                 disabled={isUploading}
-                className="px-4 py-2 rounded-full text-xs font-bold text-stone-600 dark:text-zinc-300 hover:bg-stone-100 dark:hover:bg-white/5 cursor-pointer"
+                className="px-4 py-2 rounded-full text-xs font-bold text-zinc-400 hover:text-white hover:bg-white/5 cursor-pointer transition-colors"
               >
                 Voltar
               </button>
               <button
                 onClick={handlePublish}
                 disabled={isUploading}
-                className="flex items-center gap-1.5 px-6 py-2.5 rounded-2xl bg-white text-black text-white text-xs font-bold shadow-xs hover:opacity-95 active:scale-95 disabled:opacity-50 transition-all cursor-pointer"
+                className="flex items-center gap-1.5 px-6 py-2.5 rounded-full bg-white text-black text-xs font-extrabold shadow-lg hover:bg-neutral-200 active:scale-95 disabled:opacity-50 transition-all cursor-pointer"
               >
-                <Check className="w-4 h-4" />
-                <span>{isUploading ? 'Salvando...' : 'Publicar Agora'}</span>
+                <Check className="w-4 h-4 stroke-[2.5]" />
+                <span>{isUploading ? 'Publicando...' : 'Publicar Agora'}</span>
               </button>
             </>
           )}

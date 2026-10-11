@@ -126,7 +126,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   return (
     <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4">
       <div
-        className="w-full max-w-md max-h-[85vh] h-[85vh] sm:h-auto rounded-t-3xl sm:rounded-[28px] bg-[#12121B] text-white border border-white/20/25 shadow-2xl flex flex-col overflow-hidden animate-scale-up"
+        className="w-full max-w-md max-h-[85vh] h-[85vh] sm:h-auto rounded-t-3xl sm:rounded-[28px] bg-[#12121B] text-white border border-white/10 shadow-2xl flex flex-col overflow-hidden animate-scale-up"
       >
         {/* Header */}
         <div className="p-4 border-b border-white/10 flex items-center justify-between">
@@ -165,7 +165,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   </span>
                 </div>
               </div>
-              <span className="px-2.5 py-1 rounded-full bg-white/50/20 text-zinc-300 text-[10px] font-bold">
+              <span className="px-2.5 py-1 rounded-full bg-white/10 text-zinc-300 text-[10px] font-bold">
                 Ativo
               </span>
             </div>
@@ -222,13 +222,13 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
             <div className="p-3.5 rounded-2xl bg-gradient-to-br from-[#171724] to-[#12121A] border border-white/15 space-y-2">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2.5">
-                  <div className="w-7 h-7 rounded-xl bg-white/50/20 flex items-center justify-center text-zinc-400">
+                  <div className="w-7 h-7 rounded-xl bg-white/10 flex items-center justify-center text-zinc-300">
                     <Timer className="w-4 h-4" />
                   </div>
                   <div>
                     <span className="text-xs font-bold text-white flex items-center gap-1.5">
                       <span>Modo Efêmero (Duração de 1h)</span>
-                      <span className="px-1.5 py-0.2 rounded-md bg-white/50 text-white text-[9px] font-bold">1h</span>
+                      <span className="px-1.5 py-0.5 rounded-md bg-white/10 text-zinc-200 border border-white/10 text-[9px] font-bold">1h</span>
                     </span>
                     <span className="text-[10px] text-zinc-300/80 block">
                       Publicações, vídeos, DMs, grupos e stories duram até 1 hora
@@ -240,8 +240,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   onClick={handleToggleEphemeral}
                   className={`px-3 py-1 rounded-full text-xs font-bold transition-all cursor-pointer ${
                     ephemeralActive
-                      ? 'bg-white text-black text-white shadow-xs'
-                      : 'bg-stone-800 text-stone-400 hover:bg-stone-700'
+                      ? 'bg-white text-black shadow-xs'
+                      : 'bg-white/10 text-zinc-400 hover:bg-white/15'
                   }`}
                 >
                   {ephemeralActive ? 'Ativo' : 'Desativado'}
@@ -256,7 +256,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   type="button"
                   onClick={handleManualClean}
                   disabled={isCleaning}
-                  className="px-2.5 py-1 rounded-xl bg-white/50/20 hover:bg-white/50/30 text-zinc-200 text-[10px] font-bold border border-white/15 cursor-pointer disabled:opacity-50 flex items-center gap-1"
+                  className="px-2.5 py-1 rounded-xl bg-white/10 hover:bg-white/20 text-zinc-200 text-[10px] font-bold border border-white/15 cursor-pointer disabled:opacity-50 flex items-center gap-1"
                 >
                   <RefreshCw className={`w-3 h-3 ${isCleaning ? 'animate-spin' : ''}`} />
                   <span>{isCleaning ? 'Limpando...' : 'Limpar Agora'}</span>
@@ -305,7 +305,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
               <button
                 type="submit"
                 disabled={isChangingPass || !currentPassword || !newPassword}
-                className="w-full py-2.5 rounded-xl bg-white text-black text-white text-xs font-bold hover:opacity-95 disabled:opacity-50 cursor-pointer shadow-xs"
+                className="w-full py-2.5 rounded-xl bg-white text-black text-xs font-bold hover:bg-neutral-200 disabled:opacity-50 cursor-pointer shadow-xs transition-colors"
               >
                 {isChangingPass ? 'Salvando...' : 'Atualizar Senha'}
               </button>
@@ -320,8 +320,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
               className="w-full p-3 rounded-2xl bg-[#171724] hover:bg-[#20202E] border border-white/10 text-left flex items-center justify-between transition-colors cursor-pointer group"
             >
               <div className="flex items-center gap-2.5">
-                <div className="w-7 h-7 rounded-xl bg-white/50/20 text-zinc-300 flex items-center justify-center">
-                  <ShieldCheck className="w-4 h-4" />
+                <div className="w-7 h-7 rounded-xl bg-white/10 text-zinc-300 flex items-center justify-center">
+                  <ShieldCheck className="w-4 h-4 stroke-[2.5]" />
                 </div>
                 <div>
                   <span className="text-xs font-bold text-white block group-hover:text-zinc-300 transition-colors">
@@ -332,7 +332,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   </span>
                 </div>
               </div>
-              <span className="text-xs text-zinc-400 font-bold px-2.5 py-1 rounded-xl bg-white/50/15 border border-white/15">
+              <span className="text-xs text-zinc-300 font-bold px-2.5 py-1 rounded-xl bg-white/10 border border-white/15">
                 Ler
               </span>
             </button>

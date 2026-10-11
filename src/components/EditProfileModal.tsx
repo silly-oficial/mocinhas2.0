@@ -112,21 +112,17 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4">
-      <div
-        className={`w-full max-w-lg max-h-[90vh] h-[90vh] sm:h-[680px] rounded-t-[28px] sm:rounded-[28px] ${
-          darkMode ? 'bg-[#12121A] text-white border-white/10' : 'bg-white text-stone-900 border-zinc-200'
-        } border shadow-xl flex flex-col overflow-hidden animate-in slide-in-from-bottom duration-200`}
-      >
+    <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4">
+      <div className="w-full max-w-lg max-h-[90vh] h-[90vh] sm:h-[680px] rounded-t-[28px] sm:rounded-[28px] bg-[#12121B] text-white border border-white/10 shadow-2xl flex flex-col overflow-hidden animate-in slide-in-from-bottom duration-200">
         {/* Header */}
-        <div className="p-4 border-b border-white/10 dark:border-white/10 flex items-center justify-between">
-          <h2 className="font-heading text-base font-bold text-stone-900 dark:text-white flex items-center gap-2">
+        <div className="p-4 border-b border-white/10 flex items-center justify-between bg-[#12121B]">
+          <h2 className="font-heading text-base font-bold text-white flex items-center gap-2">
             <UserCheck className="w-5 h-5 text-white" />
             <span>Editar Perfil</span>
           </h2>
           <button
             onClick={onClose}
-            className="w-8 h-8 rounded-full flex items-center justify-center text-stone-400 hover:text-stone-700 hover:bg-white/5 dark:hover:bg-white/10 cursor-pointer transition-colors"
+            className="w-8 h-8 rounded-full flex items-center justify-center text-zinc-400 hover:text-white hover:bg-white/10 cursor-pointer transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
@@ -139,7 +135,7 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
             {/* Banner preview */}
             <div
               onClick={() => bannerInputRef.current?.click()}
-              className="w-full h-28 rounded-2xl bg-white/10 dark:bg-[#161622] overflow-hidden cursor-pointer relative group flex items-center justify-center border border-white/15/60 dark:border-white/10"
+              className="w-full h-28 rounded-2xl bg-[#161622] overflow-hidden cursor-pointer relative group flex items-center justify-center border border-white/10"
             >
               {banner ? (
                 <img
@@ -245,7 +241,7 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
           <div className="pt-4 space-y-4">
             {/* Gender Selection */}
             <div>
-              <label className="text-xs font-bold text-stone-800 dark:text-zinc-200 block mb-1.5">
+              <label className="text-xs font-bold text-zinc-200 block mb-1.5">
                 Sexo / Identidade:
               </label>
               <div className="grid grid-cols-3 gap-2">
@@ -254,8 +250,8 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
                   onClick={() => handleGenderChange('feminino')}
                   className={`py-2 px-3 rounded-2xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
                     gender === 'feminino'
-                      ? 'bg-white text-black shadow-xs'
-                      : 'bg-stone-100 dark:bg-[#161622] text-stone-700 dark:text-zinc-200 hover:bg-white/5'
+                      ? 'bg-white text-black shadow-xs font-extrabold'
+                      : 'bg-[#171724] border border-white/10 text-zinc-300 hover:bg-[#20202F]'
                   }`}
                 >
                   <span>✦</span>
@@ -267,8 +263,8 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
                   onClick={() => handleGenderChange('masculino')}
                   className={`py-2 px-3 rounded-2xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
                     gender === 'masculino'
-                      ? 'bg-gradient-to-r from-blue-500 to-indigo-500 text-white shadow-xs'
-                      : 'bg-stone-100 dark:bg-[#161622] text-stone-700 dark:text-zinc-200 hover:bg-white/5'
+                      ? 'bg-white text-black shadow-xs font-extrabold'
+                      : 'bg-[#171724] border border-white/10 text-zinc-300 hover:bg-[#20202F]'
                   }`}
                 >
                   <span>⚡</span>
@@ -281,21 +277,21 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
                   className={`py-2 px-3 rounded-2xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
                     gender === 'outro'
                       ? 'bg-white text-black font-extrabold shadow-xs'
-                      : 'bg-stone-100 dark:bg-[#161622] text-stone-700 dark:text-zinc-200 hover:bg-white/5'
+                      : 'bg-[#171724] border border-white/10 text-zinc-300 hover:bg-[#20202F]'
                   }`}
                 >
                   <span>✨</span>
                   <span>Outro</span>
                 </button>
               </div>
-              <p className="text-[10px] text-stone-500 dark:text-zinc-400 mt-1">
+              <p className="text-[10px] text-zinc-400 mt-1">
                 Ao alterar o sexo, novos avatares recomendados são sugeridos automaticamente.
               </p>
             </div>
 
             {/* Display Name */}
             <div>
-              <label className="text-xs font-bold text-stone-800 dark:text-zinc-200 block mb-1">
+              <label className="text-xs font-bold text-zinc-200 block mb-1">
                 Nome de Exibição:
               </label>
               <input
@@ -303,13 +299,13 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
                 value={displayName}
                 onChange={e => setDisplayName(e.target.value)}
                 required
-                className="w-full bg-stone-50 dark:bg-[#161622] text-xs text-stone-900 dark:text-white p-2.5 rounded-2xl border border-white/10 dark:border-white/10 focus:outline-none focus:ring-1 focus:ring-white/20 font-heading"
+                className="w-full bg-[#171724] text-xs text-white p-2.5 rounded-2xl border border-white/10 focus:outline-none focus:border-white/30 font-heading"
               />
             </div>
 
             {/* Title / Bio tag */}
             <div>
-              <label className="text-xs font-bold text-stone-800 dark:text-zinc-200 block mb-1">
+              <label className="text-xs font-bold text-zinc-200 block mb-1">
                 Ocupação / Categoria:
               </label>
               <div className="flex flex-wrap gap-1.5 mb-1.5">
@@ -320,8 +316,8 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
                     onClick={() => setAnimeTitle(t)}
                     className={`px-2.5 py-1 rounded-full text-[11px] font-medium transition-all cursor-pointer ${
                       animeTitle === t
-                        ? 'bg-white/50 text-white shadow-xs'
-                        : 'bg-stone-100 dark:bg-[#161622] text-stone-700 dark:text-zinc-200 hover:bg-white/5'
+                        ? 'bg-white text-black font-bold shadow-xs'
+                        : 'bg-[#171724] border border-white/10 text-zinc-300 hover:bg-[#20202F]'
                     }`}
                   >
                     {t}
@@ -333,13 +329,13 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
                 value={animeTitle}
                 onChange={e => setAnimeTitle(e.target.value)}
                 placeholder="Ou digite sua profissão ou área..."
-                className="w-full bg-stone-50 dark:bg-[#161622] text-xs text-stone-900 dark:text-white p-2 rounded-2xl border border-white/10 dark:border-white/10 focus:outline-none"
+                className="w-full bg-[#171724] text-xs text-white p-2 rounded-2xl border border-white/10 focus:outline-none focus:border-white/30"
               />
             </div>
 
             {/* Bio */}
             <div>
-              <label className="text-xs font-bold text-stone-800 dark:text-zinc-200 block mb-1">
+              <label className="text-xs font-bold text-zinc-200 block mb-1">
                 Biografia:
               </label>
               <textarea
@@ -347,36 +343,36 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
                 value={bio}
                 onChange={e => setBio(e.target.value)}
                 placeholder="Fale um pouco sobre você e seus interesses..."
-                className="w-full bg-stone-50 dark:bg-[#161622] text-xs text-stone-900 dark:text-white p-2.5 rounded-2xl border border-white/10 dark:border-white/10 focus:outline-none focus:ring-1 focus:ring-white/20 resize-none font-sans"
+                className="w-full bg-[#171724] text-xs text-white p-2.5 rounded-2xl border border-white/10 focus:outline-none focus:border-white/30 resize-none font-sans"
               />
             </div>
 
             {/* Website Link */}
             <div>
-              <label className="text-xs font-bold text-stone-800 dark:text-zinc-200 block mb-1">
+              <label className="text-xs font-bold text-zinc-200 block mb-1">
                 Website / Link:
               </label>
-              <div className="flex items-center gap-2 bg-stone-50 dark:bg-[#161622] px-3 py-2 rounded-2xl border border-white/10 dark:border-white/10">
-                <Globe className="w-4 h-4 text-white" />
+              <div className="flex items-center gap-2 bg-[#171724] px-3 py-2 rounded-2xl border border-white/10">
+                <Globe className="w-4 h-4 text-zinc-400" />
                 <input
                   type="text"
                   value={website}
                   onChange={e => setWebsite(e.target.value)}
                   placeholder="https://seusite.com"
-                  className="flex-1 bg-transparent text-xs text-stone-900 dark:text-white focus:outline-none"
+                  className="flex-1 bg-transparent text-xs text-white placeholder-zinc-500 focus:outline-none"
                 />
               </div>
             </div>
 
             {/* Private Account Switch */}
-            <div className="flex items-center justify-between p-3 rounded-2xl bg-stone-50 dark:bg-[#161622] border border-white/10 dark:border-white/10">
+            <div className="flex items-center justify-between p-3 rounded-2xl bg-[#171724] border border-white/10">
               <div className="flex items-center gap-2">
-                <Lock className="w-4 h-4 text-white" />
+                <Lock className="w-4 h-4 text-zinc-400" />
                 <div>
-                  <span className="text-xs font-bold text-stone-900 dark:text-white block">
+                  <span className="text-xs font-bold text-white block">
                     Conta Privada
                   </span>
-                  <span className="text-[10px] text-stone-500 dark:text-zinc-400">
+                  <span className="text-[10px] text-zinc-400">
                     Apenas seguidores aprovados verão suas fotos
                   </span>
                 </div>
@@ -394,9 +390,9 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
             <button
               type="submit"
               disabled={isSaving}
-              className="w-full py-3 rounded-2xl bg-white text-black text-white text-xs font-bold shadow-xs hover:opacity-95 active:scale-95 transition-all flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50"
+              className="w-full py-3.5 rounded-full bg-white text-black font-extrabold text-xs shadow-md hover:bg-neutral-200 active:scale-95 transition-all flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50"
             >
-              <Check className="w-4 h-4" />
+              <Check className="w-4 h-4 stroke-[2.5]" />
               <span>{isSaving ? 'Salvando...' : 'Salvar Alterações'}</span>
             </button>
           </div>

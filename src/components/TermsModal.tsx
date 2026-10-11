@@ -34,15 +34,15 @@ export const TermsModal: React.FC<TermsModalProps> = ({
         {/* Header */}
         <div className="p-4 sm:p-5 border-b border-white/10 flex items-center justify-between bg-gradient-to-r from-[#220B1F] to-[#0E0E15]">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-2xl bg-white text-black flex items-center justify-center text-white shadow-md shadow-white/5 shrink-0">
-              <ShieldCheck className="w-5 h-5" />
+            <div className="w-9 h-9 rounded-2xl bg-white text-black flex items-center justify-center shadow-md shadow-white/5 shrink-0">
+              <ShieldCheck className="w-5 h-5 stroke-[2.5]" />
             </div>
             <div>
               <div className="flex items-center gap-2">
                 <h2 className="font-heading text-base font-bold text-white tracking-tight">
                   Termos de Uso e Responsabilidade
                 </h2>
-                <span className="px-2 py-0.5 rounded-full bg-white/50/20 border border-white/15 text-[10px] font-bold text-zinc-300">
+                <span className="px-2 py-0.5 rounded-full bg-white/10 border border-white/15 text-[10px] font-bold text-zinc-300">
                   Obrigatório
                 </span>
               </div>
@@ -101,7 +101,7 @@ export const TermsModal: React.FC<TermsModalProps> = ({
           </section>
 
           {/* 3. Conteúdos Estritamente Proibidos */}
-          <section className="space-y-1.5 p-3.5 rounded-2xl bg-white/5/30 border border-white/15">
+          <section className="space-y-1.5 p-3.5 rounded-2xl bg-white/5 border border-white/10">
             <div className="flex items-center gap-2 text-zinc-300 font-bold text-xs uppercase tracking-wider">
               <AlertTriangle className="w-3.5 h-3.5 text-zinc-400" />
               <span>3. Conteúdos Proibidos (Tolerância Zero)</span>
@@ -189,9 +189,9 @@ export const TermsModal: React.FC<TermsModalProps> = ({
                     onAccept?.();
                     onClose();
                   }}
-                  className="flex-1 sm:flex-none px-5 py-2.5 rounded-xl bg-white text-black text-white text-xs font-bold shadow-md shadow-white/5 hover:opacity-95 cursor-pointer flex items-center justify-center gap-1.5"
+                  className="flex-1 sm:flex-none px-5 py-2.5 rounded-full bg-white text-black text-xs font-extrabold shadow-md hover:bg-neutral-200 cursor-pointer flex items-center justify-center gap-1.5 transition-colors"
                 >
-                  <CheckCircle2 className="w-4 h-4" />
+                  <CheckCircle2 className="w-4 h-4 stroke-[2.5]" />
                   <span>Li e Aceito os Termos</span>
                 </button>
               </>
@@ -199,7 +199,7 @@ export const TermsModal: React.FC<TermsModalProps> = ({
               <button
                 type="button"
                 onClick={onClose}
-                className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-white text-black text-white text-xs font-bold hover:opacity-95 cursor-pointer"
+                className="w-full sm:w-auto px-6 py-2.5 rounded-full bg-white text-black text-xs font-extrabold hover:bg-neutral-200 cursor-pointer transition-colors"
               >
                 Entendi e Fechar
               </button>
