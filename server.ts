@@ -21,7 +21,7 @@ if (!DB.get().engagementRestored) {
   DB.get().posts.forEach(p => { p.allowComments = true; });
   DB.get().engagementRestored = true; DB.save();
 }
-const PORT = 3000;
+const PORT = Number(process.env.PORT) || 3000;
 const JWT_SECRET = process.env.JWT_SECRET || DB.get().authSecret || randomBytes(48).toString('hex');
 if (!process.env.JWT_SECRET && !DB.get().authSecret) { DB.get().authSecret = JWT_SECRET; DB.save(); }
 if (process.env.TRUST_PROXY) app.set('trust proxy', process.env.TRUST_PROXY);
