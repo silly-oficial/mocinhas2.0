@@ -1,3 +1,6 @@
+# Correção de persistência — ler primeiro
+Consulte **RECUPERACAO-DO-BANCO.md antes de fazer deploy**. O ZIP deixou de incluir banco e uploads. Produção exige DATA_DIR em disco persistente fora do código, com banco restaurado previamente. Falha de leitura não cria mais dados de exemplo. Um diagnóstico e exportação de backup foram adicionados ao ADM. Dados reais da hospedagem ainda precisam ser analisados para recuperação.
+
 # Mocinhas — modo de publicações da administração
 
 ## Entrega
@@ -19,7 +22,7 @@ O identificador do navegador usa cookie assinado HttpOnly, compartilhado entre c
 Não existe identificação infalível de uma pessoa só com o navegador. Limpar cookies + usar outra conta e outra conexão/aparelho pode contornar a associação. Impedir isso exige identidade verificada. Conteúdo já baixado e links públicos de vídeos externos não podem ser revogados pelo site; proteção integral de mídia exigiria armazenamento privado e URLs temporárias. O bloqueio implementado cobre navegação, APIs e novos pedidos de arquivos locais, e pausa/remove mídia da interface ao terminar a autorização. APIs e mídia não ficam mais no cache offline do service worker.
 
 ## Hospedagem — necessário para preservar as cotas
-Este projeto usa data/db.json para usuários/posts/cotas; a configuração Supabase existente não migra esses dados automaticamente. Use UM processo/instância Node e disco persistente. Configure DATA_DIR para esse disco (ex.: /var/data/mocinhas), levando o db.json existente para esse diretório antes da primeira inicialização. Não substitua o banco em produção pelo banco do ZIP a cada deploy. Sem disco persistente, reiniciar/reimplantar pode perder usuários e cotas.
+Este projeto usa DATA_DIR/db.json para usuários/posts/cotas; a configuração Supabase existente não migra esses dados automaticamente. Use UM processo/instância Node e disco persistente. Configure DATA_DIR para esse disco (ex.: /var/data/mocinhas), restaurando uma cópia validada de db.json e uploads nesse diretório antes da inicialização. Não substitua o banco em produção pelo banco do ZIP a cada deploy. Sem disco persistente, reiniciar/reimplantar pode perder usuários e cotas.
 
 JWT_SECRET deve ser longo, aleatório e estável entre deploys. Se omitido, o servidor gera um segredo e salva no banco; sessões antigas podem exigir login novamente. Para agrupar por IP atrás de proxy, configure TRUST_PROXY apenas com os endereços/sub-redes confiáveis da hospedagem. Não habilite confiança irrestrita em cabeçalhos fornecidos pelos usuários.
 

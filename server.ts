@@ -1,3 +1,4 @@
+import { UPLOADS_DIR, DB_FILE, storageDiagnostics } from './server/storage';
 import { randomBytes } from 'node:crypto';
 import { installSyncpayPayments } from './server/payments.ts';
 import { installConsumptionPolicy } from './server/consumption.ts';
@@ -26,7 +27,6 @@ if (!process.env.JWT_SECRET && !DB.get().authSecret) { DB.get().authSecret = JWT
 if (process.env.TRUST_PROXY) app.set('trust proxy', process.env.TRUST_PROXY);
 
 // Storage setup for real file uploads
-const UPLOADS_DIR = path.join(process.cwd(), 'uploads');
 if (!fs.existsSync(UPLOADS_DIR)) {
   fs.mkdirSync(UPLOADS_DIR, { recursive: true });
 }
@@ -2101,6 +2101,15 @@ function requireAdmin(req: express.Request, res: express.Response, next: express
   (req as any).userId = userId;
   next();
 }
+
+app.get('/api/admin/storage', requireAdmin, (_req, res) => {
+  res.setHeader('Cache-Control', 'no-store');
+  res.json(storageDiagnostics());
+});
+app.get('/api/admin/storage/export', requireAdmin, (_req, res) => {
+  res.setHeader('Cache-Control', 'no-store');
+  res.download(DB_FILE, `mocinhas-backup-${new Date().toISOString().slice(0,10)}.json`);
+});
 
 app.get('/api/admin/stats', requireAdmin, (_req, res) => {
   const rawDb = DB.get();

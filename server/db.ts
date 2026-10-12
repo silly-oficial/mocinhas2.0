@@ -2,8 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import bcrypt from 'bcryptjs';
 
-const DATA_DIR = process.env.DATA_DIR || path.join(process.cwd(), 'data');
-const DB_FILE = path.join(DATA_DIR, 'db.json');
+import { DATA_DIR, DB_FILE, readDatabase, writeDatabase } from './storage';
 const displayText = (value: string = '') => value.replace(/[\p{Extended_Pictographic}\p{Regional_Indicator}\uFE0F\u200D\u20E3]/gu, '');
 
 export interface DBUser {
@@ -243,105 +242,19 @@ let db: DatabaseSchema = {
   },
 };
 
-// Ensure data folder
-if (!fs.existsSync(DATA_DIR)) {
-  fs.mkdirSync(DATA_DIR, { recursive: true });
-}
-
-function saveDB() {
-  try {
-    fs.writeFileSync(DB_FILE + '.tmp', JSON.stringify(db, null, 2), { encoding: 'utf-8', mode: 0o600 });
-    fs.renameSync(DB_FILE + '.tmp', DB_FILE);
-  } catch (err) {
-    console.error('Failed to write db.json:', err);
-    throw err; // Never authorize consumption if persistence fails.
-  }
-}
+function saveDB() { writeDatabase(db); }
 
 export function loadDB(): DatabaseSchema {
-  if (fs.existsSync(DB_FILE)) {
-    try {
-      const data = fs.readFileSync(DB_FILE, 'utf-8');
-      db = JSON.parse(data);
-      // Ensure default public groups exist
-      const hasGroups = db.conversations && db.conversations.some(c => c.isGroup);
-      if (!hasGroups) {
-        if (!db.conversations) db.conversations = [];
-        db.conversations.push(
-          {
-            id: 'grp_mocinhas_criativas',
-            name: ' Mocinhas Criativas',
-            description: 'Comunidade aberta para compartilhar artes, ilustrações, ideias de design e processos criativos.',
-            avatar: 'https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=300&auto=format&fit=crop&q=80',
-            isGroup: true,
-            isPublic: true,
-            creatorId: 'u_sakura',
-            adminIds: ['u_sakura', 'u_luna'],
-            participantIds: ['u_sakura', 'u_luna', 'u_miku', 'u_yuki', 'u_chibi'],
-            rules: '1. Respeito e empatia sempre.\n2. Compartilhe suas criações livremente.\n3. Apoie o trabalho de outras criadoras.',
-            inviteCode: 'CRIATIVAS',
-            createdAt: new Date(Date.now() - 7 * 86400000).toISOString(),
-            updatedAt: new Date(Date.now() - 10 * 60000).toISOString(),
-          },
-          {
-            id: 'grp_estilo_fotografia',
-            name: ' Estilo & Fotografia',
-            description: 'Dicas de iluminação, paletas de cores, presets e composições visuais acolhedoras.',
-            avatar: 'https://images.unsplash.com/photo-1542038784456-1ea8e935640e?w=300&auto=format&fit=crop&q=80',
-            isGroup: true,
-            isPublic: true,
-            creatorId: 'u_luna',
-            adminIds: ['u_luna'],
-            participantIds: ['u_luna', 'u_sakura', 'u_yuki'],
-            rules: 'Fotografias autorais, dúvidas técnicas e feedbacks construtivos.',
-            inviteCode: 'FOTOESTILO',
-            createdAt: new Date(Date.now() - 5 * 86400000).toISOString(),
-            updatedAt: new Date(Date.now() - 30 * 60000).toISOString(),
-          },
-          {
-            id: 'grp_musica_lofi',
-            name: ' Lo-Fi & Batidas Suaves',
-            description: 'Espaço para produtoras musicais, ouvintes e entusiastas de melodias calmas e sintetizadores.',
-            avatar: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=300&auto=format&fit=crop&q=80',
-            isGroup: true,
-            isPublic: true,
-            creatorId: 'u_miku',
-            adminIds: ['u_miku'],
-            participantIds: ['u_miku', 'u_sakura', 'u_chibi'],
-            rules: 'Compartilhamento de tracks, playlists e conversas sobre produção sonora.',
-            inviteCode: 'LOFIMOOD',
-            createdAt: new Date(Date.now() - 3 * 86400000).toISOString(),
-            updatedAt: new Date(Date.now() - 45 * 60000).toISOString(),
-          }
-        );
-
-        if (!db.messages) db.messages = [];
-        db.messages.push(
-          {
-            id: 'msg_grp_1',
-            conversationId: 'grp_mocinhas_criativas',
-            senderId: 'u_sakura',
-            text: 'Bem-vindas ao grupo oficial de criadoras! Aqui podemos trocar referências e projetos ',
-            status: 'read',
-            createdAt: new Date(Date.now() - 2 * 3600000).toISOString(),
-          },
-          {
-            id: 'msg_grp_2',
-            conversationId: 'grp_mocinhas_criativas',
-            senderId: 'u_luna',
-            text: 'Adorei a iniciativa! Quem estiver trabalhando em novos ensaios ou ilustrações pode postar aqui.',
-            status: 'read',
-            createdAt: new Date(Date.now() - 10 * 60000).toISOString(),
-          }
-        );
-      }
-      saveDB();
-      return db;
-    } catch (e) {
-      console.error('Error loading db.json, seeding defaults', e);
-    }
+  // Explicit demo seeding is limited to development; production never recreates data.
+  if (!fs.existsSync(DB_FILE) && process.env.NODE_ENV !== 'production' && process.env.ALLOW_DEMO_SEED === '1') {
+    seedInitialData(); return db;
   }
-  seedInitialData();
+  db = readDatabase() as DatabaseSchema;
+  // Add missing optional collections in memory only; never inject sample users/posts/groups.
+  for (const key of ['likes','saves','comments','commentLikes','follows','stories','storyViews','conversations','messages','notifications','reports','blocks','mutes'] as const) {
+    if (db[key] === undefined) (db as any)[key] = [];
+  }
+  console.info('[storage] Existing database loaded', { file: DB_FILE, users: db.users.length, posts: db.posts.length });
   return db;
 }
 

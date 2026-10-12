@@ -1,3 +1,4 @@
+import { StorageStatus } from './StorageStatus';
 import { ui, useUi } from '../i18n/ui';
 import { UsageSettings } from './UsageSettings';
 import React, { useState, useEffect } from 'react';
@@ -659,7 +660,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose, onPostCreated }
 
           {/* TAB 1: STATS */}
           {activeTab === 'stats' && (
-            <div className="space-y-6 animate-fadeIn"><UsageSettings />
+            <div className="space-y-6 animate-fadeIn"><StorageStatus /><UsageSettings />
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                 <div className="p-5 rounded-2xl bg-[#13131D] border border-white/10 flex flex-col justify-between">
                   <div className="flex items-center justify-between text-zinc-300">

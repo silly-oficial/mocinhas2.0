@@ -6,3 +6,9 @@ coverage/
 *.log
 .env*
 !.env.example
+
+# Mutable runtime data must never ship with a code deployment.
+data/
+uploads/
+backups/
+*.db-backup.json

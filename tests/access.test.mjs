@@ -20,6 +20,10 @@ try {
  assert.equal((await call('/api/posts')).status,429);
  const q=await call('/api/usage/consume','viewer','POST',{}); assert.equal(q.status,200);const cookie=q.cookies;
  const q2=await call('/api/usage/consume','viewer2','POST',{},cookie);assert.ok(q2.body.remainingMs<=q.body.remainingMs,'new account does not reset device');
+ const diagnostics=await call('/api/admin/storage','owner');assert.equal(diagnostics.status,200);assert.equal(diagnostics.body.backend,'local-json');
+ assert.equal((await call('/api/admin/storage','viewer')).status,403);
+ assert.equal((await call('/api/admin/storage/export','viewer')).status,403);
+ assert.equal((await call('/api/admin/storage/export','owner')).body.users.length,3);
  assert.equal((await call('/api/posts','viewer','POST',{media:[{url:'/test.jpg',type:'image'}]},cookie)).status,403);
  const posted=await call('/api/posts','owner','POST',{caption:'Teste #arte',media:[{url:'/test.jpg',type:'image'}],isTemporary:true});assert.equal(posted.status,200);assert.equal(posted.body.post.isTemporary,false);assert.equal(posted.body.post.user.username,'');
  const id=posted.body.post.id;
