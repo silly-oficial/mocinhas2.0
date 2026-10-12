@@ -1,9 +1,8 @@
+import 'dotenv/config';
 import { UPLOADS_DIR, DB_FILE, storageDiagnostics } from './server/storage';
 import { randomBytes } from 'node:crypto';
 import { installSyncpayPayments } from './server/payments.ts';
 import { installConsumptionPolicy } from './server/consumption.ts';
-import dotenv from 'dotenv';
-dotenv.config();
 
 import express from 'express';
 import path from 'path';

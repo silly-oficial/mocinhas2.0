@@ -6,9 +6,14 @@ let supabaseClient: SupabaseClient | null = null;
 let supabaseAdminClient: SupabaseClient | null = null;
 
 export function isSupabaseConfigured(): boolean {
+  if (!process.env.SUPABASE_URL && !process.env.VITE_SUPABASE_URL) {
+    try {
+      require('dotenv').config({ path: path.join(process.cwd(), '.env') });
+    } catch {}
+  }
   const url = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
   const key = process.env.SUPABASE_ANON_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_ANON_KEY;
-  return Boolean(url && key && url.startsWith('https://') && !url.includes('YOUR_'));
+  return Boolean(url && key && url.trim().startsWith('https://') && !url.includes('YOUR_'));
 }
 
 export function getSupabase(): SupabaseClient | null {
