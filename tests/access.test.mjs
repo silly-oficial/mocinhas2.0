@@ -23,6 +23,16 @@ try {
  assert.equal((await call('/api/posts','viewer','POST',{media:[{url:'/test.jpg',type:'image'}]},cookie)).status,403);
  const posted=await call('/api/posts','owner','POST',{caption:'Teste #arte',media:[{url:'/test.jpg',type:'image'}],isTemporary:true});assert.equal(posted.status,200);assert.equal(posted.body.post.isTemporary,false);assert.equal(posted.body.post.user.username,'');
  const id=posted.body.post.id;
+ assert.equal((await call('/api/posts/'+id+'/like','viewer','POST',{},cookie)).body.isLiked,true);
+ assert.equal((await call('/api/posts/'+id+'/save','viewer','POST',{},cookie)).body.isSaved,true);
+ assert.equal((await call('/api/posts/saved/all','viewer','GET',undefined,cookie)).body.posts[0].id,id);
+ const comment=await call('/api/posts/'+id+'/comments','viewer','POST',{text:'Comentário de teste'},cookie);assert.equal(comment.status,200);
+ assert.equal((await call('/api/posts/'+id+'/comments','viewer','GET',undefined,cookie)).body.comments.length,1);
+ assert.equal((await call('/api/comments/'+comment.body.comment.id+'/like','viewer','POST',{},cookie)).body.isLiked,true);
+ assert.equal((await call('/api/comments/'+comment.body.comment.id,'viewer','DELETE',undefined,cookie)).status,200);
+ assert.equal((await call('/api/syncpay/confirm-charge','viewer','POST',{})).status,404);
+ assert.equal((await call('/api/syncpay/create-charge','viewer','POST',{})).status,503);
+
  assert.equal((await call('/api/posts','viewer','GET',undefined,cookie)).body.posts.length,1);
  for(const route of ['/api/groups/public','/api/stories','/api/conversations','/api/users/owner/follow','/api/posts/explore/feed','/api/ephemeral/cleanup','/api/admin/emergency-cleanup'])assert.equal((await call(route,'owner',route.includes('cleanup')||route.endsWith('follow')?'POST':'GET',undefined,cookie)).status,403,route);
  assert.equal((await call('/api/posts/'+id,'viewer','DELETE',undefined,cookie)).status,403);

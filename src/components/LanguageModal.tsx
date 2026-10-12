@@ -1,3 +1,4 @@
+import { ui, useUi } from '../i18n/ui';
 import React from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import { Globe, Check, Sparkles, X, Languages } from 'lucide-react';
@@ -8,6 +9,7 @@ interface LanguageModalProps {
 }
 
 export const LanguageModal: React.FC<LanguageModalProps> = ({ isOpen = true, onClose }) => {
+  useUi();
   const {
     language,
     setLanguage,
@@ -31,7 +33,7 @@ export const LanguageModal: React.FC<LanguageModalProps> = ({ isOpen = true, onC
         {/* Header */}
         <div className="p-5 border-b border-white/10 flex items-center justify-between bg-[#161622]">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-white text-black flex items-center justify-center text-white shadow-md shadow-white/5">
+            <div className="w-10 h-10 rounded-2xl bg-emerald-500/15 text-emerald-300 flex items-center justify-center shadow-md shadow-white/5">
               <Globe className="w-5 h-5" />
             </div>
             <div>
@@ -40,7 +42,7 @@ export const LanguageModal: React.FC<LanguageModalProps> = ({ isOpen = true, onC
                 <Sparkles className="w-3.5 h-3.5 text-zinc-400" />
               </h3>
               <p className="text-xs text-zinc-300/70">
-                {t('tagline')}
+                mocinhas
               </p>
             </div>
           </div>
@@ -79,7 +81,7 @@ export const LanguageModal: React.FC<LanguageModalProps> = ({ isOpen = true, onC
                 onChange={(e) => setAutoTranslateEnabled(e.target.checked)}
                 className="sr-only peer"
               />
-              <div className="w-10 h-5 bg-[#252538] peer-focus:outline-hidden rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-white" />
+              <div className="w-10 h-5 bg-[#252538] peer-focus:outline-hidden rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-500" />
             </label>
           </div>
         </div>
@@ -97,7 +99,7 @@ export const LanguageModal: React.FC<LanguageModalProps> = ({ isOpen = true, onC
                 }}
                 className={`w-full flex items-center justify-between p-3 rounded-2xl text-left transition-all cursor-pointer ${
                   isSelected
-                    ? 'bg-white/10 text-white font-bold border border-white/20 shadow-xs'
+                    ? 'bg-emerald-500/10 text-emerald-300 font-bold border border-emerald-500/40 shadow-xs'
                     : 'hover:bg-white/5 text-zinc-300 hover:text-white'
                 }`}
               >
@@ -113,7 +115,7 @@ export const LanguageModal: React.FC<LanguageModalProps> = ({ isOpen = true, onC
                   </div>
                 </div>
                 {isSelected && (
-                  <div className="w-6 h-6 rounded-full bg-white/50 text-white flex items-center justify-center shadow-xs">
+                  <div className="w-6 h-6 rounded-full bg-emerald-500 text-black flex items-center justify-center shadow-xs">
                     <Check className="w-3.5 h-3.5 stroke-[3]" />
                   </div>
                 )}
@@ -126,7 +128,7 @@ export const LanguageModal: React.FC<LanguageModalProps> = ({ isOpen = true, onC
         <div className="p-4 border-t border-white/10 bg-[#0E0E15] flex justify-end">
           <button
             onClick={onClose}
-            className="px-5 py-2 text-xs font-bold rounded-xl bg-white text-black hover:opacity-95 active:scale-95 text-white shadow-md shadow-white/5 transition-all cursor-pointer"
+            className="px-5 py-2 text-xs font-bold rounded-xl bg-emerald-500 text-black hover:opacity-95 active:scale-95 shadow-md shadow-white/5 transition-all cursor-pointer"
           >
             {t('btn_understand')}
           </button>

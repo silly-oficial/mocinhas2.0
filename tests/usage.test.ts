@@ -12,4 +12,7 @@ assert.equal(b.leaseUntil, now + limit, 'no grants past exhaustion');
 assert.equal(reserveUsage([b], limit, now + day, true).usedMs, 10_000, '24h reset');
 assert.equal(reserveUsage([b], limit, now + day - 1, true).usedMs, limit, 'no early reset');
 assert.equal(reserveUsage([b], limit, now + 1000, false).usedMs, limit, 'status does not spend quota');
-console.log('7 quota assertions passed.');
+const early = reserveUsage([reserveUsage([], limit, now, true)], limit, now + 7500, true);
+assert.equal(early.leaseUntil, now + 20000, 'early renewal bridges next lease without overlap or gaps');
+assert.equal(early.usedMs, 20000, 'early time is charged, never free grace');
+console.log('9 quota assertions passed.');

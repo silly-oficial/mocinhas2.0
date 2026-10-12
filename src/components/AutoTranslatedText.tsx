@@ -40,6 +40,9 @@ export const AutoTranslatedText: React.FC<AutoTranslatedTextProps> = ({
       return;
     }
 
+    setShowOriginal(false);
+    setTranslatedText(text);
+    setIsTranslated(false);
     setIsLoading(true);
     translateDynamic(text, language)
       .then(result => {

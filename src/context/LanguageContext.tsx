@@ -1,3 +1,4 @@
+import { setUILanguage } from '../i18n/ui';
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import { POPULAR_LANGUAGES, DEFAULT_LANGUAGE, LanguageInfo } from '../i18n/languages';
 import { TRANSLATIONS, TranslationKey } from '../i18n/translations';
@@ -46,6 +47,8 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   });
 
   const setLanguage = useCallback((lang: string) => {
+    if (!POPULAR_LANGUAGES.some(l => l.code === lang)) return;
+    setUILanguage(lang);
     setLanguageState(lang);
     try {
       localStorage.setItem('mocinhas_language', lang);
@@ -112,6 +115,8 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     },
     [language]
   );
+
+  useEffect(() => { setUILanguage(language); document.documentElement.lang = language; }, [language]);
 
   // Set html dir attribute for RTL languages like Arabic
   useEffect(() => {

@@ -38,7 +38,7 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
     }
 
     if (!res.ok) {
-      throw new Error(data?.error || `Erro na requisição (${res.status})`);
+      throw Object.assign(new Error(data?.error || `Erro na requisição (${res.status})`), { status: res.status, data });
     }
     return data as T;
   } catch (err: any) {

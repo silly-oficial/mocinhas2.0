@@ -1,3 +1,4 @@
+import { ui, useUi } from '../i18n/ui';
 import React, { useState, useEffect, useRef } from 'react';
 import { X, Send, Heart, Trash2, CornerDownRight, Sparkles } from 'lucide-react';
 import { Post, Comment } from '../types';
@@ -20,8 +21,10 @@ export const CommentsModal: React.FC<CommentsModalProps> = ({
   onNavigateUser,
   onCommentCountChange,
 }) => {
+  useUi();
   const { user, darkMode } = useAuth();
   const { t } = useLanguage();
+  const [error, setError] = useState('');
   const [comments, setComments] = useState<Comment[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [inputText, setInputText] = useState('');
@@ -40,7 +43,7 @@ export const CommentsModal: React.FC<CommentsModalProps> = ({
       const res = await api.getComments(post.id);
       setComments(res.comments);
     } catch (e) {
-      console.error('Error fetching comments:', e);
+      setError("Não foi possível carregar os comentários.");
     } finally {
       setIsLoading(false);
     }
@@ -50,6 +53,7 @@ export const CommentsModal: React.FC<CommentsModalProps> = ({
     e.preventDefault();
     if (!inputText.trim() || isSubmitting) return;
 
+    setError('');
     setIsSubmitting(true);
     try {
       const res = await api.addComment(post.id, inputText.trim(), replyingTo?.id);
@@ -71,8 +75,8 @@ export const CommentsModal: React.FC<CommentsModalProps> = ({
       setTimeout(() => {
         commentsEndRef.current?.scrollIntoView({ behavior: 'smooth' });
       }, 150);
-    } catch (e) {
-      alert('Erro ao publicar comentário');
+    } catch (e: any) {
+      setError(e.message || 'Não foi possível enviar o comentário.');
     } finally {
       setIsSubmitting(false);
     }
@@ -104,7 +108,7 @@ export const CommentsModal: React.FC<CommentsModalProps> = ({
   };
 
   const handleDeleteComment = async (commentId: string) => {
-    if (!confirm('Deseja apagar este comentário?')) return;
+    if (!confirm(ui("Deseja apagar este comentário?"))) return;
     try {
       const res = await api.deleteComment(commentId);
       if (res.commentsCount !== undefined) {
@@ -116,16 +120,10 @@ export const CommentsModal: React.FC<CommentsModalProps> = ({
         }));
       }
       loadComments();
-    } catch (e) {
-      alert('Erro ao apagar comentário');
+    } catch (e: any) {
+      setError(e.message || 'Não foi possível apagar o comentário.');
     }
   };
-
-  const handleEmojiClick = (emoji: string) => {
-    setInputText(prev => prev + emoji);
-  };
-
-  const quickEmojis = ['', '', '', '', '', '', '', ''];
 
   return (
     <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4">
@@ -134,8 +132,7 @@ export const CommentsModal: React.FC<CommentsModalProps> = ({
         <div className="p-4 border-b border-white/10 flex items-center justify-between bg-[#12121B]">
           <div className="flex items-center gap-2">
             <h2 className="font-heading text-base font-bold text-white">
-              Comentários
-            </h2>
+              {ui("Comentários")}</h2>
             <span className="text-xs px-2 py-0.5 rounded-full bg-white/10 text-zinc-200 font-bold">
               {comments.length}
             </span>
@@ -143,7 +140,7 @@ export const CommentsModal: React.FC<CommentsModalProps> = ({
           <button
             id="btn-comments-close"
             onClick={onClose}
-            aria-label="Fechar comentários"
+            aria-label={ui("Fechar comentários")}
             className="w-8 h-8 rounded-full flex items-center justify-center text-zinc-400 hover:text-white hover:bg-white/10 cursor-pointer transition-colors"
           >
             <X className="w-5 h-5" />
@@ -156,17 +153,14 @@ export const CommentsModal: React.FC<CommentsModalProps> = ({
             <div className="flex flex-col items-center justify-center h-48 gap-3">
               <div className="w-7 h-7 border-2 border-white/30 border-t-transparent rounded-full animate-spin" />
               <span className="text-xs text-zinc-400 font-medium">
-                Carregando comentários...
-              </span>
+                {ui("Carregando comentários...")}</span>
             </div>
           ) : comments.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-48 text-center p-6">
               <p className="font-heading text-sm font-bold text-white">
-                Nenhum comentário por aqui ainda
-              </p>
+                {ui("Nenhum comentário por aqui ainda")}</p>
               <p className="text-xs text-zinc-400 mt-1">
-                Deixe a primeira mensagem nesta publicação!
-              </p>
+                {ui("Deixe a primeira mensagem nesta publicação!")}</p>
             </div>
           ) : (
             comments.map(c => (
@@ -180,12 +174,7 @@ export const CommentsModal: React.FC<CommentsModalProps> = ({
                     }}
                     className="cursor-pointer shrink-0"
                   >
-                    <img
-                      src={c.user.avatar}
-                      alt={c.user.displayName}
-                      referrerPolicy="no-referrer"
-                      className="w-8 h-8 rounded-full object-cover border border-white/15 bg-white/5"
-                    />
+                    <span aria-hidden="true" className="w-8 h-8 rounded-full bg-emerald-500/10 text-emerald-300 flex items-center justify-center shrink-0">•</span>
                   </button>
                   <div className="flex-1 min-w-0">
                     <div className="p-3 rounded-2xl bg-[#181824] border border-white/10 shadow-2xs">
@@ -216,14 +205,14 @@ export const CommentsModal: React.FC<CommentsModalProps> = ({
                         }
                         className="font-semibold hover:text-white cursor-pointer"
                       >
-                        {t('reply')}
+                        {t('btn_reply')}
                       </button>
 
-                      {(user?.id === c.userId || user?.id === post.userId) && (
+                      {(user?.isAdmin || user?.id === c.userId || user?.id === post.userId) && (
                         <button
                           onClick={() => handleDeleteComment(c.id)}
                           className="text-stone-400 hover:text-red-500 cursor-pointer"
-                          title={t('delete')}
+                          title={t('btn_delete')}
                         >
                           <Trash2 className="w-3 h-3" />
                         </button>
@@ -238,7 +227,7 @@ export const CommentsModal: React.FC<CommentsModalProps> = ({
                   >
                     <Heart
                       className={`w-3.5 h-3.5 ${
-                        c.isLiked ? 'text-white fill-red-500' : ''
+                        c.isLiked ? 'text-white fill-emerald-400' : ''
                       }`}
                     />
                     {c.likesCount > 0 && (
@@ -259,12 +248,7 @@ export const CommentsModal: React.FC<CommentsModalProps> = ({
                           }}
                           className="cursor-pointer shrink-0"
                         >
-                          <img
-                            src={r.user.avatar}
-                            alt={r.user.displayName}
-                            referrerPolicy="no-referrer"
-                            className="w-6 h-6 rounded-full object-cover border border-white/15 bg-white/5"
-                          />
+                          <span aria-hidden="true" className="w-8 h-8 rounded-full bg-emerald-500/10 text-emerald-300 flex items-center justify-center shrink-0">•</span>
                         </button>
                         <div className="flex-1 min-w-0">
                           <div className="p-2.5 rounded-2xl bg-[#181824] border border-white/10">
@@ -275,12 +259,12 @@ export const CommentsModal: React.FC<CommentsModalProps> = ({
                               <AutoTranslatedText text={r.text} inline />
                             </div>
                           </div>
-                          {(user?.id === r.userId || user?.id === post.userId) && (
+                          {(user?.isAdmin || user?.id === r.userId || user?.id === post.userId) && (
                             <button
                               onClick={() => handleDeleteComment(r.id)}
                               className="text-[10px] text-stone-400 hover:text-red-500 mt-0.5 px-1 cursor-pointer"
                             >
-                              {t('delete')}
+                              {t('btn_delete')}
                             </button>
                           )}
                         </div>
@@ -291,7 +275,7 @@ export const CommentsModal: React.FC<CommentsModalProps> = ({
                         >
                           <Heart
                             className={`w-3 h-3 ${
-                              r.isLiked ? 'text-white fill-red-500' : ''
+                              r.isLiked ? 'text-white fill-emerald-400' : ''
                             }`}
                           />
                           {r.likesCount > 0 && (
@@ -314,31 +298,19 @@ export const CommentsModal: React.FC<CommentsModalProps> = ({
             <div className="flex items-center gap-1">
               <CornerDownRight className="w-3.5 h-3.5 text-white" />
               <span>
-                {t('replying_to')} <strong>@{replyingTo.username}</strong>
+                {t('btn_reply')} <strong>@{replyingTo.username}</strong>
               </span>
             </div>
             <button
               onClick={() => setReplyingTo(null)}
               className="text-white hover:text-white font-bold cursor-pointer"
             >
-              {t('cancel')}
+              {t('btn_cancel')}
             </button>
           </div>
         )}
 
-        {/* Emoji bar */}
-        <div className="px-4 py-1.5 border-t border-white/10 dark:border-white/10 flex items-center gap-2 overflow-x-auto no-scrollbar">
-          {quickEmojis.map(emoji => (
-            <button
-              key={emoji}
-              onClick={() => handleEmojiClick(emoji)}
-              className="text-base hover:scale-125 transition-transform cursor-pointer p-0.5"
-            >
-              {emoji}
-            </button>
-          ))}
-        </div>
-
+        {error && <p role="status" className="px-4 py-2 text-xs text-zinc-300 border-t border-white/10">{ui(error)}</p>}
         {/* Input Form */}
         <form
           onSubmit={handleAddComment}
@@ -350,15 +322,15 @@ export const CommentsModal: React.FC<CommentsModalProps> = ({
             onChange={e => setInputText(e.target.value)}
             placeholder={
               replyingTo
-                ? `${t('reply')} @${replyingTo.username}...`
-                : t('type_comment')
+                ? `${t('btn_reply')} @${replyingTo.username}...`
+                : t('add_comment')
             }
             className="flex-1 bg-[#181824] text-xs text-white placeholder-zinc-500 px-4 py-2.5 rounded-full border border-white/15 focus:outline-none focus:border-white/30"
           />
           <button
             type="submit"
             disabled={isSubmitting || !inputText.trim()}
-            className="w-10 h-10 rounded-full bg-white text-black hover:bg-neutral-200 flex items-center justify-center shadow-xs hover:scale-105 active:scale-95 disabled:opacity-50 cursor-pointer shrink-0 transition-colors"
+            className="w-10 h-10 rounded-full bg-emerald-500 text-black hover:bg-neutral-200 flex items-center justify-center shadow-xs hover:scale-105 active:scale-95 disabled:opacity-50 cursor-pointer shrink-0 transition-colors"
           >
             <Send className="w-4 h-4" />
           </button>

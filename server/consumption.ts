@@ -14,10 +14,10 @@ export function reserveUsage(buckets: Bucket[], limit: number, now: number, cons
     leaseUntil: Math.max(...live.map(b => b.leaseUntil)),
   } : { startedAt: now, usedMs: 0, leaseUntil: 0 };
   // Reserve time before serving content. Multiple tabs reuse the same paid lease.
-  if (consume && merged.leaseUntil <= now && merged.usedMs < limit) {
-    const grant = Math.min(SLICE, limit - merged.usedMs, merged.startedAt + DAY - now);
+  if (consume && merged.leaseUntil <= now + 3000 && merged.usedMs < limit) {
+    const grant = Math.min(SLICE, limit - merged.usedMs, merged.startedAt + DAY - Math.max(now, merged.leaseUntil));
     merged.usedMs += grant;
-    merged.leaseUntil = now + grant;
+    merged.leaseUntil = Math.max(now, merged.leaseUntil) + grant;
   }
   return merged;
 }
@@ -76,17 +76,16 @@ export function installConsumptionPolicy(app: express.Express, db: typeof Databa
     const route = req.path;
     // Legacy recovery returned the reset code to unauthenticated callers.
     if (route === '/api/auth/recover' || route === '/api/auth/reset-password') return res.status(503).json({ error: 'Recuperação de senha indisponível até configurar verificação de identidade. Contate a administração.' });
-    if (/^\/api\/(stories|conversations|messages|groups|rooms|comments|notifications|events|search)(\/|$)/.test(route) ||
+    if (/^\/api\/(stories|conversations|messages|groups|rooms|notifications|events|search)(\/|$)/.test(route) ||
       /^\/api\/users\/.+\/(follow|unfollow|followers|following)(\/|$)/.test(route) ||
-      /^\/api\/users\/follow-requests/.test(route) || route === '/api/posts/explore/feed' ||
-      /^\/api\/posts\/[^/]+\/(like|save|comments)$/.test(route)) {
+      /^\/api\/users\/follow-requests/.test(route) || route === '/api/posts/explore/feed') {
       return res.status(403).json({ error: 'Função desativada nesta versão.' });
     }
     if (route.startsWith('/api/ephemeral') || route === '/api/admin/emergency-cleanup') {
       if (req.method === 'GET') return res.json({ ephemeral1HourMode: false, expiresAfterMinutes: null });
       return res.status(403).json({ error: 'Exclusão automática desativada.' });
     }
-    if (route.startsWith('/api/posts') || route.startsWith('/uploads/')) {
+    if (route.startsWith('/api/posts') || route.startsWith('/api/comments/') || route.startsWith('/uploads/')) {
       res.setHeader('Cache-Control', 'private, no-store');
       if (route.startsWith('/uploads/') && !auth(req)) {
         try { const token = cookies(req).mocinhas_media; const payload = jwt.verify(token, secret) as any;
@@ -96,6 +95,10 @@ export function installConsumptionPolicy(app: express.Express, db: typeof Databa
       const status = state(req, res);
       if (!status) return res.status(401).json({ error: 'Entre na sua conta para acessar.' });
       if (status.blocked || (!status.unlimited && status.allowedMs <= 0)) return res.status(429).json({ error: 'Renove a autorização de uso ou aguarde a próxima cota.', ...status });
+      const interaction = route.match(/^\/api\/posts\/([^/]+)\/(like|save|comments)$/);
+      const commentInteraction = route.match(/^\/api\/comments\/([^/]+)(?:\/like)?$/);
+      const targetId = interaction?.[1] || (commentInteraction && db.get().comments.find(c => c.id === commentInteraction[1])?.postId);
+      if ((interaction || commentInteraction) && (!targetId || !db.findUserById(db.get().posts.find(p => p.id === targetId)?.userId || '')?.isAdmin)) return res.status(404).json({ error: 'Publicação indisponível.' });
       // Hide historical non-admin content without deleting it.
       const original = res.json.bind(res);
       res.json = ((body: any) => {

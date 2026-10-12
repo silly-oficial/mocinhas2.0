@@ -180,6 +180,7 @@ export interface DBMute {
 }
 
 export interface DBSyncpaySettings {
+  webhookUrl?: string;
   clientId: string;
   clientSecret: string;
   webhookToken: string;
@@ -188,7 +189,13 @@ export interface DBSyncpaySettings {
   price: number;
 }
 
+export interface DBPaymentCharge {
+  identifier: string; userId: string; amount: number; pixCode: string;
+  status: string; createdAt: number; checkedAt?: number; grantedAt?: number;
+}
 export interface DatabaseSchema {
+  engagementRestored?: boolean;
+  paymentCharges?: DBPaymentCharge[];
   usageSettings?: { dailyMinutes: number; bindNetwork: boolean };
   usageBuckets?: Record<string, { startedAt: number; usedMs: number; leaseUntil: number }>;
   authSecret?: string;
@@ -811,7 +818,7 @@ export const DB = {
       isPrivate: u.isPrivate,
       isVerified: Boolean(u.isVerified || isSuperAdmin),
       isAdmin: isSuperAdmin,
-      isPremium: Boolean(u.isPremium || isSuperAdmin),
+      isPremium: Boolean(isSuperAdmin || (u.isPremium && (!u.premiumExpiresAt || Date.parse(u.premiumExpiresAt) > Date.now()))),
       premiumExpiresAt: u.premiumExpiresAt,
       animeTitle: displayText(u.animeTitle),
       themeColor: u.themeColor,

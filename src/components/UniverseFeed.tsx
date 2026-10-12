@@ -1,3 +1,6 @@
+import { ui, useUi } from '../i18n/ui';
+import { ManagedVideo } from './ManagedVideo';
+import { AutoTranslatedText } from './AutoTranslatedText';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Search,
@@ -109,10 +112,10 @@ function buildNodes(posts: Post[]): UNode[] {
     const x = Math.cos(a) * r + (rnd(h, 2) - 0.5) * jitter * 2;
     const y = Math.sin(a) * r + (rnd(h, 3) - 0.5) * jitter * 2;
     const d = i === 0 || p.isPinned ? 250 : 165 + rnd(h, 4) * 80;
-    const hue = 205 + Math.floor(rnd(h, 5) * 135); // azul → roxo → rosa
+    const hue = 160;
     const title = (p.caption || '').trim().split('\n')[0].slice(0, 60) || 'Publicação';
     const isVid = m.type === 'video';
-    const poster = isVid ? (posterOf(m) || m.thumbnail || m.url) : (m.url || m.thumbnail);
+    const poster = isVid ? (posterOf(m) || (m.thumbnail !== m.url ? m.thumbnail : undefined)) : (m.url || m.thumbnail);
     return {
       id: p.id,
       post: p,
@@ -205,8 +208,9 @@ interface NodeViewProps {
 }
 
 const NodeView = React.memo(function NodeView({ node, tier, focused, lite, soundOn, allowVideo, videoRef }: NodeViewProps) {
+  useUi();
   const { d, x, y, hue, poster } = node;
-  const planetBg = `radial-gradient(circle at 32% 28%, hsl(${hue} 85% 72%), hsl(${hue} 70% 30%))`;
+  const planetBg = '#172823';
   const ring = lite
     ? `0 0 0 2px hsl(${hue} 80% 70% / .55)`
     : `0 0 0 2px hsl(${hue} 80% 70% / .6), 0 0 34px hsl(${hue} 85% 60% / .38)`;
@@ -235,12 +239,12 @@ const NodeView = React.memo(function NodeView({ node, tier, focused, lite, sound
             height: '100%',
             overflow: 'hidden',
             background: planetBg,
-            borderRadius: focused ? 36 : d,
-            boxShadow: tier === 'dot' ? 'none' : ring,
+            borderRadius: focused ? 28 : 40,
+            boxShadow: focused ? '0 0 0 2px #34d399, 0 16px 48px #0008' : '0 0 0 1px #ffffff30, 0 8px 24px #0008',
             transition: 'border-radius 380ms ease',
           }}
         >
-          {tier !== 'dot' && poster && (
+          {poster && (
             <img
               src={poster}
               alt=""
@@ -252,27 +256,14 @@ const NodeView = React.memo(function NodeView({ node, tier, focused, lite, sound
             />
           )}
 
-          {tier !== 'dot' && !poster && !focused && Boolean(node.videoUrl) && (
+          {!poster && !focused && Boolean(node.videoUrl) && (
             <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <Play style={{ width: '24%', height: '24%', color: 'rgba(255,255,255,.9)', fill: 'rgba(255,255,255,.9)' }} />
             </div>
           )}
 
           {focused && allowVideo && Boolean(node.videoUrl) && (
-            <video
-              ref={el => {
-                videoRef.current = el;
-              }}
-              src={node.videoUrl}
-              poster={poster}
-              muted={!soundOn}
-              loop
-              playsInline
-              autoPlay
-              preload="auto"
-              disablePictureInPicture
-              style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', background: '#000' }}
-            />
+            <ManagedVideo src={node.videoUrl} poster={poster} universe soundOn={soundOn} active={allowVideo} onElement={el => { videoRef.current = el; }} className="w-full h-full object-cover" />
           )}
         </div>
 
@@ -293,7 +284,7 @@ const NodeView = React.memo(function NodeView({ node, tier, focused, lite, sound
               lineHeight: 1.2,
             }}
           >
-            {node.title}
+            <AutoTranslatedText text={node.title} showBadge={false} />
           </div>
         )}
       </div>
@@ -311,6 +302,7 @@ export const UniverseFeed: React.FC<UniverseFeedProps> = ({
   onNavigateUser,
   onSwitchToList,
 }) => {
+  useUi();
   const nodes = useMemo(() => buildNodes(posts), [posts]);
   const nodeMap = useMemo(() => new Map(nodes.map(n => [n.id, n])), [nodes]);
   const universeRadius = useMemo(
@@ -416,7 +408,7 @@ export const UniverseFeed: React.FC<UniverseFeedProps> = ({
       n => n.x + n.d / 2 >= x0 && n.x - n.d / 2 <= x1 && n.y + n.d / 2 >= y0 && n.y - n.d / 2 <= y1
     );
 
-    const cap = t === 'dot' ? 500 : liteRef.current ? 16 : 30;
+    const cap = t === 'dot' ? (liteRef.current ? 32 : 60) : liteRef.current ? 16 : 30;
     if (cand.length > cap) {
       const cx = (w / 2 - x) / s;
       const cy = (h / 2 - y) / s;
@@ -786,6 +778,7 @@ export const UniverseFeed: React.FC<UniverseFeedProps> = ({
   // limpeza
   useEffect(
     () => () => {
+      pauseVideo();
       cancelAnim();
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
       window.clearTimeout(settleTimer.current);
@@ -845,7 +838,7 @@ export const UniverseFeed: React.FC<UniverseFeedProps> = ({
               focused={n.id === focusId}
               lite={lite}
               soundOn={soundOn}
-              allowVideo={allowVideo}
+              allowVideo={allowVideo && !paused}
               videoRef={activeVideo}
             />
           ))}
@@ -856,14 +849,14 @@ export const UniverseFeed: React.FC<UniverseFeedProps> = ({
       {isLoading && nodes.length === 0 && (
         <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 pointer-events-none">
           <div className="w-8 h-8 border-2 border-white border-t-transparent rounded-full animate-spin" />
-          <span className="text-xs font-bold text-zinc-400">Abrindo o universo...</span>
+          <span className="text-xs font-bold text-zinc-400">{ui("Abrindo o universo...")}</span>
         </div>
       )}
       {!isLoading && nodes.length === 0 && (
         <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-center px-8 pointer-events-none">
           <div className="text-4xl"></div>
-          <h3 className="font-heading text-base font-extrabold text-white">Nenhum vídeo no universo ainda</h3>
-          <p className="text-xs text-zinc-400 max-w-xs">Quando novos vídeos forem publicados, eles aparecem aqui como planetas.</p>
+          <h3 className="font-heading text-base font-extrabold text-white">{ui("Seu universo está começando")}</h3>
+          <p className="text-xs text-zinc-400 max-w-xs">{ui("As novas fotos e os vídeos aparecerão aqui.")}</p>
         </div>
       )}
 
@@ -879,11 +872,11 @@ export const UniverseFeed: React.FC<UniverseFeedProps> = ({
             <input
               value={query}
               onChange={e => setQuery(e.target.value)}
-              placeholder="Procurar um vídeo..."
+              placeholder={ui("Buscar fotos, vídeos ou hashtags...")}
               className="flex-1 min-w-0 bg-transparent outline-none text-xs text-white placeholder:text-zinc-400"
             />
             {query && (
-              <button onClick={() => setQuery('')} aria-label="Limpar busca" className="text-zinc-300 cursor-pointer">
+              <button onClick={() => setQuery('')} aria-label={ui("Limpar busca")} className="text-zinc-300 cursor-pointer">
                 <X className="w-3.5 h-3.5" />
               </button>
             )}
@@ -902,7 +895,7 @@ export const UniverseFeed: React.FC<UniverseFeedProps> = ({
                 >
                   <span
                     className="w-9 h-9 rounded-full shrink-0 overflow-hidden"
-                    style={{ background: `radial-gradient(circle at 32% 28%, hsl(${n.hue} 85% 72%), hsl(${n.hue} 70% 30%))` }}
+                    style={{ background: '#172823' }}
                   >
                     {n.poster && <img src={n.poster} alt="" loading="lazy" className="w-full h-full object-cover" />}
                   </span>
@@ -916,16 +909,15 @@ export const UniverseFeed: React.FC<UniverseFeedProps> = ({
           )}
           {query.trim() && results.length === 0 && (
             <div className="absolute left-0 right-0 mt-2 rounded-2xl border border-white/15 bg-[#0d0d16]/98 px-4 py-3 text-xs text-zinc-400">
-              Nenhum vídeo encontrado.
-            </div>
+              {ui("Nenhuma publicação encontrada.")}</div>
           )}
         </div>
 
         {onSwitchToList && (
           <button
             onClick={onSwitchToList}
-            aria-label="Ver em lista"
-            title="Ver em lista"
+            aria-label={ui("Ver em lista")}
+            title={ui("Ver em lista")}
             className={`pointer-events-auto w-9 h-9 rounded-full border border-white/15 flex items-center justify-center text-zinc-200 hover:text-white cursor-pointer shrink-0 ${
               lite ? 'bg-black/80' : 'bg-black/55 backdrop-blur-md'
             }`}
@@ -938,9 +930,9 @@ export const UniverseFeed: React.FC<UniverseFeedProps> = ({
       {/* Controles de zoom */}
       <div className="absolute right-3 top-16 z-10 flex flex-col gap-2">
         {[
-          { label: 'Aproximar', icon: Plus, onClick: () => zoomBy(1.7) },
-          { label: 'Afastar', icon: Minus, onClick: () => zoomBy(1 / 1.7) },
-          { label: 'Voltar ao centro', icon: LocateFixed, onClick: recenter },
+          { label: ui("Aproximar"), icon: Plus, onClick: () => zoomBy(1.7) },
+          { label: ui("Afastar"), icon: Minus, onClick: () => zoomBy(1 / 1.7) },
+          { label: ui("Voltar ao centro"), icon: LocateFixed, onClick: recenter },
         ].map(b => (
           <button
             key={b.label}
@@ -960,8 +952,7 @@ export const UniverseFeed: React.FC<UniverseFeedProps> = ({
       {showHint && nodes.length > 0 && !focusNode && (
         <div className="absolute bottom-4 left-0 right-0 flex justify-center pointer-events-none z-10">
           <div className="px-4 py-2 rounded-full bg-black/70 border border-white/10 text-[11px] font-bold text-zinc-200">
-            Arraste para explorar • pinça para dar zoom • toque num planeta
-          </div>
+            {ui("Arraste para explorar. Toque para aproximar.")}</div>
         </div>
       )}
 
@@ -972,11 +963,11 @@ export const UniverseFeed: React.FC<UniverseFeedProps> = ({
             lite ? 'bg-black/85' : 'bg-black/60 backdrop-blur-md'
           }`}
         >
-          <div className="min-w-0 flex-1 text-sm text-white line-clamp-2">{focusNode.title}</div>
+          <div className="min-w-0 flex-1 text-sm text-white line-clamp-2"><AutoTranslatedText text={focusNode.title} showBadge={false} /></div>
           {allowVideo && (
             <button
               onClick={() => setSoundOn(v => !v)}
-              aria-label={soundOn ? 'Silenciar' : 'Ativar som'}
+              aria-label={soundOn ? ui("Silenciar") : ui("Ativar som")}
               className="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white cursor-pointer shrink-0"
             >
               {soundOn ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
@@ -987,8 +978,7 @@ export const UniverseFeed: React.FC<UniverseFeedProps> = ({
             className="px-3.5 h-9 rounded-full bg-white text-black text-xs font-black flex items-center gap-1.5 cursor-pointer shrink-0"
           >
             <Maximize2 className="w-3.5 h-3.5" />
-            Abrir
-          </button>
+            {ui("Abrir")}</button>
         </div>
       )}
     </div>

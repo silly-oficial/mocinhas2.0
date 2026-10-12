@@ -1,3 +1,4 @@
+import { ui, useUi } from '../i18n/ui';
 import React, { useState, useRef } from 'react';
 import {
   X,
@@ -37,6 +38,7 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({
   onPostCreated,
   defaultMode = 'post',
 }) => {
+  useUi();
   const { user, darkMode } = useAuth();
 
   // Mode: post, story, video
@@ -76,13 +78,13 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({
       if (saved) return JSON.parse(saved);
     } catch (e) {}
     return [
-      { id: 'geral', name: 'Geral', slug: 'geral', description: 'Geral e Diversos' },
-      { id: 'fotografia', name: 'Fotografia', slug: 'fotografia', description: 'Fotos e Ensaios' },
-      { id: 'lifestyle', name: 'Lifestyle', slug: 'lifestyle', description: 'Estilo de vida e cotidiano' },
-      { id: 'reels', name: 'Reels & Vídeos', slug: 'reels', description: 'Vídeos curtos e reels' }
+      { id: 'geral', name: 'Geral', slug: 'geral', description: ui("Geral e Diversos") },
+      { id: 'fotografia', name: 'Fotografia', slug: 'fotografia', description: ui("Fotos e Ensaios") },
+      { id: 'lifestyle', name: 'Lifestyle', slug: 'lifestyle', description: ui("Estilo de vida e cotidiano") },
+      { id: 'reels', name: 'Reels & Vídeos', slug: 'reels', description: ui("Vídeos curtos e reels") }
     ];
   });
-  const [selectedCategory, setSelectedCategory] = useState<string>('Geral');
+  const [selectedCategory, setSelectedCategory] = useState<string>(ui("Geral"));
   const [allowComments, setAllowComments] = useState(true);
   const [isTemporary, setIsTemporary] = useState(false);
   const [durationHours, setDurationHours] = useState(24);
@@ -121,12 +123,12 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({
   ];
 
   const filters = [
-    { id: 'none', label: 'Original', css: '' },
-    { id: 'cinematic', label: 'Cinemático', css: 'brightness(102%) contrast(105%) saturate(110%)' },
-    { id: 'warm', label: 'Tom Quente', css: 'brightness(106%) contrast(92%) saturate(120%) sepia(10%)' },
-    { id: 'vivid', label: 'Cores Vivas', css: 'brightness(108%) contrast(105%) saturate(125%)' },
-    { id: 'vintage', label: 'Vintage', css: 'brightness(98%) contrast(105%) saturate(105%) sepia(20%)' },
-    { id: 'bw_soft', label: 'Monocromático', css: 'grayscale(100%) brightness(102%) contrast(95%)' },
+    { id: 'none', label: ui("Original"), css: '' },
+    { id: 'cinematic', label: ui("Cinemático"), css: 'brightness(102%) contrast(105%) saturate(110%)' },
+    { id: 'warm', label: ui("Tom Quente"), css: 'brightness(106%) contrast(92%) saturate(120%) sepia(10%)' },
+    { id: 'vivid', label: ui("Cores Vivas"), css: 'brightness(108%) contrast(105%) saturate(125%)' },
+    { id: 'vintage', label: ui("Vintage"), css: 'brightness(98%) contrast(105%) saturate(105%) sepia(20%)' },
+    { id: 'bw_soft', label: ui("Monocromático"), css: 'grayscale(100%) brightness(102%) contrast(95%)' },
   ];
 
   const suggestedHashtags = ['#fotografia', '#design', '#lifestyle', '#arte', '#viagem', '#criativo'];
@@ -263,7 +265,7 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({
       const res = await api.getKawaiiCaption('novo momento e estilo de vida', 'elegante e inspirador');
       setCaption(res.caption);
     } catch (e) {
-      setCaption('Compartilhando novos momentos e inspirações. #fotografia #lifestyle #design');
+      setCaption(ui("Compartilhando novos momentos e inspirações. #fotografia #lifestyle #design"));
     } finally {
       setIsAiGenerating(false);
     }
@@ -313,7 +315,7 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({
               finalUrl = uploadRes.url;
             }
           } catch (uploadErr) {
-            console.warn('FormData upload error, trying base64 fallback:', uploadErr);
+            console.warn(ui("FormData upload error, trying base64 fallback:"), uploadErr);
             try {
               const b64 = await fileToBase64(item.file);
               const b64Res = await api.uploadBase64(b64, item.file.name);
@@ -330,7 +332,7 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({
             try {
               posterUrl = await uploadVideoPoster(item.file);
             } catch (pErr) {
-              console.warn('Poster error:', pErr);
+              console.warn(ui("Poster error:"), pErr);
             }
           }
         }
@@ -351,7 +353,7 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({
               finalUrl = b64Res.url;
             }
           } catch (blobErr) {
-            console.warn('Blob persistence fallback error:', blobErr);
+            console.warn(ui("Blob persistence fallback error:"), blobErr);
           }
         }
 
@@ -404,7 +406,7 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({
       onPostCreated(createdPostResult);
       onClose();
     } catch (err: any) {
-      console.error('Publish error:', err);
+      console.error(ui("Publish error:"), err);
       alert(`Não foi possível publicar: ${err.message || 'Erro de conexão'}`);
     } finally {
       setIsUploading(false);
@@ -432,17 +434,17 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({
             <div>
               <h2 className="font-heading text-sm font-extrabold text-white">
                 {contentType === 'story'
-                  ? 'Criar Story'
+                  ? ui("Criar Story")
                   : contentType === 'video'
-                  ? 'Criar Vídeo / Reel'
-                  : 'Nova Publicação'}
+                  ? ui("Criar Vídeo / Reel")
+                  : ui("Nova Publicação")}
               </h2>
             </div>
           </div>
           <button
             id="btn-create-modal-close"
             onClick={onClose}
-            aria-label="Fechar"
+            aria-label={ui("Fechar")}
             className="w-8 h-8 rounded-full flex items-center justify-center text-zinc-400 hover:text-white hover:bg-white/10 cursor-pointer transition-colors"
           >
             <X className="w-5 h-5" />
@@ -453,9 +455,9 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({
         {step === 'media' && (
           <div className="p-2 bg-[#0E0E15] border-b border-white/10 flex items-center justify-center gap-1.5">
             {[
-              { id: 'post', label: 'Foto / Galeria' },
-              { id: 'video', label: 'Reel / Vídeo' },
-              { id: 'story', label: 'Story (24h)' },
+              { id: 'post', label: ui("Foto / Galeria") },
+              { id: 'video', label: ui("Reel / Vídeo") },
+              { id: 'story', label: ui("Story (24h)") },
             ].map(tab => (
               <button
                 key={tab.id}
@@ -496,11 +498,9 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({
                 </div>
                 <div>
                   <p className="font-heading text-sm font-bold text-white">
-                    Selecione fotos ou vídeos do celular
-                  </p>
+                    {ui("Selecione fotos ou vídeos do celular")}</p>
                   <p className="text-xs text-zinc-400 mt-0.5">
-                    Fotos, GIFs, vídeos curtos, PDFs e áudios
-                  </p>
+                    {ui("Fotos, GIFs, vídeos curtos, PDFs e áudios")}</p>
                 </div>
               </div>
 
@@ -509,8 +509,7 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({
                 <div className="flex items-center gap-1.5 mb-2.5">
                   <Sparkles className="w-4 h-4 text-amber-300" />
                   <span className="text-xs font-bold text-zinc-300">
-                    Ou selecione um exemplo para testar:
-                  </span>
+                    {ui("Ou selecione um exemplo para testar:")}</span>
                 </div>
                 <div className="grid grid-cols-2 gap-2.5">
                   {samplePresets.map((preset, idx) => (
@@ -562,7 +561,7 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({
                       <p className="font-heading text-xs font-bold text-white truncate">
                         {activeMedia.fileName || 'Arquivo de Áudio'}
                       </p>
-                      <span className="text-[10px] text-zinc-400">Pronto para reprodução</span>
+                      <span className="text-[10px] text-zinc-400">{ui("Pronto para reprodução")}</span>
                     </div>
                     <audio controls src={activeMedia.url} className="w-full max-w-xs mt-1" />
                   </div>
@@ -575,13 +574,13 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({
                       <p className="font-heading text-xs font-bold text-white truncate">
                         {activeMedia.fileName || 'Documento PDF'}
                       </p>
-                      <span className="text-[10px] text-zinc-400">Documento anexado</span>
+                      <span className="text-[10px] text-zinc-400">{ui("Documento anexado")}</span>
                     </div>
                   </div>
                 ) : (
                   <img
                     src={activeMedia.url}
-                    alt="Edit"
+                    alt={ui("Edit")}
                     referrerPolicy="no-referrer"
                     className="w-full h-full object-contain"
                     style={{
@@ -617,14 +616,13 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({
                 <>
                   <div className="flex items-center justify-between px-1">
                     <span className="text-xs font-bold text-zinc-300">
-                      Filtros & Ajustes
-                    </span>
+                      {ui("Filtros & Ajustes")}</span>
                     <button
                       onClick={handleRotate}
                       className="flex items-center gap-1 text-xs font-bold text-zinc-300 hover:text-white cursor-pointer transition-colors"
                     >
                       <RotateCw className="w-3.5 h-3.5" />
-                      <span>Girar 90°</span>
+                      <span>{ui("Girar 90°")}</span>
                     </button>
                   </div>
 
@@ -647,21 +645,19 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({
                 </>
               ) : (
                 <div className="p-3 rounded-xl bg-[#171724] border border-white/10 text-center text-xs text-zinc-300">
-                  Arquivo pronto para ser publicado! Você pode adicionar uma legenda no próximo passo.
-                </div>
+                  {ui("Arquivo pronto para ser publicado! Você pode adicionar uma legenda no próximo passo.")}</div>
               )}
 
               {/* Story Overlay Text */}
               {contentType === 'story' && (
                 <div>
                   <span className="text-[11px] font-bold text-zinc-300 block mb-1">
-                    Texto no Story:
-                  </span>
+                    {ui("Texto no Story:")}</span>
                   <input
                     type="text"
                     value={textOverlay}
                     onChange={e => setTextOverlay(e.target.value)}
-                    placeholder="Adicione uma frase ao seu Story..."
+                    placeholder={ui("Adicione uma frase ao seu Story...")}
                     className="w-full bg-[#171724] text-xs text-white placeholder-zinc-500 px-3.5 py-2.5 rounded-xl border border-white/10 focus:outline-none focus:border-white/30"
                   />
                 </div>
@@ -676,8 +672,7 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({
               <div>
                 <div className="flex items-center justify-between mb-1.5">
                   <label className="text-xs font-bold text-zinc-200">
-                    Legenda da Publicação:
-                  </label>
+                    {ui("Legenda da Publicação:")}</label>
                   <button
                     type="button"
                     onClick={handleAiCaption}
@@ -685,14 +680,14 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({
                     className="flex items-center gap-1 px-3 py-1 rounded-full bg-white text-black text-[11px] font-extrabold shadow-xs hover:bg-neutral-200 active:scale-95 disabled:opacity-50 cursor-pointer transition-all"
                   >
                     <Wand2 className={`w-3 h-3 ${isAiGenerating ? 'animate-spin' : ''}`} />
-                    <span>{isAiGenerating ? 'Gerando...' : 'Sugerir com IA'}</span>
+                    <span>{isAiGenerating ? ui("Gerando...") : ui("Sugerir com IA")}</span>
                   </button>
                 </div>
                 <textarea
                   rows={4}
                   value={caption}
                   onChange={e => setCaption(e.target.value)}
-                  placeholder="Escreva sua legenda com @menções e #hashtags..."
+                  placeholder={ui("Escreva sua legenda com @menções e #hashtags...")}
                   className="w-full bg-[#171724] text-xs text-white placeholder-zinc-500 p-3 rounded-2xl border border-white/10 focus:outline-none focus:border-white/30 leading-relaxed resize-none"
                 />
               </div>
@@ -700,8 +695,7 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({
               {/* Hashtag Suggestion Chips */}
               <div>
                 <span className="text-[11px] font-bold text-zinc-400 block mb-1.5">
-                  Hashtags Sugeridas:
-                </span>
+                  {ui("Hashtags Sugeridas:")}</span>
                 <div className="flex flex-wrap gap-1.5">
                   {suggestedHashtags.map(tag => (
                     <button
@@ -719,8 +713,7 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({
               {/* Category Selection */}
               <div>
                 <label className="text-[11px] font-bold text-zinc-400 block mb-1.5">
-                  Categoria da Publicação:
-                </label>
+                  {ui("Categoria da Publicação:")}</label>
                 <div className="flex flex-wrap gap-1.5">
                   {availableCategories.map(cat => (
                     <button
@@ -742,15 +735,14 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({
               {/* Location Field */}
               <div>
                 <label className="text-[11px] font-bold text-zinc-400 block mb-1">
-                  Localização:
-                </label>
+                  {ui("Localização:")}</label>
                 <div className="flex items-center gap-2 bg-[#171724] px-3.5 py-2.5 rounded-xl border border-white/10 focus-within:border-white/25">
                   <MapPin className="w-4 h-4 text-zinc-400" />
                   <input
                     type="text"
                     value={location}
                     onChange={e => setLocation(e.target.value)}
-                    placeholder="Ex: São Paulo, Brasil / Studio Photo"
+                    placeholder={ui("Ex: São Paulo, Brasil / Studio Photo")}
                     className="flex-1 bg-transparent text-xs text-white placeholder-zinc-500 focus:outline-none"
                   />
                 </div>
@@ -762,11 +754,9 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({
                   <MessageSquare className="w-4 h-4 text-zinc-400" />
                   <div>
                     <span className="text-xs font-bold text-white block">
-                      Permitir Comentários
-                    </span>
+                      {ui("Permitir Comentários")}</span>
                     <span className="text-[10px] text-zinc-400">
-                      Outros usuários poderão comentar no post
-                    </span>
+                      {ui("Outros usuários poderão comentar no post")}</span>
                   </div>
                 </div>
                 <input
@@ -784,11 +774,9 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({
                     <Timer className="w-4 h-4 text-zinc-400" />
                     <div>
                       <span className="text-xs font-bold text-white block">
-                        Publicação Temporária (Contagem Regressiva)
-                      </span>
+                        {ui("Publicação Temporária (Contagem Regressiva)")}</span>
                       <span className="text-[10px] text-zinc-400">
-                        Ativa um contador regressivo em tempo real e auto-exclusão
-                      </span>
+                        {ui("Ativa um contador regressivo em tempo real e auto-exclusão")}</span>
                     </div>
                   </div>
                   <input
@@ -803,15 +791,14 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({
                   <div className="pt-2.5 border-t border-white/10 space-y-2 animate-fadeIn">
                     <div className="flex items-center justify-between">
                       <span className="text-[11px] font-bold text-zinc-300">
-                        Tempo de duração antes de expirar:
-                      </span>
+                        {ui("Tempo de duração antes de expirar:")}</span>
                       <span className="text-[11px] font-extrabold text-white">
                         {durationHours} {durationHours === 1 ? 'hora' : 'horas'}
                       </span>
                     </div>
                     <div className="grid grid-cols-3 gap-1.5">
                       {[
-                        { hours: 1, label: '1 Hora (Efêmero)' },
+                        { hours: 1, label: ui("1 Hora (Efêmero)") },
                         { hours: 6, label: '6 Horas' },
                         { hours: 12, label: '12 Horas' },
                         { hours: 24, label: '24 Horas (1 dia)' },
@@ -842,8 +829,7 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({
                   <div className="flex items-center justify-between text-xs font-bold text-white">
                     <span className="flex items-center gap-2">
                       <span className="w-2.5 h-2.5 rounded-full bg-white animate-ping"></span>
-                      Status de Processamento & Upload
-                    </span>
+                      {ui("Status de Processamento & Upload")}</span>
                     <span className="text-white font-extrabold">{uploadProgress}%</span>
                   </div>
                   <div className="w-full h-2 rounded-full bg-black/40 overflow-hidden shadow-inner">
@@ -853,8 +839,7 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({
                     />
                   </div>
                   <p className="text-[11px] text-zinc-400">
-                    Processando e salvando arquivos com segurança...
-                  </p>
+                    {ui("Processando e salvando arquivos com segurança...")}</p>
                 </div>
               )}
             </div>
@@ -865,8 +850,7 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({
         <div className="p-4 border-t border-white/10 flex items-center justify-between gap-3 bg-[#12121B]">
           {step === 'media' && (
             <div className="text-xs text-zinc-400">
-              Escolha uma imagem ou vídeo para continuar
-            </div>
+              {ui("Escolha uma imagem ou vídeo para continuar")}</div>
           )}
 
           {step === 'edit' && (
@@ -875,8 +859,7 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({
                 onClick={() => setStep('media')}
                 className="px-4 py-2 rounded-full text-xs font-bold text-zinc-400 hover:text-white hover:bg-white/5 cursor-pointer transition-colors"
               >
-                Voltar
-              </button>
+                {ui("Voltar")}</button>
               <button
                 onClick={() => {
                   if (contentType === 'story') {
@@ -887,7 +870,7 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({
                 }}
                 className="px-6 py-2.5 rounded-full bg-white text-black text-xs font-extrabold shadow-lg hover:bg-neutral-200 active:scale-95 transition-all cursor-pointer"
               >
-                {contentType === 'story' ? 'Publicar Story' : 'Avançar →'}
+                {contentType === 'story' ? ui("Publicar Story") : ui("Avançar →")}
               </button>
             </>
           )}
@@ -899,15 +882,14 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({
                 disabled={isUploading}
                 className="px-4 py-2 rounded-full text-xs font-bold text-zinc-400 hover:text-white hover:bg-white/5 cursor-pointer transition-colors"
               >
-                Voltar
-              </button>
+                {ui("Voltar")}</button>
               <button
                 onClick={handlePublish}
                 disabled={isUploading}
                 className="flex items-center gap-1.5 px-6 py-2.5 rounded-full bg-white text-black text-xs font-extrabold shadow-lg hover:bg-neutral-200 active:scale-95 disabled:opacity-50 transition-all cursor-pointer"
               >
                 <Check className="w-4 h-4 stroke-[2.5]" />
-                <span>{isUploading ? 'Publicando...' : 'Publicar Agora'}</span>
+                <span>{isUploading ? ui("Publicando...") : ui("Publicar Agora")}</span>
               </button>
             </>
           )}

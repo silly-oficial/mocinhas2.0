@@ -1,4 +1,5 @@
 import { randomBytes } from 'node:crypto';
+import { installSyncpayPayments } from './server/payments.ts';
 import { installConsumptionPolicy } from './server/consumption.ts';
 import dotenv from 'dotenv';
 dotenv.config();
@@ -15,6 +16,10 @@ import { DB, DBPost, DBUser, DBStory, DBComment, DBMessage, DBConversation, DBNo
 import { checkSupabaseConnection, isSupabaseConfigured, updateSupabaseCredentials } from './server/supabase.ts';
 
 const app = express();
+if (!DB.get().engagementRestored) {
+  DB.get().posts.forEach(p => { p.allowComments = true; });
+  DB.get().engagementRestored = true; DB.save();
+}
 const PORT = 3000;
 const JWT_SECRET = process.env.JWT_SECRET || DB.get().authSecret || randomBytes(48).toString('hex');
 if (!process.env.JWT_SECRET && !DB.get().authSecret) { DB.get().authSecret = JWT_SECRET; DB.save(); }
@@ -39,7 +44,7 @@ const storage = multer.diskStorage({
 const upload = multer({ storage, limits: { fileSize: 50 * 1024 * 1024 } });
 
 // Middlewares
-app.use(express.json({ limit: '50mb' }));
+app.use(express.json({ limit: '50mb', verify: (req, _res, buf) => { if (req.url === '/api/syncpay/webhook') (req as any).rawBody = Buffer.from(buf); } }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 // Media is served after the consumption policy below.
 
@@ -192,40 +197,7 @@ app.post('/api/auth/register', (req, res) => {
     return res.status(400).json({ error: 'Este e-mail já está cadastrado.' });
   }
 
-  const defaultFemaleAvatars = [
-    'https://api.dicebear.com/7.x/adventurer/svg?seed=Sakura&backgroundColor=ffd5dc,ffdfba,fce4ec&mouth=variant01,variant02,variant03',
-    'https://api.dicebear.com/7.x/adventurer/svg?seed=Luna&backgroundColor=ffd5dc,d1d4f9,fce4ec&mouth=variant02,variant04',
-    'https://api.dicebear.com/7.x/adventurer/svg?seed=Miku&backgroundColor=d1d4f9,c0aede,ffd5dc&mouth=variant01,variant03',
-    'https://api.dicebear.com/7.x/adventurer/svg?seed=Beatriz&backgroundColor=ffdfba,ffd5dc,fce4ec&mouth=variant01,variant04',
-    'https://api.dicebear.com/7.x/adventurer/svg?seed=Sofia&backgroundColor=fce4ec,ffd5dc,d1d4f9&mouth=variant02,variant03',
-    'https://api.dicebear.com/7.x/adventurer/svg?seed=Julia&backgroundColor=ffd5dc,ffdfba,fce4ec&mouth=variant01,variant02',
-  ];
-
-  const defaultMaleAvatars = [
-    'https://api.dicebear.com/7.x/adventurer/svg?seed=Lucas&backgroundColor=d1d4f9,c0aede,b6e3f4&hair=short01,short02,short03',
-    'https://api.dicebear.com/7.x/adventurer/svg?seed=Gabriel&backgroundColor=b6e3f4,d1d4f9,ffd5dc&hair=short04,short05',
-    'https://api.dicebear.com/7.x/adventurer/svg?seed=Mateus&backgroundColor=c0aede,d1d4f9,ffdfba&hair=short02,short06',
-    'https://api.dicebear.com/7.x/adventurer/svg?seed=Leo&backgroundColor=ffdfba,d1d4f9,b6e3f4&hair=short01,short04',
-    'https://api.dicebear.com/7.x/adventurer/svg?seed=Thiago&backgroundColor=d1d4f9,b6e3f4,c0aede&hair=short03,short05',
-  ];
-
-  const defaultNeutralAvatars = [
-    'https://api.dicebear.com/7.x/adventurer/svg?seed=Alex&backgroundColor=ffd5dc,c0aede,d1d4f9',
-    'https://api.dicebear.com/7.x/adventurer/svg?seed=Sam&backgroundColor=d1d4f9,ffdfba,b6e3f4',
-    'https://api.dicebear.com/7.x/adventurer/svg?seed=Robin&backgroundColor=c0aede,ffd5dc,ffdfba',
-    'https://api.dicebear.com/7.x/adventurer/svg?seed=Taylor&backgroundColor=b6e3f4,d1d4f9,ffd5dc',
-  ];
-
-  let selectedAvatar = avatar;
-  if (!selectedAvatar) {
-    if (gender === 'masculino') {
-      selectedAvatar = defaultMaleAvatars[Math.floor(Math.random() * defaultMaleAvatars.length)];
-    } else if (gender === 'feminino') {
-      selectedAvatar = defaultFemaleAvatars[Math.floor(Math.random() * defaultFemaleAvatars.length)];
-    } else {
-      selectedAvatar = defaultNeutralAvatars[Math.floor(Math.random() * defaultNeutralAvatars.length)];
-    }
-  }
+  const selectedAvatar = '/profile-placeholder.svg';
 
   const passwordHash = bcrypt.hashSync(password, 10);
   const isSuperAdmin = false; // Public signup never grants administrator privileges.
@@ -710,7 +682,7 @@ app.post('/api/posts', requireAdmin, (req, res) => {
     hashtags,
     mentions,
     location,
-    allowComments: false,
+    allowComments: allowComments !== false,
     isTemporary: false,
     expiresAt: undefined,
     createdAt: new Date().toISOString(),
@@ -928,6 +900,8 @@ app.post('/api/posts/:id/comments', requireAuth, (req, res) => {
   const currentUserId = (req as any).userId;
   const postId = req.params.id;
   const { text, parentId } = req.body;
+  if (typeof text !== 'string' || text.length > 2000) return res.status(400).json({ error: 'Comentários devem ter até 2000 caracteres.' });
+  if (parentId && !DB.get().comments.some(c => c.id === parentId && c.postId === postId)) return res.status(400).json({ error: 'Resposta inválida.' });
 
   if (!text || !text.trim()) {
     return res.status(400).json({ error: 'Escreva algo fofo para comentar! ' });
@@ -1020,7 +994,7 @@ app.delete('/api/comments/:id', requireAuth, (req, res) => {
   if (!comment) return res.status(404).json({ error: 'Comentário não encontrado' });
 
   const post = rawDb.posts.find(p => p.id === comment.postId);
-  if (comment.userId !== currentUserId && post?.userId !== currentUserId) {
+  if (comment.userId !== currentUserId && post?.userId !== currentUserId && !DB.findUserById(currentUserId)?.isAdmin) {
     return res.status(403).json({ error: 'Você não tem permissão para excluir este comentário.' });
   }
 
@@ -2023,20 +1997,19 @@ const translationCache = new Map<string, string>();
 async function translateSingleText(text: string, targetLang: string, sourceLang = 'auto'): Promise<string> {
   const clean = text ? text.trim() : '';
   if (!clean) return '';
-  if (!targetLang || (targetLang === 'pt' && (sourceLang === 'pt' || sourceLang === 'auto'))) {
-    // If target is Portuguese, only translate if text is clearly foreign or requested
-  }
+  if (targetLang === sourceLang) return clean;
 
-  const cacheKey = `${targetLang}:${clean}`;
+  const cacheKey = `${sourceLang}:${targetLang}:${clean}`;
   if (translationCache.has(cacheKey)) {
     return translationCache.get(cacheKey)!;
   }
 
   // 1. Try MyMemory API (Very reliable, free, fast)
   try {
+    if (sourceLang === 'auto') throw new Error('Use language detection');
     const src = (sourceLang === 'auto' || !sourceLang) ? 'pt' : sourceLang;
     const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(clean)}&langpair=${encodeURIComponent(src)}|${encodeURIComponent(targetLang)}`;
-    const resp = await fetch(url);
+    const resp = await fetch(url, { signal: AbortSignal.timeout(6000) });
     if (resp.ok) {
       const data = (await resp.json()) as any;
       if (data?.responseData?.translatedText && data.responseStatus === 200) {
@@ -2058,7 +2031,7 @@ async function translateSingleText(text: string, targetLang: string, sourceLang 
   // 2. Try Google Translate gtx endpoint
   try {
     const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${encodeURIComponent(sourceLang)}&tl=${encodeURIComponent(targetLang)}&dt=t&q=${encodeURIComponent(clean)}`;
-    const resp = await fetch(url);
+    const resp = await fetch(url, { signal: AbortSignal.timeout(6000) });
     if (resp.ok) {
       const data = (await resp.json()) as any;
       if (Array.isArray(data) && Array.isArray(data[0])) {
@@ -2092,20 +2065,20 @@ async function translateSingleText(text: string, targetLang: string, sourceLang 
     }
   }
 
-  return clean;
+  throw new Error('Translation provider unavailable');
 }
 
 app.post('/api/translate', async (req, res) => {
   const { text, targetLang, sourceLang } = req.body;
-  if (!text || typeof text !== 'string') {
-    return res.json({ translatedText: text || '', targetLang: targetLang || 'pt' });
+  if (!text || typeof text !== 'string' || text.length > 4000 || !['pt','en','es','fr','de','it','ja','ko','zh','ru','ar'].includes(targetLang)) {
+    return res.status(400).json({ error: 'Invalid translation request' });
   }
 
   try {
     const translatedText = await translateSingleText(text, targetLang || 'en', sourceLang || 'auto');
     res.json({ translatedText, targetLang: targetLang || 'en' });
   } catch (err) {
-    res.json({ translatedText: text, targetLang: targetLang || 'en' });
+    res.status(503).json({ error: 'Translation provider unavailable' });
   }
 });
 
@@ -2205,13 +2178,13 @@ app.post('/api/admin/broadcast', requireAdmin, (req, res) => {
 
 app.post('/api/translate/batch', async (req, res) => {
   const { texts, targetLang, sourceLang } = req.body;
-  if (!Array.isArray(texts)) {
+  if (!Array.isArray(texts) || texts.length > 20 || texts.some(t => typeof t !== 'string' || t.length > 4000) || !['pt','en','es','fr','de','it','ja','ko','zh','ru','ar'].includes(targetLang)) {
     return res.status(400).json({ error: 'texts must be an array' });
   }
 
   try {
     const results = await Promise.all(
-      texts.map(t => translateSingleText(typeof t === 'string' ? t : '', targetLang || 'en', sourceLang || 'auto'))
+      texts.map(t => translateSingleText(t, targetLang, sourceLang || 'auto').catch(() => null))
     );
     res.json({ translations: results, targetLang: targetLang || 'en' });
   } catch (err) {
@@ -2222,23 +2195,6 @@ app.post('/api/translate/batch', async (req, res) => {
 // ----------------------------------------------------
 //  SYNCPAY PAYMENT & PREMIUM ENDPOINTS
 // ----------------------------------------------------
-app.get('/api/syncpay/config', (_req, res) => {
-  const rawDb = DB.get();
-  const settings = rawDb.syncpaySettings || {
-    clientId: '',
-    clientSecret: '',
-    webhookToken: '',
-    pixKey: '',
-    enabled: true,
-    price: 9.99,
-  };
-  res.json({
-    enabled: Boolean(settings.enabled !== false),
-    price: settings.price || 9.99,
-    hasCredentials: Boolean(settings.clientId && settings.clientSecret),
-  });
-});
-
 app.get('/api/admin/syncpay', requireAdmin, (_req, res) => {
   const rawDb = DB.get();
   res.json({
@@ -2254,12 +2210,13 @@ app.get('/api/admin/syncpay', requireAdmin, (_req, res) => {
 });
 
 app.post('/api/admin/syncpay', requireAdmin, (req, res) => {
-  const { clientId, clientSecret, webhookToken, pixKey, enabled, price } = req.body;
+  const { clientId, clientSecret, webhookToken, webhookUrl, pixKey, enabled, price } = req.body;
   const rawDb = DB.get();
   rawDb.syncpaySettings = {
     clientId: (clientId || '').trim(),
     clientSecret: (clientSecret || '').trim(),
     webhookToken: (webhookToken || '').trim(),
+    webhookUrl: String(webhookUrl || '').trim(),
     pixKey: (pixKey || '').trim(),
     enabled: enabled !== false,
     price: Number(price) > 0 ? Number(price) : 9.99,
@@ -2285,86 +2242,7 @@ app.put('/api/admin/users/:id/premium', requireAdmin, (req, res) => {
   res.json({ success: true, user: DB.toPublicUser(user) });
 });
 
-app.post('/api/syncpay/create-charge', requireAuth, (req, res) => {
-  const currentUserId = (req as any).userId;
-  const rawDb = DB.get();
-  const settings = rawDb.syncpaySettings || { enabled: true, price: 9.99 };
-  const user = DB.findUserById(currentUserId);
-
-  if (!user) return res.status(404).json({ error: 'Usuário não encontrado' });
-
-  const txId = `SYNC_${Date.now()}_${Math.random().toString(36).substring(2, 7).toUpperCase()}`;
-  const price = settings.price || 9.99;
-
-  // Formatted Pix Copy-and-Paste
-  const pixCopyAndPaste = `00020126580014BR.GOV.BCB.PIX0136syncpay-mocinhas-premium-${txId}520400005303986540${price.toFixed(2)}5802BR5915Mocinhas Social6009Sao Paulo62070503***630489A1`;
-
-  res.json({
-    success: true,
-    txId,
-    amount: price,
-    pixCopyAndPaste,
-    qrCodeUrl: `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(pixCopyAndPaste)}`,
-    expiresInMinutes: 30,
-    message: 'Cobrança Pix gerada com sucesso via Syncpay! ',
-  });
-});
-
-app.post('/api/syncpay/confirm-charge', requireAuth, (req, res) => {
-  const currentUserId = (req as any).userId;
-  const rawDb = DB.get();
-  const user = rawDb.users.find(u => u.id === currentUserId);
-
-  if (!user) return res.status(404).json({ error: 'Usuário não encontrado' });
-
-  user.isPremium = true;
-  user.premiumExpiresAt = new Date(Date.now() + 365 * 86400000).toISOString();
-
-  // Send celebration notification
-  const notif: DBNotification = {
-    id: `notif_premium_${Date.now()}`,
-    recipientId: currentUserId,
-    actorId: 'u_admin_official',
-    type: 'mention',
-    textSnippet: ' Parabéns! Sua assinatura Syncpay Premium de R$ 9,99 foi confirmada com sucesso! Você agora tem acesso ilimitado às publicações de todos os perfis. ',
-    isRead: false,
-    createdAt: new Date().toISOString(),
-  };
-  rawDb.notifications.unshift(notif);
-  DB.save();
-
-  broadcastEvent(currentUserId, 'notification', notif);
-
-  res.json({
-    success: true,
-    user: DB.toPublicUser(user, currentUserId),
-    message: 'Assinatura Premium ativada com sucesso! OBRIGADA por apoiar nossos servidores! ',
-  });
-});
-
-app.post('/api/syncpay/webhook', (req, res) => {
-  const { status, event, userId, customer } = req.body || {};
-  const rawDb = DB.get();
-
-  if (status === 'PAID' || status === 'APPROVED' || event === 'charge.paid') {
-    const targetUser = rawDb.users.find(u => u.id === userId || (customer?.email && u.email.toLowerCase() === customer.email.toLowerCase()));
-    if (targetUser) {
-      targetUser.isPremium = true;
-      targetUser.premiumExpiresAt = new Date(Date.now() + 365 * 86400000).toISOString();
-      DB.save();
-      broadcastEvent(targetUser.id, 'notification', {
-        id: `notif_syncpay_wh_${Date.now()}`,
-        recipientId: targetUser.id,
-        actorId: 'u_admin_official',
-        type: 'mention',
-        textSnippet: ' Pagamento Pix confirmado via Webhook Syncpay! Seu status Premium foi ativado automaticamente! ',
-        isRead: false,
-        createdAt: new Date().toISOString()
-      });
-    }
-  }
-  res.json({ received: true });
-});
+installSyncpayPayments(app, DB, requireAuth, requireAdmin);
 
 // ----------------------------------------------------
 //  VITE MIDDLEWARE & STATIC SERVING

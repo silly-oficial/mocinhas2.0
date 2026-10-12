@@ -1,3 +1,4 @@
+import { ui, useUi } from '../i18n/ui';
 import { UsageSettings } from './UsageSettings';
 import React, { useState, useEffect } from 'react';
 import { 
@@ -18,6 +19,7 @@ interface AdminPanelProps {
 }
 
 export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose, onPostCreated }) => {
+  useUi();
   const { user: currentUser } = useAuth();
   const [activeTab, setActiveTab] = useState<'stats' | 'poster' | 'users' | 'moderation' | 'broadcast' | 'analytics' | 'syncpay' | 'categories' | 'supabase'>('stats');
   
@@ -43,10 +45,10 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose, onPostCreated }
       if (saved) return JSON.parse(saved);
     } catch (e) {}
     return [
-      { id: 'geral', name: 'Geral', slug: 'geral', description: 'Geral e Diversos' },
-      { id: 'fotografia', name: 'Fotografia', slug: 'fotografia', description: 'Fotos e Ensaios' },
-      { id: 'lifestyle', name: 'Lifestyle', slug: 'lifestyle', description: 'Estilo de vida e cotidiano' },
-      { id: 'reels', name: 'Reels & Vídeos', slug: 'reels', description: 'Vídeos curtos e reels' }
+      { id: 'geral', name: 'Geral', slug: 'geral', description: ui("Geral e Diversos") },
+      { id: 'fotografia', name: 'Fotografia', slug: 'fotografia', description: ui("Fotos e Ensaios") },
+      { id: 'lifestyle', name: 'Lifestyle', slug: 'lifestyle', description: ui("Estilo de vida e cotidiano") },
+      { id: 'reels', name: 'Reels & Vídeos', slug: 'reels', description: ui("Vídeos curtos e reels") }
     ];
   });
   const [newCatName, setNewCatName] = useState('');
@@ -68,12 +70,12 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose, onPostCreated }
     setNewCatName('');
     setNewCatDesc('');
     sounds.playSparkle();
-    setStatusMessage('Categoria criada com sucesso! ');
+    setStatusMessage(ui("Categoria criada com sucesso! "));
     setTimeout(() => setStatusMessage(null), 3000);
   };
 
   const handleDeleteCategory = (catId: string) => {
-    if (!confirm('Deseja excluir esta categoria?')) return;
+    if (!confirm(ui("Deseja excluir esta categoria?"))) return;
     const updated = categories.filter(c => c.id !== catId);
     setCategories(updated);
     localStorage.setItem('mocinhas_categories', JSON.stringify(updated));
@@ -83,6 +85,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose, onPostCreated }
   // Syncpay Configuration State
   const [syncpayClientId, setSyncpayClientId] = useState<string>('');
   const [syncpayClientSecret, setSyncpayClientSecret] = useState<string>('');
+  const [syncpayWebhookUrl, setSyncpayWebhookUrl] = useState(window.location.origin + '/api/syncpay/webhook');
   const [syncpayWebhookToken, setSyncpayWebhookToken] = useState<string>('');
   const [syncpayPixKey, setSyncpayPixKey] = useState<string>('');
   const [syncpayEnabled, setSyncpayEnabled] = useState<boolean>(true);
@@ -100,7 +103,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose, onPostCreated }
   const [location, setLocation] = useState<string>('');
 
   // Broadcast State
-  const [broadcastTitle, setBroadcastTitle] = useState<string>(' Anúncio Oficial da Administração');
+  const [broadcastTitle, setBroadcastTitle] = useState<string>(ui(" Anúncio Oficial da Administração"));
   const [broadcastText, setBroadcastText] = useState<string>('');
 
   const sampleImages = [
@@ -153,6 +156,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose, onPostCreated }
           setSyncpayClientId(s.clientId || '');
           setSyncpayClientSecret(s.clientSecret || '');
           setSyncpayWebhookToken(s.webhookToken || '');
+          setSyncpayWebhookUrl(s.webhookUrl || window.location.origin + '/api/syncpay/webhook');
           setSyncpayPixKey(s.pixKey || '');
           setSyncpayEnabled(s.enabled !== false);
           setSyncpayPrice(s.price || 9.99);
@@ -179,11 +183,11 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose, onPostCreated }
           if (status.url) setSbUrlInput(status.url);
           setRawSql(schema);
         } catch (err) {
-          console.error('Failed to load supabase info:', err);
+          console.error(ui("Failed to load supabase info:"), err);
         }
       }
     } catch (e) {
-      console.error('Failed to load admin data:', e);
+      console.error(ui("Failed to load admin data:"), e);
     } finally {
       setIsLoading(false);
     }
@@ -194,7 +198,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose, onPostCreated }
     navigator.clipboard.writeText(rawSql);
     setCopiedSql(true);
     sounds.playSparkle();
-    setStatusMessage('Código SQL copiado para a área de transferência! Cole no SQL Editor do Supabase. ');
+    setStatusMessage(ui("Código SQL copiado para a área de transferência! Cole no SQL Editor do Supabase. "));
     setTimeout(() => {
       setCopiedSql(false);
       setStatusMessage(null);
@@ -204,7 +208,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose, onPostCreated }
   const handleSaveSupabase = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!sbUrlInput.trim() || !sbKeyInput.trim()) {
-      alert('Preencha a URL e a Anon Key do Supabase!');
+      alert(ui("Preencha a URL e a Anon Key do Supabase!"));
       return;
     }
     setIsSavingSb(true);
@@ -216,11 +220,11 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose, onPostCreated }
       });
       setSupabaseStatus(res.status);
       sounds.playSparkle();
-      setStatusMessage('Configurações do Supabase salvas e conectadas com sucesso! ');
+      setStatusMessage(ui("Configurações do Supabase salvas e conectadas com sucesso! "));
       setTimeout(() => setStatusMessage(null), 4000);
     } catch (err: any) {
       sounds.playPop();
-      setStatusMessage(`Erro ao configurar Supabase: ${err.message}`);
+      setStatusMessage(`${ui('Erro ao configurar Supabase:')} ${ui(err.message)}`);
     } finally {
       setIsSavingSb(false);
     }
@@ -241,6 +245,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose, onPostCreated }
           clientId: syncpayClientId,
           clientSecret: syncpayClientSecret,
           webhookToken: syncpayWebhookToken,
+          webhookUrl: syncpayWebhookUrl,
           pixKey: syncpayPixKey,
           enabled: syncpayEnabled,
           price: Number(syncpayPrice) || 9.99
@@ -250,7 +255,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose, onPostCreated }
       if (!res.ok) throw new Error(data.error || 'Erro ao salvar Syncpay');
 
       sounds.playSparkle();
-      setStatusMessage('Configurações da Syncpay salvas e ativadas com sucesso! ');
+      setStatusMessage(ui("Configurações da Syncpay salvas e ativadas com sucesso! "));
       setTimeout(() => setStatusMessage(null), 4000);
     } catch (err: any) {
       setStatusMessage(err.message || 'Erro ao salvar configurações Syncpay.');
@@ -275,7 +280,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose, onPostCreated }
         setUsersList(usersList.map(u => u.id === targetUserId ? { ...u, isPremium: !currentStatus } : u));
       }
     } catch (e) {
-      console.error('Failed to toggle premium:', e);
+      console.error(ui("Failed to toggle premium:"), e);
     }
   };
 
@@ -291,13 +296,13 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose, onPostCreated }
     const isPdf = file.type === 'application/pdf' || ['pdf', 'doc', 'docx', 'txt'].includes(ext);
 
     if (!isImage && !isGif && !isVideo && !isAudio && !isPdf) {
-      setStatusMessage(' Formato não suportado. Envie fotos, GIFs, vídeos, PDFs ou áudios válidos.');
+      setStatusMessage(ui(" Formato não suportado. Envie fotos, GIFs, vídeos, PDFs ou áudios válidos."));
       return;
     }
 
     const maxSize = isVideo ? 50 * 1024 * 1024 : isAudio ? 25 * 1024 * 1024 : isPdf ? 20 * 1024 * 1024 : 15 * 1024 * 1024;
     if (file.size > maxSize) {
-      setStatusMessage(` Arquivo muito grande. Tamanho máximo: ${Math.round(maxSize / (1024 * 1024))}MB.`);
+      setStatusMessage(`${ui('Arquivo muito grande. Tamanho máximo:')} ${Math.round(maxSize / (1024 * 1024))}MB.`);
       return;
     }
 
@@ -310,13 +315,13 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose, onPostCreated }
   const handleAdminPostSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!mediaUrl && !selectedFile) {
-      setStatusMessage('Por favor, informe a URL da mídia ou selecione um arquivo do dispositivo.');
+      setStatusMessage(ui("Por favor, informe a URL da mídia ou selecione um arquivo do dispositivo."));
       return;
     }
 
     try {
       setIsLoading(true);
-      setStatusMessage('Enviando arquivos e publicando...');
+      setStatusMessage(ui("Enviando arquivos e publicando..."));
       let finalMediaUrl = mediaUrl;
       let finalMediaType: 'image' | 'video' | 'audio' | 'pdf' | 'gif' = postType;
       let posterUrl: string | undefined;
@@ -334,9 +339,9 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose, onPostCreated }
         }
         //  poster leve para o feed Universo (só para vídeos enviados do aparelho)
         if (finalMediaType === 'video') {
-          setStatusMessage('Gerando miniatura do vídeo...');
+          setStatusMessage(ui("Gerando miniatura do vídeo..."));
           posterUrl = await uploadVideoPoster(selectedFile);
-          setStatusMessage('Enviando arquivos e publicando...');
+          setStatusMessage(ui("Enviando arquivos e publicando..."));
         }
       }
 
@@ -363,7 +368,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose, onPostCreated }
       }
 
       sounds.playSparkle();
-      setStatusMessage(isTemporary ? 'Publicação temporária criada com sucesso! ' : 'Publicação permanente criada com sucesso! ');
+      setStatusMessage(isTemporary ? ui("Publicação temporária criada com sucesso! ") : ui("Publicação permanente criada com sucesso! "));
       setCaption('');
       setMediaUrl('');
       setSelectedFile(null);
@@ -393,7 +398,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose, onPostCreated }
         setUsersList(usersList.map(u => u.id === targetUserId ? { ...u, isVerified: !currentStatus } : u));
       }
     } catch (e) {
-      console.error('Failed to toggle verification:', e);
+      console.error(ui("Failed to toggle verification:"), e);
     }
   };
 
@@ -413,12 +418,12 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose, onPostCreated }
         setUsersList(usersList.map(u => u.id === targetUserId ? { ...u, isAdmin: !currentStatus } : u));
       }
     } catch (e) {
-      console.error('Failed to toggle admin:', e);
+      console.error(ui("Failed to toggle admin:"), e);
     }
   };
 
   const handleDeleteUser = async (targetUserId: string) => {
-    if (!confirm('Tem certeza que deseja banir/excluir este usuário da plataforma?')) return;
+    if (!confirm(ui("Tem certeza que deseja banir/excluir este usuário da plataforma?"))) return;
     try {
       const token = localStorage.getItem('mocinhas_token') || localStorage.getItem('yume_token');
       const res = await fetch(`/api/admin/users/${targetUserId}`, {
@@ -430,12 +435,12 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose, onPostCreated }
         setUsersList(usersList.filter(u => u.id !== targetUserId));
       }
     } catch (e) {
-      console.error('Failed to delete user:', e);
+      console.error(ui("Failed to delete user:"), e);
     }
   };
 
   const handleDeletePost = async (postId: string) => {
-    if (!confirm('Deseja excluir esta publicação permanentemente?')) return;
+    if (!confirm(ui("Deseja excluir esta publicação permanentemente?"))) return;
     try {
       const token = localStorage.getItem('mocinhas_token') || localStorage.getItem('yume_token');
       const res = await fetch(`/api/admin/posts/${postId}`, {
@@ -447,12 +452,12 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose, onPostCreated }
         setPostsList(postsList.filter(p => p.id !== postId));
       }
     } catch (e) {
-      console.error('Failed to delete post:', e);
+      console.error(ui("Failed to delete post:"), e);
     }
   };
 
   const handleEmergencyCleanup = async () => {
-    if (!confirm('Deseja realmente forçar a remoção de todo o conteúdo expirado / obsoleto do banco de dados agora?')) return;
+    if (!confirm(ui("Deseja realmente forçar a remoção de todo o conteúdo expirado / obsoleto do banco de dados agora?"))) return;
     try {
       setIsLoading(true);
       const token = localStorage.getItem('mocinhas_token') || localStorage.getItem('yume_token');
@@ -472,8 +477,8 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose, onPostCreated }
         alert(data.error || 'Erro ao executar limpeza');
       }
     } catch (e) {
-      console.error('Emergency cleanup error:', e);
-      alert('Erro de conexão ao executar limpeza de emergência.');
+      console.error(ui("Emergency cleanup error:"), e);
+      alert(ui("Erro de conexão ao executar limpeza de emergência."));
     } finally {
       setIsLoading(false);
     }
@@ -495,12 +500,12 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose, onPostCreated }
       });
       if (res.ok) {
         sounds.playSparkle();
-        setStatusMessage('Alerta global disparado com sucesso para todos os usuários! ');
+        setStatusMessage(ui("Alerta global disparado com sucesso para todos os usuários! "));
         setBroadcastText('');
         setTimeout(() => setStatusMessage(null), 4000);
       }
     } catch (e) {
-      console.error('Failed to send broadcast:', e);
+      console.error(ui("Failed to send broadcast:"), e);
     } finally {
       setIsLoading(false);
     }
@@ -518,9 +523,9 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose, onPostCreated }
             </div>
             <div>
               <h2 className="text-lg font-black text-white flex items-center gap-2">
-                Painel Administrativo <span className="text-xs px-2 py-0.5 rounded-full bg-white/10 text-zinc-300 font-bold border border-white/15">Admin </span>
+                {ui("Painel Administrativo")}<span className="text-xs px-2 py-0.5 rounded-full bg-white/10 text-zinc-300 font-bold border border-white/15">{ui("Admin")}</span>
               </h2>
-              <p className="text-xs text-zinc-300/75">Gerenciamento completo, postagens temporárias/permanentes e moderação</p>
+              <p className="text-xs text-zinc-300/75">{ui("Gerenciamento de publicações permanentes e moderação")}</p>
             </div>
           </div>
           <button
@@ -537,96 +542,96 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose, onPostCreated }
             onClick={() => { sounds.playPop(); setActiveTab('stats'); }}
             className={`px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${
               activeTab === 'stats' 
-                ? 'bg-white text-black font-extrabold shadow-md' 
+                ? 'bg-emerald-500 text-black font-extrabold shadow-md' 
                 : 'bg-[#171724] text-zinc-300 hover:bg-[#242436] border border-white/10'
             }`}
           >
             <BarChart3 className="w-4 h-4" />
-            <span>Estatísticas</span>
+            <span>{ui("Estatísticas")}</span>
           </button>
 
           <button
             onClick={() => { sounds.playPop(); setActiveTab('analytics'); }}
             className={`px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${
               activeTab === 'analytics' 
-                ? 'bg-white text-black font-extrabold shadow-md' 
+                ? 'bg-emerald-500 text-black font-extrabold shadow-md' 
                 : 'bg-[#171724] text-zinc-300 hover:bg-[#242436] border border-white/10'
             }`}
           >
             <TrendingUp className="w-4 h-4" />
-            <span>Gráficos & Análises</span>
+            <span>{ui("Gráficos & Análises")}</span>
           </button>
 
           <button
             onClick={() => { sounds.playPop(); setActiveTab('poster'); }}
             className={`px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${
               activeTab === 'poster' 
-                ? 'bg-white text-black font-extrabold shadow-md' 
+                ? 'bg-emerald-500 text-black font-extrabold shadow-md' 
                 : 'bg-[#171724] text-zinc-300 hover:bg-[#242436] border border-white/10'
             }`}
           >
             <Plus className="w-4 h-4" />
-            <span>Publicador Admin (Perm / Temp)</span>
+            <span>{ui("Publicador Admin")}</span>
           </button>
 
           <button
             onClick={() => { sounds.playPop(); setActiveTab('users'); }}
             className={`px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${
               activeTab === 'users' 
-                ? 'bg-white text-black font-extrabold shadow-md' 
+                ? 'bg-emerald-500 text-black font-extrabold shadow-md' 
                 : 'bg-[#171724] text-zinc-300 hover:bg-[#242436] border border-white/10'
             }`}
           >
             <Users className="w-4 h-4" />
-            <span>Gerenciar Usuários</span>
+            <span>{ui("Gerenciar Usuários")}</span>
           </button>
 
           <button
             onClick={() => { sounds.playPop(); setActiveTab('moderation'); }}
             className={`px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${
               activeTab === 'moderation' 
-                ? 'bg-white text-black font-extrabold shadow-md' 
+                ? 'bg-emerald-500 text-black font-extrabold shadow-md' 
                 : 'bg-[#171724] text-zinc-300 hover:bg-[#242436] border border-white/10'
             }`}
           >
             <ShieldAlert className="w-4 h-4" />
-            <span>Moderação de Posts</span>
+            <span>{ui("Moderação de Posts")}</span>
           </button>
 
           <button
             onClick={() => { sounds.playPop(); setActiveTab('broadcast'); }}
             className={`px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${
               activeTab === 'broadcast' 
-                ? 'bg-white text-black font-extrabold shadow-md' 
+                ? 'bg-emerald-500 text-black font-extrabold shadow-md' 
                 : 'bg-[#171724] text-zinc-300 hover:bg-[#242436] border border-white/10'
             }`}
           >
             <Radio className="w-4 h-4" />
-            <span>Alerta Global</span>
+            <span>{ui("Alerta Global")}</span>
           </button>
 
           <button
             onClick={() => { sounds.playPop(); setActiveTab('syncpay'); }}
             className={`px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${
               activeTab === 'syncpay' 
-                ? 'bg-white text-black font-extrabold shadow-md' 
+                ? 'bg-emerald-500 text-black font-extrabold shadow-md' 
                 : 'bg-[#171724] text-zinc-300 hover:bg-[#242436] border border-white/10'
             }`}
           >
-            <CreditCard className="w-4 h-4 text-yellow-300" />
-            <span>Syncpay & Premium (R$ 9,99)</span>
+            <CreditCard className="w-4 h-4 text-emerald-300" />
+            <span>{ui("Syncpay & Premium (R$ 9,99)")}</span>
           </button>
 
           <button
             onClick={() => { sounds.playPop(); setActiveTab('categories'); }}
             className={`px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${
               activeTab === 'categories' 
-                ? 'bg-white text-black shadow-md shadow-white/5' 
+                ? 'bg-emerald-500 text-black shadow-md shadow-white/5' 
                 : 'bg-[#171724] text-zinc-300 hover:bg-[#242436] border border-white/10'
             }`}
           >
             <Tag className="w-4 h-4 text-emerald-400" />
-            <span>Gerenciar Categorias</span>
+            <span>{ui("Gerenciar Categorias")}</span>
           </button>
 
           <button
@@ -638,7 +643,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose, onPostCreated }
             }`}
           >
             <Database className="w-4 h-4 text-emerald-400" />
-            <span> Integração Supabase</span>
+            <span> {ui("Integração Supabase")}</span>
           </button>
         </div>
 
@@ -658,45 +663,45 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose, onPostCreated }
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                 <div className="p-5 rounded-2xl bg-[#13131D] border border-white/10 flex flex-col justify-between">
                   <div className="flex items-center justify-between text-zinc-300">
-                    <span className="text-xs font-semibold">Total Usuários</span>
+                    <span className="text-xs font-semibold">{ui("Total Usuários")}</span>
                     <Users className="w-5 h-5 text-zinc-400" />
                   </div>
                   <div className="mt-4">
                     <span className="text-2xl font-black text-white">{stats?.totalUsers || 5}</span>
-                    <span className="text-[10px] text-zinc-400 block mt-0.5">Cadastrados na rede</span>
+                    <span className="text-[10px] text-zinc-400 block mt-0.5">{ui("Cadastrados na rede")}</span>
                   </div>
                 </div>
 
                 <div className="p-5 rounded-2xl bg-[#13131D] border border-white/10 flex flex-col justify-between">
                   <div className="flex items-center justify-between text-zinc-300">
-                    <span className="text-xs font-semibold">Publicações</span>
+                    <span className="text-xs font-semibold">{ui("Publicações")}</span>
                     <FileText className="w-5 h-5 text-zinc-400" />
                   </div>
                   <div className="mt-4">
                     <span className="text-2xl font-black text-white">{stats?.totalPosts || 0}</span>
-                    <span className="text-[10px] text-zinc-400 block mt-0.5">Posts e reels</span>
+                    <span className="text-[10px] text-zinc-400 block mt-0.5">{ui("Posts e reels")}</span>
                   </div>
                 </div>
 
                 <div className="p-5 rounded-2xl bg-[#13131D] border border-white/10 flex flex-col justify-between">
                   <div className="flex items-center justify-between text-zinc-300">
-                    <span className="text-xs font-semibold">Histórias (Stories)</span>
+                    <span className="text-xs font-semibold">{ui("Histórias (Stories)")}</span>
                     <Clock className="w-5 h-5 text-zinc-400" />
                   </div>
                   <div className="mt-4">
                     <span className="text-2xl font-black text-white">{stats?.totalStories || 0}</span>
-                    <span className="text-[10px] text-zinc-400 block mt-0.5">Ativas no momento</span>
+                    <span className="text-[10px] text-zinc-400 block mt-0.5">{ui("Ativas no momento")}</span>
                   </div>
                 </div>
 
                 <div className="p-5 rounded-2xl bg-[#13131D] border border-white/10 flex flex-col justify-between">
                   <div className="flex items-center justify-between text-zinc-300">
-                    <span className="text-xs font-semibold">Mensagens DMs</span>
+                    <span className="text-xs font-semibold">{ui("Mensagens DMs")}</span>
                     <Radio className="w-5 h-5 text-zinc-400" />
                   </div>
                   <div className="mt-4">
                     <span className="text-2xl font-black text-white">{stats?.totalMessages || 0}</span>
-                    <span className="text-[10px] text-zinc-400 block mt-0.5">Conversas e chats</span>
+                    <span className="text-[10px] text-zinc-400 block mt-0.5">{ui("Conversas e chats")}</span>
                   </div>
                 </div>
               </div>
@@ -704,17 +709,16 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose, onPostCreated }
               <div className="p-6 rounded-2xl bg-gradient-to-br from-[#171724] to-[#12121A] border border-white/15 space-y-4">
                 <h3 className="text-sm font-bold text-white flex items-center gap-2">
                   <Sparkles className="w-4 h-4 text-zinc-400" />
-                  Privilégios de Administrador Ativos
-                </h3>
+                  {ui("Privilégios de Administrador Ativos")}</h3>
                 <ul className="text-xs text-zinc-300/80 space-y-2 list-disc pl-4">
-                  <li>Criação de publicações e vídeos permanentes.</li>
-                  <li>Gerenciamento de contas de usuários, conceder selo de verificação oficial e privilégios de admin.</li>
-                  <li>Moderação em tempo real com exclusão de publicações ou comentários inadequados.</li>
-                  <li>Disparo de alertas e avisos globais no painel de notificações de todos os usuários.</li>
+                  <li>{ui("Criação de publicações e vídeos permanentes.")}</li>
+                  <li>{ui("Gerenciamento de contas de usuários, conceder selo de verificação oficial e privilégios de admin.")}</li>
+                  <li>{ui("Moderação em tempo real com exclusão de publicações ou comentários inadequados.")}</li>
+                  <li>{ui("Disparo de alertas e avisos globais no painel de notificações de todos os usuários.")}</li>
                 </ul>
               </div>
 
-              <p className="text-sm text-zinc-400">Exclusão automática desativada. Posts só são removidos manualmente pela administração.</p>
+              <p className="text-sm text-zinc-400">{ui("Exclusão automática desativada. Posts só são removidos manualmente pela administração.")}</p>
             </div>
           )}
 
@@ -723,7 +727,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose, onPostCreated }
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div className="p-5 rounded-2xl bg-[#13131D] border border-white/10 flex flex-col justify-between">
                   <div className="flex items-center justify-between text-zinc-300">
-                    <span className="text-xs font-semibold">Posts (Últimas 24h)</span>
+                    <span className="text-xs font-semibold">{ui("Posts (Últimas 24h)")}</span>
                     <FileText className="w-5 h-5 text-zinc-400" />
                   </div>
                   <div className="mt-4">
@@ -733,13 +737,13 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose, onPostCreated }
                         return diff <= 24 * 3600000;
                       }).length}
                     </span>
-                    <span className="text-[10px] text-zinc-400 block mt-0.5">Criados nas últimas 24 horas</span>
+                    <span className="text-[10px] text-zinc-400 block mt-0.5">{ui("Criados nas últimas 24 horas")}</span>
                   </div>
                 </div>
 
                 <div className="p-5 rounded-2xl bg-[#13131D] border border-white/10 flex flex-col justify-between">
                   <div className="flex items-center justify-between text-zinc-300">
-                    <span className="text-xs font-semibold">Usuários Ativos (24h)</span>
+                    <span className="text-xs font-semibold">{ui("Usuários Ativos (24h)")}</span>
                     <Users className="w-5 h-5 text-zinc-400" />
                   </div>
                   <div className="mt-4">
@@ -750,18 +754,18 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose, onPostCreated }
                         return diff <= 7 * 24 * 3600000;
                       }).length}
                     </span>
-                    <span className="text-[10px] text-zinc-400 block mt-0.5">Novos cadastros na rede</span>
+                    <span className="text-[10px] text-zinc-400 block mt-0.5">{ui("Novos cadastros na rede")}</span>
                   </div>
                 </div>
 
                 <div className="p-5 rounded-2xl bg-[#13131D] border border-white/10 flex flex-col justify-between">
                   <div className="flex items-center justify-between text-zinc-300">
-                    <span className="text-xs font-semibold">Taxa de Engajamento</span>
+                    <span className="text-xs font-semibold">{ui("Taxa de Engajamento")}</span>
                     <TrendingUp className="w-5 h-5 text-zinc-400" />
                   </div>
                   <div className="mt-4">
                     <span className="text-2xl font-black text-white">94.8%</span>
-                    <span className="text-[10px] text-zinc-400 block mt-0.5">Curtidas e comentários ativos</span>
+                    <span className="text-[10px] text-zinc-400 block mt-0.5">{ui("Curtidas e comentários ativos")}</span>
                   </div>
                 </div>
               </div>
@@ -771,13 +775,12 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose, onPostCreated }
                 <div className="flex items-center justify-between">
                   <h3 className="text-sm font-bold text-white flex items-center gap-2">
                     <BarChart3 className="w-4 h-4 text-zinc-400" />
-                    Atividade de Publicações (Últimos 7 Dias)
-                  </h3>
-                  <span className="text-[10px] px-2.5 py-1 rounded-full bg-white/10 text-zinc-300 font-bold border border-white/15">Métricas em tempo real</span>
+                    {ui("Atividade de Publicações (Últimos 7 Dias)")}</h3>
+                  <span className="text-[10px] px-2.5 py-1 rounded-full bg-white/10 text-zinc-300 font-bold border border-white/15">{ui("Métricas em tempo real")}</span>
                 </div>
 
                 <div className="pt-6 pb-2 flex items-end justify-between gap-3 h-48 px-4 bg-[#111118] rounded-xl border border-white/10">
-                  {['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'].map((day, idx) => {
+                  {[ui("Seg"), ui("Ter"), ui("Qua"), ui("Qui"), ui("Sex"), ui("Sáb"), ui("Dom")].map((day, idx) => {
                     const heights = [45, 65, 80, 55, 90, 75, 85];
                     const h = heights[idx];
                     return (
@@ -802,8 +805,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose, onPostCreated }
               <div className="p-5 rounded-2xl bg-[#171724] border border-white/10 space-y-4 shadow-lg">
                 <h3 className="text-xs font-bold text-zinc-200 uppercase tracking-wider flex items-center gap-2">
                   <Plus className="w-4 h-4 text-zinc-400" />
-                  Nova Publicação Especial da Administração
-                </h3>
+                  {ui("Nova Publicação Especial da Administração")}</h3>
 
                 {/* Status / Error Message Banner */}
                 {statusMessage && (
@@ -819,29 +821,29 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose, onPostCreated }
                     type="button"
                     onClick={() => setPostType('image')}
                     className={`py-2.5 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer ${
-                      postType === 'image' ? 'bg-white/50 text-white shadow-md' : 'bg-[#111118] text-zinc-300 border border-white/10'
+                      postType === 'image' ? 'bg-emerald-500/20 text-emerald-200 border border-emerald-500/40' : 'bg-[#111118] text-zinc-300 border border-white/10'
                     }`}
                   >
                     <ImageIcon className="w-4 h-4" />
-                    <span>Foto / GIF / PDF</span>
+                    <span>{ui("Foto / GIF / PDF")}</span>
                   </button>
                   <button
                     type="button"
                     onClick={() => setPostType('video')}
                     className={`py-2.5 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer ${
-                      postType === 'video' ? 'bg-white/50 text-white shadow-md' : 'bg-[#111118] text-zinc-300 border border-white/10'
+                      postType === 'video' ? 'bg-emerald-500/20 text-emerald-200 border border-emerald-500/40' : 'bg-[#111118] text-zinc-300 border border-white/10'
                     }`}
                   >
                     <Video className="w-4 h-4" />
-                    <span>Vídeo / Áudio</span>
+                    <span>{ui("Vídeo / Áudio")}</span>
                   </button>
                 </div>
 
                 {/* File Upload Button / Area */}
                 <div className="space-y-2">
                   <label className="text-xs font-bold text-zinc-300 flex items-center justify-between">
-                    <span>Enviar Arquivo do Dispositivo</span>
-                    <span className="text-[10px] text-zinc-400 font-normal">PDF, GIF, Foto, Vídeo, Áudio</span>
+                    <span>{ui("Enviar Arquivo do Dispositivo")}</span>
+                    <span className="text-[10px] text-zinc-400 font-normal">{ui("PDF, GIF, Foto, Vídeo, Áudio")}</span>
                   </label>
                   
                   <input
@@ -856,14 +858,14 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose, onPostCreated }
                     onClick={() => fileInputRef.current?.click()}
                     className="w-full py-4 px-4 rounded-xl border-2 border-dashed border-white/15 bg-[#111118]/60 hover:bg-[#111118] flex items-center justify-center gap-3 cursor-pointer transition-colors text-center"
                   >
-                    <div className="w-10 h-10 rounded-xl bg-white text-black flex items-center justify-center shadow-sm shrink-0">
+                    <div className="w-10 h-10 rounded-xl bg-emerald-500 text-black flex items-center justify-center shadow-sm shrink-0">
                       <Plus className="w-5 h-5 stroke-[2.5]" />
                     </div>
                     <div className="text-left">
                       <p className="text-xs font-bold text-white truncate max-w-[200px] sm:max-w-xs">
-                        {selectedFile ? selectedFile.name : 'Clique para selecionar arquivo'}
+                        {selectedFile ? selectedFile.name : ui("Clique para selecionar arquivo")}
                       </p>
-                      <p className="text-[10px] text-zinc-400 mt-0.5">Suporta todos os formatos</p>
+                      <p className="text-[10px] text-zinc-400 mt-0.5">{ui("Suporta todos os formatos")}</p>
                     </div>
                   </div>
 
@@ -874,15 +876,15 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose, onPostCreated }
                         {selectedFile.type.startsWith('video') ? (
                           <video src={filePreviewUrl} className="w-12 h-12 rounded-lg object-cover" />
                         ) : selectedFile.type.startsWith('audio') ? (
-                          <div className="w-12 h-12 rounded-lg bg-white/10 flex items-center justify-center text-zinc-300 font-bold text-xs">AUDIO</div>
+                          <div className="w-12 h-12 rounded-lg bg-white/10 flex items-center justify-center text-zinc-300 font-bold text-xs">{ui("AUDIO")}</div>
                         ) : selectedFile.type === 'application/pdf' ? (
-                          <div className="w-12 h-12 rounded-lg bg-white/10 text-white flex items-center justify-center font-bold text-[10px]">PDF</div>
+                          <div className="w-12 h-12 rounded-lg bg-white/10 text-white flex items-center justify-center font-bold text-[10px]">{ui("PDF")}</div>
                         ) : (
-                          <img src={filePreviewUrl} alt="Preview" className="w-12 h-12 rounded-lg object-cover" />
+                          <img src={filePreviewUrl} alt={ui("Preview")} className="w-12 h-12 rounded-lg object-cover" />
                         )}
                         <div className="truncate">
                           <p className="text-xs font-bold text-white truncate">{selectedFile.name}</p>
-                          <p className="text-[10px] text-zinc-400">Pronto para publicação admin</p>
+                          <p className="text-[10px] text-zinc-400">{ui("Pronto para publicação admin")}</p>
                         </div>
                       </div>
                       <button
@@ -901,7 +903,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose, onPostCreated }
 
                 {/* Media URL Input Option */}
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-zinc-300">Ou informe a URL da Mídia</label>
+                  <label className="text-xs font-bold text-zinc-300">{ui("Ou informe a URL da Mídia")}</label>
                   <input
                     type="url"
                     value={mediaUrl}
@@ -919,7 +921,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose, onPostCreated }
 
                 {/* Quick Samples */}
                 <div className="space-y-1.5">
-                  <span className="text-[11px] font-semibold text-zinc-400">Sugestões Rápidas:</span>
+                  <span className="text-[11px] font-semibold text-zinc-400">{ui("Sugestões Rápidas:")}</span>
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                     {(postType === 'image' ? sampleImages : sampleVideos).map((url, idx) => (
                       <button
@@ -935,7 +937,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose, onPostCreated }
                         }`}
                       >
                         {postType === 'image' ? (
-                          <img src={url} alt="Sample" className="w-full h-full object-cover" />
+                          <img src={url} alt={ui("Sample")} className="w-full h-full object-cover" />
                         ) : (
                           <video src={url} className="w-full h-full object-cover" />
                         )}
@@ -944,16 +946,16 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose, onPostCreated }
                   </div>
                 </div>
 
-                <p className="text-xs text-zinc-400">Publicações permanentes. Exclusão automática desativada.</p>
+                <p className="text-xs text-zinc-400">{ui("Publicações permanentes. Exclusão automática desativada.")}</p>
 
                 {/* Caption */}
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-zinc-300">Legenda / Anúncio</label>
+                  <label className="text-xs font-bold text-zinc-300">{ui("Legenda / Anúncio")}</label>
                   <textarea
                     rows={3}
                     value={caption}
                     onChange={(e) => setCaption(e.target.value)}
-                    placeholder="Escreva a legenda oficial da administração... #mocinhas #oficial"
+                    placeholder={ui("Escreva a legenda oficial da administração... #mocinhas #oficial")}
                     className="w-full px-3.5 py-2.5 rounded-xl bg-[#111118] border border-white/15 text-white text-xs focus:outline-none focus:border-white/25 resize-none"
                   />
                 </div>
@@ -961,10 +963,10 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose, onPostCreated }
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="w-full py-3 rounded-xl bg-white text-black hover:opacity-95 text-white font-extrabold text-xs shadow-lg shadow-white/5 flex items-center justify-center gap-2 cursor-pointer transition-all"
+                  className="w-full py-3 rounded-xl bg-emerald-500 text-black hover:opacity-95 font-extrabold text-xs shadow-lg shadow-white/5 flex items-center justify-center gap-2 cursor-pointer transition-all"
                 >
                   <Sparkles className="w-4 h-4" />
-                  <span>{isLoading ? 'Enviando Publicação...' : isTemporary ? 'Publicar Temporariamente' : 'Publicar Permanentemente'}</span>
+                  <span>{isLoading ? ui("Enviando Publicação...") : isTemporary ? ui("Publicar Temporariamente") : ui("Publicar Permanentemente")}</span>
                 </button>
               </div>
             </form>
@@ -973,18 +975,18 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose, onPostCreated }
           {/* TAB 3: USER MANAGEMENT */}
           {activeTab === 'users' && (
             <div className="space-y-4 animate-fadeIn">
-              <h3 className="text-xs font-bold text-zinc-200 uppercase tracking-wider">Usuários Registrados na Plataforma</h3>
+              <h3 className="text-xs font-bold text-zinc-200 uppercase tracking-wider">{ui("Usuários Registrados na Plataforma")}</h3>
               <div className="space-y-2.5">
                 {usersList.map((u) => (
                   <div key={u.id} className="p-3.5 rounded-2xl bg-[#13131D] border border-white/10 flex items-center justify-between gap-3">
                     <div className="flex items-center gap-3">
-                      <img src={u.avatar} alt={u.username} className="w-10 h-10 rounded-full object-cover border border-white/15" />
+                      <span className="w-10 h-10 rounded-full bg-emerald-500/10 text-emerald-300 grid place-items-center shrink-0">{u.displayName?.slice(0, 2).toUpperCase()}</span>
                       <div>
                         <div className="flex items-center gap-1.5 flex-wrap">
                           <span className="text-xs font-bold text-white">{u.displayName}</span>
                           {u.isVerified && <span className="text-zinc-400 text-xs">✓</span>}
-                          {u.isAdmin && <span className="px-1.5 py-0.5 rounded bg-white/10 text-zinc-300 text-[9px] font-bold">Admin</span>}
-                          {u.isPremium && <span className="px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 text-[9px] font-bold">VIP </span>}
+                          {u.isAdmin && <span className="px-1.5 py-0.5 rounded bg-white/10 text-zinc-300 text-[9px] font-bold">{ui("Admin")}</span>}
+                          {u.isPremium && <span className="px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 text-[9px] font-bold">{ui("VIP")}</span>}
                         </div>
                         <span className="text-[11px] text-zinc-400">@{u.username} • {u.email}</span>
                       </div>
@@ -994,11 +996,11 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose, onPostCreated }
                       <button
                         onClick={() => handleTogglePremiumUser(u.id, !!u.isPremium)}
                         className={`px-2.5 py-1.5 rounded-xl text-[10px] font-bold transition-colors cursor-pointer ${
-                          u.isPremium ? 'bg-amber-500/30 text-amber-200 border border-amber-500/40' : 'bg-[#111118] text-zinc-300 border border-white/10'
+                          u.isPremium ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' : 'bg-[#111118] text-zinc-300 border border-white/10'
                         }`}
-                        title="Alternar Premium VIP"
+                        title={ui("Alternar Premium VIP")}
                       >
-                        {u.isPremium ? 'Premium ' : 'Dar Premium'}
+                        {u.isPremium ? ui("Premium ") : ui("Dar Premium")}
                       </button>
 
                       <button
@@ -1006,9 +1008,9 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose, onPostCreated }
                         className={`px-2.5 py-1.5 rounded-xl text-[10px] font-bold transition-colors cursor-pointer ${
                           u.isVerified ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' : 'bg-[#111118] text-zinc-300 border border-white/10'
                         }`}
-                        title="Alternar Verificação"
+                        title={ui("Alternar Verificação")}
                       >
-                        {u.isVerified ? 'Verificado' : 'Verificar'}
+                        {u.isVerified ? ui("Verificado") : ui("Verificar")}
                       </button>
 
                       <button
@@ -1016,16 +1018,16 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose, onPostCreated }
                         className={`px-2.5 py-1.5 rounded-xl text-[10px] font-bold transition-colors cursor-pointer ${
                           u.isAdmin ? 'bg-white/20 text-zinc-100 border border-white/25' : 'bg-[#111118] text-zinc-300 border border-white/10'
                         }`}
-                        title="Alternar Admin"
+                        title={ui("Alternar Admin")}
                       >
-                        {u.isAdmin ? 'Admin' : 'Tornar Admin'}
+                        {u.isAdmin ? ui("Admin") : ui("Tornar Admin")}
                       </button>
 
                       {u.id !== currentUser?.id && (
                         <button
                           onClick={() => handleDeleteUser(u.id)}
                           className="p-1.5 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 cursor-pointer transition-colors"
-                          title="Excluir Usuário"
+                          title={ui("Excluir Usuário")}
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
@@ -1040,19 +1042,19 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose, onPostCreated }
           {/* TAB 4: MODERATION */}
           {activeTab === 'moderation' && (
             <div className="space-y-4 animate-fadeIn">
-              <h3 className="text-xs font-bold text-zinc-200 uppercase tracking-wider">Moderação de Publicações Recentes</h3>
+              <h3 className="text-xs font-bold text-zinc-200 uppercase tracking-wider">{ui("Moderação de Publicações Recentes")}</h3>
               <div className="space-y-3">
                 {postsList.map((p) => (
                   <div key={p.id} className="p-4 rounded-2xl bg-[#13131D] border border-white/10 flex items-start justify-between gap-4">
                     <div className="flex items-start gap-3">
                       {p.media[0] && (
-                        <img src={p.media[0].thumbnail || p.media[0].url} alt="Post" className="w-14 h-14 rounded-xl object-cover shrink-0 border border-white/10" />
+                        <img src={p.media[0].thumbnail || p.media[0].url} alt={ui("Post")} className="w-14 h-14 rounded-xl object-cover shrink-0 border border-white/10" />
                       )}
                       <div>
                         <div className="flex items-center gap-2">
                           <span className="text-xs font-bold text-white">@{p.user?.username || 'usuário'}</span>
                           <span className="text-[10px] text-zinc-400">{new Date(p.createdAt).toLocaleDateString()}</span>
-                          {p.isTemporary && <span className="px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 text-[9px] font-bold">Temporário</span>}
+                          {p.isTemporary && <span className="px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 text-[9px] font-bold">{ui("Temporário")}</span>}
                         </div>
                         <p className="text-xs text-zinc-200 mt-1 line-clamp-2">{p.caption || '[Sem legenda]'}</p>
                       </div>
@@ -1063,7 +1065,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose, onPostCreated }
                       className="px-3 py-1.5 rounded-xl bg-red-500/20 hover:bg-red-500/30 text-red-300 border border-red-500/40 text-xs font-bold flex items-center gap-1.5 cursor-pointer shrink-0 transition-colors"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
-                      <span>Remover</span>
+                      <span>{ui("Remover")}</span>
                     </button>
                   </div>
                 ))}
@@ -1077,11 +1079,10 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose, onPostCreated }
               <div className="p-5 rounded-2xl bg-[#13131D] border border-white/10 space-y-4">
                 <h3 className="text-xs font-bold text-zinc-200 uppercase tracking-wider flex items-center gap-2">
                   <Radio className="w-4 h-4 text-zinc-400" />
-                  Enviar Alerta Global para Todos os Usuários
-                </h3>
+                  {ui("Enviar Alerta Global para Todos os Usuários")}</h3>
 
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-zinc-300">Título do Alerta</label>
+                  <label className="text-xs font-bold text-zinc-300">{ui("Título do Alerta")}</label>
                   <input
                     type="text"
                     value={broadcastTitle}
@@ -1091,12 +1092,12 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose, onPostCreated }
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-zinc-300">Mensagem do Comunicado</label>
+                  <label className="text-xs font-bold text-zinc-300">{ui("Mensagem do Comunicado")}</label>
                   <textarea
                     rows={4}
                     value={broadcastText}
                     onChange={(e) => setBroadcastText(e.target.value)}
-                    placeholder="Digite o comunicado oficial que aparecerá na central de notificações de todos os membros..."
+                    placeholder={ui("Digite o comunicado oficial que aparecerá na central de notificações de todos os membros...")}
                     className="w-full px-3.5 py-2.5 rounded-xl bg-[#111118] border border-white/15 text-white text-xs focus:outline-none focus:border-white/25 resize-none"
                   />
                 </div>
@@ -1104,10 +1105,10 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose, onPostCreated }
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="w-full py-3.5 rounded-full bg-white text-black font-extrabold text-xs shadow-md flex items-center justify-center gap-2 cursor-pointer hover:bg-neutral-200 transition-all"
+                  className="w-full py-3.5 rounded-full bg-emerald-500 text-black font-extrabold text-xs shadow-md flex items-center justify-center gap-2 cursor-pointer hover:bg-neutral-200 transition-all"
                 >
                   <Radio className="w-4 h-4 stroke-[2.5]" />
-                  <span>Disparar Comunicado Global</span>
+                  <span>{ui("Disparar Comunicado Global")}</span>
                 </button>
               </div>
             </form>
@@ -1119,9 +1120,8 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose, onPostCreated }
               <div className="p-5 rounded-2xl bg-[#171724] border border-white/10 space-y-4 shadow-lg">
                 <div className="flex items-center justify-between">
                   <h3 className="text-xs font-bold text-zinc-200 uppercase tracking-wider flex items-center gap-2">
-                    <CreditCard className="w-4 h-4 text-yellow-300" />
-                    Configuração da Integração Syncpay & Assinatura Premium
-                  </h3>
+                    <CreditCard className="w-4 h-4 text-emerald-300" />
+                    {ui("Configuração da Integração Syncpay & Assinatura Premium")}</h3>
                   <button
                     type="button"
                     onClick={() => setSyncpayEnabled(!syncpayEnabled)}
@@ -1131,39 +1131,37 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose, onPostCreated }
                         : 'bg-red-500/20 text-red-300 border-red-500/30'
                     }`}
                   >
-                    {syncpayEnabled ? 'Syncpay Ativada ✓' : 'Syncpay Desativada'}
+                    {syncpayEnabled ? ui("Syncpay Ativada ✓") : ui("Syncpay Desativada")}
                   </button>
                 </div>
 
                 <div className="p-3.5 rounded-xl bg-[#111118] border border-white/10 text-zinc-200 text-xs leading-relaxed space-y-1">
                   <p className="font-bold text-white flex items-center gap-1.5">
-                    <Crown className="w-4 h-4 text-yellow-300" />
-                    Ativação do Recurso Premium (R$ 9,99)
-                  </p>
+                    <Crown className="w-4 h-4 text-emerald-300" />
+                    {ui("Ativação do Mocinhas Premium")}</p>
                   <p className="text-zinc-300/80 text-[11px]">
-                    Insira abaixo suas credenciais da conta Syncpay para processar pagamentos Pix automáticos. A cobrança padrão é de R$ 9,99 para liberar visualização ilimitada das publicações de perfis.
-                  </p>
+                    {ui("Insira abaixo suas credenciais da conta Syncpay para processar pagamentos Pix automáticos. A cobrança padrão é de R$ 9,99 por 30 dias de apoio ao app, mantendo o limite diário definido pela administração.")}</p>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-zinc-300">Syncpay Client ID (API Key)</label>
+                    <label className="text-xs font-bold text-zinc-300">{ui("Syncpay Client ID (API Key)")}</label>
                     <input
                       type="text"
                       value={syncpayClientId}
                       onChange={(e) => setSyncpayClientId(e.target.value)}
-                      placeholder="Ex: sync_client_live_8912..."
+                      placeholder={ui("Ex: sync_client_live_8912...")}
                       className="w-full px-3.5 py-2.5 rounded-xl bg-[#111118] border border-white/15 text-white text-xs focus:outline-none focus:border-white/25 font-mono"
                     />
                   </div>
 
                   <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-zinc-300">Syncpay Client Secret (Token)</label>
+                    <label className="text-xs font-bold text-zinc-300">{ui("Syncpay Client Secret (Token)")}</label>
                     <input
                       type="password"
                       value={syncpayClientSecret}
                       onChange={(e) => setSyncpayClientSecret(e.target.value)}
-                      placeholder="Ex: sec_key_90a1b2c3..."
+                      placeholder={ui("Ex: sec_key_90a1b2c3...")}
                       className="w-full px-3.5 py-2.5 rounded-xl bg-[#111118] border border-white/15 text-white text-xs focus:outline-none focus:border-white/25 font-mono"
                     />
                   </div>
@@ -1171,18 +1169,18 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose, onPostCreated }
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-zinc-300">Chave PIX da Conta Syncpay (Opcional)</label>
+                    <label className="text-xs font-bold text-zinc-300">{ui("Chave PIX da Conta Syncpay (Opcional)")}</label>
                     <input
                       type="text"
                       value={syncpayPixKey}
                       onChange={(e) => setSyncpayPixKey(e.target.value)}
-                      placeholder="Chave Pix ou CNPJ cadastrado na Syncpay"
+                      placeholder={ui("Chave Pix ou CNPJ cadastrado na Syncpay")}
                       className="w-full px-3.5 py-2.5 rounded-xl bg-[#111118] border border-white/15 text-white text-xs focus:outline-none focus:border-white/25"
                     />
                   </div>
 
                   <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-zinc-300">Preço do Premium (R$)</label>
+                    <label className="text-xs font-bold text-zinc-300">{ui("Preço do Premium (R$)")}</label>
                     <input
                       type="number"
                       step="0.01"
@@ -1194,13 +1192,25 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose, onPostCreated }
                   </div>
                 </div>
 
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-zinc-300">{ui("URL HTTPS do webhook SyncPay")}</label>
+                  <input type="url" value={syncpayWebhookUrl} onChange={e => setSyncpayWebhookUrl(e.target.value)} className="w-full px-3 py-2 rounded-xl bg-black/20 border border-white/15 text-xs" />
+                  <label className="text-xs font-bold text-zinc-300">{ui("Segredo do webhook SyncPay")}</label>
+                  <input type="password" value={syncpayWebhookToken} onChange={e => setSyncpayWebhookToken(e.target.value)} placeholder={ui("Segredo recebido ao cadastrar o webhook")} className="w-full px-3 py-2 rounded-xl bg-black/20 border border-white/15 text-xs" />
+                  <p className="text-[11px] text-zinc-400">{ui("Cadastre na SyncPay o webhook de transações apontando para")}{window.location.origin}{ui("/api/syncpay/webhook.")}</p>
+                </div>
+                <button type="button" className="w-full py-3 rounded-xl border border-emerald-500/30 text-emerald-300 text-sm" onClick={async () => {
+                  setIsLoading(true);
+                  try { const r = await fetch('/api/admin/syncpay/diagnostics', { headers: { Authorization: 'Bearer ' + (localStorage.getItem('mocinhas_token') || localStorage.getItem('yume_token')) } }); const data = await r.json(); setStatusMessage(data.message || data.error); }
+                  catch { setStatusMessage(ui("Não foi possível verificar a conexão.")); } finally { setIsLoading(false); }
+                }}>{ui("Testar conexão com SyncPay (sem cobrança)")}</button>
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="w-full py-3.5 rounded-xl pod-orange text-white hover:opacity-95 text-white font-extrabold text-xs shadow-lg shadow-white/5 flex items-center justify-center gap-2 cursor-pointer transition-all"
+                  className="w-full py-3.5 rounded-xl bg-emerald-600 text-white hover:opacity-95 text-white font-extrabold text-xs shadow-lg shadow-white/5 flex items-center justify-center gap-2 cursor-pointer transition-all"
                 >
                   <CreditCard className="w-4 h-4" />
-                  <span>{isLoading ? 'Salvando Syncpay...' : 'Salvar Configurações Syncpay'}</span>
+                  <span>{isLoading ? ui("Salvando Syncpay...") : ui("Salvar Configurações Syncpay")}</span>
                 </button>
               </div>
             </form>
@@ -1215,8 +1225,8 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose, onPostCreated }
                     <Tag className="w-5 h-5" />
                   </div>
                   <div>
-                    <h3 className="text-sm font-bold text-white">Criar e Gerenciar Categorias</h3>
-                    <p className="text-xs text-zinc-400">Adicione categorias para organizar as publicações na rede</p>
+                    <h3 className="text-sm font-bold text-white">{ui("Criar e Gerenciar Categorias")}</h3>
+                    <p className="text-xs text-zinc-400">{ui("Adicione categorias para organizar as publicações na rede")}</p>
                   </div>
                 </div>
 
@@ -1224,14 +1234,14 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose, onPostCreated }
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <input
                       type="text"
-                      placeholder="Nome da Categoria (Ex: Moda, Estilo...)"
+                      placeholder={ui("Nome da Categoria (Ex: Moda, Estilo...)")}
                       value={newCatName}
                       onChange={e => setNewCatName(e.target.value)}
                       className="w-full px-3.5 py-2.5 rounded-xl bg-[#111118] border border-white/15 text-white text-xs focus:outline-none focus:border-white/25"
                     />
                     <input
                       type="text"
-                      placeholder="Descrição breve (Opcional)"
+                      placeholder={ui("Descrição breve (Opcional)")}
                       value={newCatDesc}
                       onChange={e => setNewCatDesc(e.target.value)}
                       className="w-full px-3.5 py-2.5 rounded-xl bg-[#111118] border border-white/15 text-white text-xs focus:outline-none focus:border-white/25"
@@ -1239,15 +1249,14 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose, onPostCreated }
                   </div>
                   <button
                     type="submit"
-                    className="px-5 py-2.5 rounded-xl bg-white text-black font-extrabold text-xs hover:bg-neutral-200 transition-all cursor-pointer shadow-md"
+                    className="px-5 py-2.5 rounded-xl bg-emerald-500 text-black font-extrabold text-xs hover:bg-neutral-200 transition-all cursor-pointer shadow-md"
                   >
-                    + Adicionar Categoria
-                  </button>
+                    {ui("+ Adicionar Categoria")}</button>
                 </form>
               </div>
 
               <div className="space-y-3">
-                <h4 className="text-xs font-bold text-zinc-300 uppercase tracking-wider">Categorias Cadastradas ({categories.length})</h4>
+                <h4 className="text-xs font-bold text-zinc-300 uppercase tracking-wider">{ui("Categorias Cadastradas (")}{categories.length})</h4>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {categories.map(cat => (
                     <div key={cat.id} className="p-4 rounded-2xl bg-[#171724] border border-white/10 flex items-center justify-between gap-3">
@@ -1259,7 +1268,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose, onPostCreated }
                         type="button"
                         onClick={() => handleDeleteCategory(cat.id)}
                         className="p-2 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-300 cursor-pointer transition-colors"
-                        title="Excluir categoria"
+                        title={ui("Excluir categoria")}
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
@@ -1282,14 +1291,11 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose, onPostCreated }
                     </div>
                     <div>
                       <h4 className="text-base font-black text-white flex items-center gap-2">
-                        Integração Total com o Supabase
-                        <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-                          Oficial
-                        </span>
+                        {ui("Integração Total com o Supabase")}<span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                          {ui("Oficial")}</span>
                       </h4>
                       <p className="text-xs text-zinc-400 mt-0.5">
-                        Armazenamento PostgreSQL em nuvem, autenticação, storage para fotos/vídeos e mensagens em tempo real.
-                      </p>
+                        {ui("Armazenamento PostgreSQL em nuvem, autenticação, storage para fotos/vídeos e mensagens em tempo real.")}</p>
                     </div>
                   </div>
 
@@ -1297,7 +1303,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose, onPostCreated }
                   <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-black/40 border border-white/10 shrink-0 self-start sm:self-center">
                     <div className={`w-2.5 h-2.5 rounded-full ${supabaseStatus?.connected ? 'bg-emerald-400 animate-pulse' : 'bg-amber-400'}`} />
                     <span className="text-xs font-bold text-zinc-200">
-                      {supabaseStatus?.connected ? 'Conectado ao Supabase' : (supabaseStatus?.configured ? 'Aguardando Tabelas' : 'Chaves Pendentes')}
+                      {supabaseStatus?.connected ? ui("Conectado ao Supabase") : (supabaseStatus?.configured ? ui("Aguardando Tabelas") : ui("Chaves Pendentes"))}
                     </span>
                   </div>
                 </div>
@@ -1315,7 +1321,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose, onPostCreated }
                 <div className="flex items-center justify-between">
                   <h4 className="text-sm font-black text-white flex items-center gap-2">
                     <Key className="w-4 h-4 text-emerald-400" />
-                    <span>1. Credenciais de Acesso da API</span>
+                    <span>{ui("1. Credenciais de Acesso da API")}</span>
                   </h4>
                   <a
                     href="https://supabase.com/dashboard"
@@ -1323,7 +1329,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose, onPostCreated }
                     rel="noreferrer"
                     className="text-xs text-emerald-400 hover:text-emerald-300 flex items-center gap-1 font-bold underline transition-colors"
                   >
-                    <span>Abrir Supabase Dashboard</span>
+                    <span>{ui("Abrir Supabase Dashboard")}</span>
                     <ExternalLink className="w-3 h-3" />
                   </a>
                 </div>
@@ -1331,8 +1337,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose, onPostCreated }
                 <form onSubmit={handleSaveSupabase} className="space-y-4">
                   <div>
                     <label className="text-xs font-bold text-zinc-300 block mb-1">
-                      Project URL (SUPABASE_URL):
-                    </label>
+                      {ui("Project URL (SUPABASE_URL):")}</label>
                     <input
                       type="text"
                       value={sbUrlInput}
@@ -1345,8 +1350,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose, onPostCreated }
 
                   <div>
                     <label className="text-xs font-bold text-zinc-300 block mb-1">
-                      Anon Public Key (SUPABASE_ANON_KEY):
-                    </label>
+                      {ui("Anon Public Key (SUPABASE_ANON_KEY):")}</label>
                     <input
                       type="password"
                       value={sbKeyInput}
@@ -1359,8 +1363,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose, onPostCreated }
 
                   <div>
                     <label className="text-xs font-bold text-zinc-300 block mb-1">
-                      Service Role Key (Opcional - para operações admin de backend):
-                    </label>
+                      {ui("Service Role Key (Opcional - para operações admin de backend):")}</label>
                     <input
                       type="password"
                       value={sbServiceKeyInput}
@@ -1376,7 +1379,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose, onPostCreated }
                     className="w-full py-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 cursor-pointer transition-all shadow-lg shadow-emerald-500/20 disabled:opacity-50"
                   >
                     {isSavingSb ? <RefreshCw className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
-                    <span>{isSavingSb ? 'Conectando...' : 'Salvar & Conectar ao Supabase'}</span>
+                    <span>{isSavingSb ? ui("Conectando...") : ui("Salvar & Conectar ao Supabase")}</span>
                   </button>
                 </form>
               </div>
@@ -1387,11 +1390,10 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose, onPostCreated }
                   <div>
                     <h4 className="text-sm font-black text-white flex items-center gap-2">
                       <FileText className="w-4 h-4 text-emerald-400" />
-                      <span>2. Código SQL do Banco de Dados (Schema Completo)</span>
+                      <span>{ui("2. Código SQL do Banco de Dados (Schema Completo)")}</span>
                     </h4>
                     <p className="text-xs text-zinc-400 mt-0.5">
-                      Copie e execute este código no SQL Editor do seu projeto Supabase para criar todas as tabelas e permissões.
-                    </p>
+                      {ui("Copie e execute este código no SQL Editor do seu projeto Supabase para criar todas as tabelas e permissões.")}</p>
                   </div>
 
                   <button
@@ -1400,18 +1402,18 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose, onPostCreated }
                     className="px-4 py-2.5 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/40 text-xs font-bold flex items-center justify-center gap-2 cursor-pointer transition-all shrink-0"
                   >
                     {copiedSql ? <CheckCircle2 className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
-                    <span>{copiedSql ? 'Copiado com Sucesso! ' : 'Copiar Código SQL'}</span>
+                    <span>{copiedSql ? ui("Copiado com Sucesso! ") : ui("Copiar Código SQL")}</span>
                   </button>
                 </div>
 
                 <div className="p-4 rounded-xl bg-black/50 border border-white/10">
                   <div className="text-[11px] text-zinc-400 space-y-1 mb-3">
-                    <p className="font-bold text-zinc-200">Como executar no Supabase:</p>
+                    <p className="font-bold text-zinc-200">{ui("Como executar no Supabase:")}</p>
                     <ol className="list-decimal list-inside space-y-0.5 pl-1">
-                      <li>Acesse seu painel no <a href="https://supabase.com/dashboard" target="_blank" rel="noreferrer" className="text-emerald-400 underline">Supabase Dashboard</a>.</li>
-                      <li>No menu lateral esquerdo, clique no ícone do <strong>SQL Editor</strong>.</li>
-                      <li>Clique no botão <strong>+ New query</strong>.</li>
-                      <li>Cole todo o código abaixo no editor e clique em <strong>Run</strong> (ou aperte Ctrl+Enter).</li>
+                      <li>{ui("Acesse seu painel no")}<a href="https://supabase.com/dashboard" target="_blank" rel="noreferrer" className="text-emerald-400 underline">{ui("Supabase Dashboard")}</a>.</li>
+                      <li>{ui("No menu lateral esquerdo, clique no ícone do")} <strong>{ui("SQL Editor")}</strong>.</li>
+                      <li>{ui("Clique no botão")} <strong>{ui("+ New query")}</strong>.</li>
+                      <li>{ui("Cole todo o código abaixo no editor e clique em")} <strong>{ui("Run")}</strong> {ui("(ou aperte Ctrl+Enter).")}</li>
                     </ol>
                   </div>
 

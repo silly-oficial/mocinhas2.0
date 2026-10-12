@@ -1,7 +1,12 @@
-import React, { useEffect, useMemo, useState, useCallback } from 'react';
-import { Home, Orbit, Film, UserRound, Plus, ShieldCheck, LogIn, LogOut, Clock, X, Settings, Globe, Crown, LoaderCircle, Trash2 } from 'lucide-react';
+import { TranslationStatus } from './components/TranslationStatus';
+import { ui, useUi } from './i18n/ui';
+import { ManagedVideo, pauseMedia } from './components/ManagedVideo';
+import { AutoTranslatedText } from './components/AutoTranslatedText';
+import React, { useEffect, useMemo, useState, useCallback, useRef } from 'react';
+import { Home, Orbit, Film, UserRound, Plus, ShieldCheck, LogIn, LogOut, Clock, X, Settings, Globe, Crown, LoaderCircle, Trash2, Heart, MessageCircle, Bookmark } from 'lucide-react';
 import { AuthProvider, useAuth } from './context/AuthContext';
-import { LanguageProvider } from './context/LanguageContext';
+import { LanguageProvider, useLanguage } from './context/LanguageContext';
+import { CommentsModal } from './components/CommentsModal';
 import { AuthModal } from './components/AuthModal';
 import { AdminPanel } from './components/AdminPanel';
 import { EditProfileModal } from './components/EditProfileModal';
@@ -12,68 +17,108 @@ import { api } from './services/api';
 import { Post } from './types';
 
 const cleanText = (value: string) => value.replace(/[\p{Extended_Pictographic}\p{Regional_Indicator}\uFE0F\u200D\u20E3]/gu, '').replace(/@[\w.]+/g, '').trim();
-function Publication({ post, admin, onDeleted }: { post: Post; admin: boolean; onDeleted: () => void }) {
+function Publication({ post, admin, onDeleted, onUpdate, onComments, onNotice, disabled, mediaActive = true }: { post: Post; admin: boolean; onDeleted: () => void; onUpdate: (value: Partial<Post> & { id: string }) => void; onComments: (post: Post) => void; onNotice: (message: string) => void; disabled: boolean; mediaActive?: boolean }) {
+  useUi();
+  const { language } = useLanguage();
+  const [busy, setBusy] = useState('');
+  async function interact(action: 'like' | 'save') {
+    if (busy || disabled) return;
+    setBusy(action);
+    try { if (action === 'like') { const result = await api.toggleLikePost(post.id); onUpdate({ id: post.id, isLiked: result.isLiked, likesCount: result.likesCount }); }
+      else { const result = await api.toggleSavePost(post.id); onUpdate({ id: post.id, isSaved: result.isSaved }); onNotice(result.isSaved ? "Publicação salva" : "Removida dos salvos"); } }
+    catch (e: any) { onNotice(e.message); } finally { setBusy(''); }
+  }
   return <article className="niuniu-card overflow-hidden">
-    <div className="flex items-center justify-between p-4 text-xs text-zinc-400"><time>{new Date(post.createdAt).toLocaleDateString('pt-BR')}</time>
-    {admin && <button aria-label="Excluir publicação" className="p-2 rounded-full hover:bg-white/10" onClick={async () => { if (confirm('Excluir esta publicação permanentemente?')) { try { await api.deletePost(post.id); onDeleted(); } catch (e: any) { alert(e.message); } } }}><Trash2 size={17} /></button>}</div>
+    <div className="flex items-center justify-between p-4 text-xs text-zinc-400"><time>{new Date(post.createdAt).toLocaleDateString(language)}</time>
+    {admin && <button aria-label={ui("Excluir publicação")} className="p-2 rounded-full hover:bg-white/10" onClick={async () => { if (confirm(ui("Excluir esta publicação permanentemente?"))) { try { await api.deletePost(post.id); onDeleted(); } catch (e: any) { onNotice(e.message); } } }}><Trash2 size={17} /></button>}</div>
     {post.media.map(media => <div key={media.id} className="bg-black/30">
-      {media.type === 'video' ? <video controls playsInline preload="metadata" poster={media.thumbnail !== media.url ? media.thumbnail : undefined} src={media.url} className="w-full max-h-[75vh] object-contain" onPlay={e => { document.querySelectorAll('video').forEach(v => { if (v !== e.currentTarget) v.pause(); }); }} /> : media.type === 'audio' ? <audio controls src={media.url} className="w-full" /> : media.type === 'pdf' ? <a href={media.url} target="_blank" rel="noreferrer" className="block p-5 underline">Abrir documento</a> : <img loading="lazy" src={media.url} alt={cleanText(post.caption) || 'Publicação'} className="w-full max-h-[75vh] object-contain" />}
+      {media.type === 'video' ? <ManagedVideo active={!disabled && mediaActive} src={media.url} poster={media.thumbnail !== media.url ? media.thumbnail : undefined} /> : media.type === 'audio' ? <audio controls onPlay={e => { document.querySelectorAll<HTMLMediaElement>('video,audio').forEach(v => { if (v !== e.currentTarget) v.pause(); }); if (disabled || !mediaActive) e.currentTarget.pause(); }} src={media.url} className="w-full" /> : media.type === 'pdf' ? <a href={media.url} target="_blank" rel="noreferrer" className="block p-5 underline">{ui("Abrir documento")}</a> : <img loading="lazy" src={media.url} alt={cleanText(post.caption) || 'Publicação'} className="w-full max-h-[75vh] object-contain" />}
     </div>)}
-    {post.caption && <p className="p-5 whitespace-pre-wrap break-words text-sm leading-relaxed">{cleanText(post.caption)}</p>}
+    {post.caption && <div className="p-5 whitespace-pre-wrap break-words text-sm leading-relaxed"><AutoTranslatedText text={cleanText(post.caption)} /></div>}
+    <div className="px-5 pb-4 flex items-center gap-5 border-t border-white/5 pt-3">
+      <button disabled={disabled || !!busy} aria-label={post.isLiked ? ui("Descurtir publicação") : ui("Curtir publicação")} aria-pressed={!!post.isLiked} onClick={() => interact('like')} className={`flex items-center gap-2 text-sm disabled:opacity-40 ${post.isLiked ? 'text-emerald-400' : 'text-zinc-400'}`}><Heart size={20} fill={post.isLiked ? 'currentColor' : 'none'} />{post.likesCount || 0}</button>
+      {post.allowComments !== false && <button disabled={disabled} aria-label={ui("Comentários")} className="flex items-center gap-2 text-sm text-zinc-400 disabled:opacity-40" onClick={() => onComments(post)}><MessageCircle size={20} />{post.commentsCount || 0}</button>}
+      <button disabled={disabled || !!busy} aria-label={post.isSaved ? ui("Remover dos salvos") : ui("Salvar publicação")} aria-pressed={!!post.isSaved} className={`ml-auto disabled:opacity-40 ${post.isSaved ? 'text-emerald-400' : 'text-zinc-400'}`} onClick={() => interact('save')}><Bookmark size={20} fill={post.isSaved ? 'currentColor' : 'none'} /></button>
+    </div>
   </article>;
 }
 function MainApp() {
+  useUi();
+  const { language, currentLanguageInfo } = useLanguage();
   const { user, isLoading, logout } = useAuth();
   const [view, setView] = useState('feed'), [posts, setPosts] = useState<Post[]>([]), [loading, setLoading] = useState(false);
   const [modal, setModal] = useState(''), [selected, setSelected] = useState<Post | null>(null), [tags, setTags] = useState<string[]>([]);
+  const [commentsPost, setCommentsPost] = useState<Post | null>(null), [notice, setNotice] = useState('');
+  const [hasAccess, setHasAccess] = useState(false);
+  const loadedFor = useRef('');
   const [quota, setQuota] = useState<any>(null), [validUntil, setValidUntil] = useState(0), [now, setNow] = useState(Date.now()), [error, setError] = useState('');
   const isAdmin = user?.isAdmin === true;
   useEffect(() => {
-    setQuota(null); setValidUntil(0); setPosts([]);
+    setQuota(null); setValidUntil(0); setPosts([]); setHasAccess(false); loadedFor.current = "";
     if (!user) return;
     let disposed = false, busy = false;
     async function renew() {
       if (busy || document.hidden) return;
       busy = true;
-      try { const q = await api.consumeUsage(); if (!disposed) { setQuota(q); setValidUntil(Date.now() + Math.min(q.allowedMs, 10_000)); setError(''); } }
-      catch (e: any) { if (!disposed) { setValidUntil(0); setError(e.message); } }
+      try { const q = await api.consumeUsage(); if (!disposed) { setQuota(q); setValidUntil(q.unlimited ? Infinity : Date.now() + q.allowedMs); if (!q.blocked && q.allowedMs > 0) setHasAccess(true); setError(''); } }
+      catch (e: any) { if (!disposed) { setError("Reconectando…"); if (e.status === 401) { setHasAccess(false); setValidUntil(0); } } }
       finally { busy = false; }
     }
-    renew(); const timer = setInterval(renew, 1000);
+    renew(); const timer = setInterval(renew, 2000);
     document.addEventListener('visibilitychange', renew);
     return () => { disposed = true; clearInterval(timer); document.removeEventListener('visibilitychange', renew); };
   }, [user?.id]);
-  useEffect(() => { const timer = setInterval(() => setNow(Date.now()), 250); return () => clearInterval(timer); }, []);
-  const allowed = Boolean(user && validUntil > now && !quota?.blocked);
+  useEffect(() => { const timer = setInterval(() => setNow(Date.now()), 1000); return () => clearInterval(timer); }, []);
+  const allowed = Boolean(user && hasAccess && !quota?.blocked);
+  const leaseValid = allowed && validUntil > now;
+  useEffect(() => { if (!notice) return; const t = setTimeout(() => setNotice(''), 3500); return () => clearTimeout(t); }, [notice]);
   const load = useCallback(async () => { setLoading(true); try { const result = await api.getFeed(); setPosts(result.posts); } catch (e: any) { setError(e.message); } finally { setLoading(false); } }, []);
-  useEffect(() => { if (allowed) load(); }, [user?.id, allowed, load]);
-  useEffect(() => { if (!allowed) { setSelected(null); document.querySelectorAll('video,audio').forEach((m: any) => m.pause()); } }, [allowed]);
+  useEffect(() => { if (allowed && loadedFor.current !== user?.id) { loadedFor.current = user!.id; load(); } }, [user?.id, allowed, load]);
+  useEffect(() => { if (modal || commentsPost || selected) pauseMedia(); }, [modal, commentsPost, selected?.id]);
+  useEffect(() => { if (!leaseValid) { document.querySelectorAll('video,audio').forEach((m: any) => m.pause()); } }, [leaseValid]);
   const videos = useMemo(() => posts.filter(p => p.media.some(m => m.type === 'video')), [posts]);
-  const allTags = useMemo(() => [...new Set(videos.flatMap(p => p.hashtags.map(t => t.toLowerCase())))].sort(), [videos]);
-  const shown = view === 'videos' ? videos.filter(p => !tags.length || tags.some(t => p.hashtags.map(h => h.toLowerCase()).includes(t))) : posts;
-  const nav = [{ id: 'feed', label: 'Início', icon: Home }, { id: 'videos', label: 'Vídeos', icon: Film }, { id: isAdmin ? 'create' : 'universe', label: isAdmin ? 'Publicar' : 'Universo', icon: isAdmin ? Plus : Orbit }, { id: 'profile', label: 'Conta', icon: UserRound }];
-  function navigate(id: string) { if (id === 'create') setModal('admin'); else { setView(id); setSelected(null); window.scrollTo(0, 0); } }
+  const tagSource = view === 'videos' ? videos : posts;
+  const allTags = useMemo(() => [...new Set(tagSource.flatMap(p => (p.hashtags || []).map(t => t.toLowerCase())))].sort(), [tagSource]);
+  const source = view === 'videos' ? videos : view === 'saved' ? posts.filter(p => p.isSaved) : posts;
+  const shown = source.filter(p => !tags.length || tags.some(t => (p.hashtags || []).map(h => h.toLowerCase()).includes(t)));
+  const updatePost = (value: Partial<Post> & { id: string }) => {
+    setPosts(prev => prev.map(p => p.id === value.id ? { ...p, ...value } : p));
+    setSelected(prev => prev?.id === value.id ? { ...prev, ...value } : prev);
+    setCommentsPost(prev => prev?.id === value.id ? { ...prev, ...value } : prev);
+  };
+  const engagement = { onUpdate: updatePost, onComments: setCommentsPost, onNotice: setNotice, disabled: !leaseValid };
+  const nav = [{ id: 'feed', label: ui("Início"), icon: Home }, { id: 'videos', label: ui("Vídeos"), icon: Film }, { id: isAdmin ? 'create' : 'universe', label: isAdmin ? ui("Publicar") : ui("Universo"), icon: isAdmin ? Plus : Orbit }, { id: 'profile', label: ui("Conta"), icon: UserRound }];
+  function navigate(id: string) { pauseMedia(); if (id === 'create') setModal('admin'); else { setView(id); setTags([]); setSelected(null); window.scrollTo(0, 0); } }
   if (isLoading) return <div className="min-h-screen grid place-items-center"><LoaderCircle className="animate-spin" /></div>;
   return <div className="min-h-screen max-w-7xl mx-auto px-3 sm:px-6 pb-28">
-    <header className="sticky top-0 z-30 py-3 bg-[var(--canvas-bg)]"><div className="niuniu-card px-5 py-3 flex items-center justify-between gap-2">
-      <button className="font-extrabold text-xl" onClick={() => navigate('feed')}>mocinhas</button>
-      <div className="flex items-center gap-2">
-        {user && quota && !quota.unlimited && <span className="flex items-center gap-1 text-xs text-zinc-400"><Clock size={15} />{Math.ceil((quota.remainingMs || 0) / 60000)} min</span>}
-        <button aria-label="Idioma" className="p-2" onClick={() => setModal('language')}><Globe size={19} /></button>
-        {user && <button aria-label="Premium" className="p-2 text-yellow-400" onClick={() => setModal('premium')}><Crown size={19} /></button>}
-        {isAdmin && <button className="flex items-center gap-2 p-2" onClick={() => setModal('admin')}><ShieldCheck size={19} /><span className="hidden sm:block">Admin</span></button>}
-        {!user && <button className="flex items-center gap-2" onClick={() => setModal('auth')}><LogIn size={19} />Entrar</button>}
-      </div></div></header>
-    <div className="flex gap-6"><aside className="hidden lg:block w-52 shrink-0"><nav className="niuniu-card p-3 sticky top-24 space-y-2">{nav.map(n => <button key={n.id} onClick={() => navigate(n.id)} className={`w-full flex items-center gap-3 p-3 rounded-2xl ${view === n.id ? 'bg-emerald-500/15 text-emerald-300' : 'text-zinc-400 hover:bg-white/5'}`}><n.icon size={20} />{n.label}</button>)}{isAdmin && <button className="w-full flex gap-3 p-3 text-zinc-400" onClick={() => navigate('universe')}><Orbit size={20} />Universo</button>}</nav></aside>
+    <header className="sticky top-0 z-30 py-3 bg-[var(--canvas-bg)]"><div className="app-topbar">
+      <button className="brand-wordmark" onClick={() => navigate('feed')}>mocinhas</button>
+      <div className="header-actions">
+        {user && quota && !quota.unlimited && <span className="quota-pill"><Clock size={15} />{Math.ceil((quota.remainingMs || 0) / 60000)} {ui("min")}</span>}
+        <button aria-label={ui("Idioma")} className="icon-button" title={currentLanguageInfo.nativeName} onClick={() => setModal('language')}><Globe size={18} /></button>
+        {user && <button aria-label={ui("Publicações salvas")} className="icon-button" onClick={() => navigate('saved')}><Bookmark size={19} /></button>}
+        {user && <button aria-label={ui("Premium")} className="icon-button premium-button" onClick={() => setModal('premium')}><Crown size={19} /></button>}
+        {isAdmin && <button className="flex items-center gap-2 p-2" onClick={() => setModal('admin')}><ShieldCheck size={19} /><span className="hidden sm:block">{ui("Admin")}</span></button>}
+        {!user && <button className="flex items-center gap-2" onClick={() => setModal('auth')}><LogIn size={19} />{ui("Entrar")}</button>}
+      </div></div><TranslationStatus /></header>
+    <div className="flex gap-6"><aside className="hidden lg:block w-52 shrink-0"><nav className="niuniu-card p-3 sticky top-24 space-y-2">{nav.map(n => <button key={n.id} onClick={() => navigate(n.id)} className={`w-full flex items-center gap-3 p-3 rounded-2xl ${view === n.id ? 'bg-emerald-500/15 text-emerald-300' : 'text-zinc-400 hover:bg-white/5'}`}><n.icon size={20} />{n.label}</button>)}{isAdmin && <button className="w-full flex gap-3 p-3 text-zinc-400" onClick={() => navigate('universe')}><Orbit size={20} />{ui("Universo")}</button>}</nav></aside>
     <main className="min-w-0 flex-1">
-      {!user ? <section className="niuniu-card p-10 text-center space-y-4"><Orbit className="mx-auto text-emerald-400" size={40} /><h1 className="text-2xl font-bold">Seu universo de conteúdo</h1><p className="text-zinc-400">Entre para ver as publicações e os vídeos.</p><button className="rounded-full bg-emerald-500 text-black font-bold px-6 py-3" onClick={() => setModal('auth')}>Entrar ou criar conta</button></section> : view === 'profile' ? <section className="niuniu-card p-6 space-y-5"><h1 className="text-xl font-bold">Minha conta</h1><p>{user.displayName}</p><button className="flex gap-2" onClick={() => setModal('edit')}><Settings size={18} />Editar perfil</button><button className="flex gap-2" onClick={logout}><LogOut size={18} />Sair</button></section> : !allowed ? <section className="niuniu-card p-10 text-center space-y-4"><Clock className="mx-auto text-emerald-400" size={36} /><h1 className="text-xl font-bold">{quota?.blocked ? 'Seu tempo de hoje terminou' : error ? 'Não foi possível autorizar o acesso' : 'Verificando seu acesso'}</h1><p className="text-zinc-400">{quota?.blocked ? `Disponível novamente em ${new Date(quota.resetAt).toLocaleString('pt-BR')}.` : error || 'Aguarde um instante.'}</p></section> : <>
-        {view === 'videos' && <div className="sticky top-[85px] z-20 bg-[var(--canvas-bg)] py-3"><h1 className="font-bold text-xl mb-3">Vídeos</h1><div className="flex gap-2 overflow-x-auto pb-2"><button className={`tag-chip ${!tags.length ? 'selected' : ''}`} onClick={() => setTags([])}>Todos</button>{allTags.map(t => <button aria-pressed={tags.includes(t)} key={t} className={`tag-chip ${tags.includes(t) ? 'selected' : ''}`} onClick={() => setTags(prev => prev.includes(t) ? prev.filter(v => v !== t) : [...prev, t])}>#{t}</button>)}</div></div>}
-        {view === 'universe' ? <UniverseFeed posts={posts} isLoading={loading} paused={!!selected || !!modal} onSelectPost={setSelected} onSwitchToList={() => navigate('feed')} /> : <div className="max-w-2xl mx-auto space-y-5">{loading && !posts.length ? <LoaderCircle className="animate-spin mx-auto" /> : shown.map(p => <Publication key={p.id} post={p} admin={isAdmin} onDeleted={load} />)}{!loading && !shown.length && <p className="niuniu-card p-8 text-center text-zinc-400">{tags.length ? 'Nenhum vídeo com as hashtags selecionadas.' : 'Ainda não há publicações.'}</p>}</div>}
+      {!user ? <section className="niuniu-card p-10 text-center space-y-4"><Orbit className="mx-auto text-emerald-400" size={40} /><h1 className="text-2xl font-bold">{ui("Seu universo de conteúdo")}</h1><p className="text-zinc-400">{ui("Entre para ver as publicações e os vídeos.")}</p><button className="rounded-full bg-emerald-500 text-black font-bold px-6 py-3" onClick={() => setModal('auth')}>{ui("Entrar ou criar conta")}</button></section> : view === 'profile' ? <section className="account-page max-w-2xl mx-auto space-y-5">
+      <div className="niuniu-card overflow-hidden"><div className="account-cover"><span className="text-xs uppercase tracking-[.2em] text-emerald-200">{ui("Seu espaço")}</span><Orbit size={100} className="account-orbit" /></div>
+      <div className="px-6 pb-6"><div className="account-monogram -mt-8 relative">{user.displayName.slice(0, 2).toUpperCase()}</div><div className="mt-4 flex items-center justify-between gap-3"><div className="min-w-0"><h1 className="text-2xl font-bold truncate">{user.displayName}</h1><p className="text-sm text-zinc-400 mt-1">{ui("Minha conta")}</p></div><span className="account-badge">{isAdmin ? ui("Administrador") : user.isPremium ? ui("Premium") : ui("Membro")}</span></div>
+      <div className="grid grid-cols-2 gap-3 mt-6"><button onClick={() => navigate('saved')} className="account-stat"><Bookmark size={19} /><strong>{posts.filter(p => p.isSaved).length}</strong><span>{ui("Publicações salvas")}</span></button><div className="account-stat"><Clock size={19} /><strong>{quota?.unlimited ? ui("Sem limite") : `${Math.ceil((quota?.remainingMs || 0) / 60000)} min`}</strong><span>{ui("Tempo disponível")}</span></div></div></div></div>
+      <div className="niuniu-card p-2"><button className="account-row" onClick={() => setModal('edit')}><Settings size={20} /><span><strong>{ui("Editar perfil")}</strong><small>{ui("Seu nome nos comentários")}</small></span><span aria-hidden="true">›</span></button><button className="account-row" onClick={() => setModal('language')}><Globe size={20} /><span><strong>{ui("Idioma do aplicativo")}</strong><small>{currentLanguageInfo.nativeName}</small></span><span aria-hidden="true">›</span></button><button className="account-row" onClick={() => setModal('premium')}><Crown size={20} /><span><strong>{ui("Mocinhas Premium")}</strong><small>{ui("Gerencie seu acesso Premium")}</small></span><span aria-hidden="true">›</span></button></div>
+      <button className="account-row text-zinc-400 w-full rounded-2xl border border-white/10" onClick={() => { pauseMedia(); logout(); }}><LogOut size={19} /><span>{ui("Sair da conta")}</span></button>
+      </section> : !allowed ? <section className="niuniu-card p-10 text-center space-y-4"><Clock className="mx-auto text-emerald-400" size={36} /><h1 className="text-xl font-bold">{quota?.blocked ? ui("Seu tempo de hoje terminou") : error ? ui("Não foi possível autorizar o acesso") : ui("Verificando seu acesso")}</h1><p className="text-zinc-400">{quota?.blocked ? `${ui('Disponível novamente em')} ${new Date(quota.resetAt).toLocaleString(language)}.` : ui(error || 'Aguarde um instante.')}</p></section> : <>
+        {(view === 'videos' || view === 'feed' || view === 'saved') && <div className="sticky top-[85px] z-20 bg-[var(--canvas-bg)] py-3"><h1 className="font-bold text-xl mb-3">{view === 'videos' ? ui("Vídeos") : view === 'saved' ? ui("Publicações salvas") : ui("Início")}</h1><div className="flex gap-2 overflow-x-auto pb-2"><button className={`tag-chip ${!tags.length ? 'selected' : ''}`} onClick={() => setTags([])}>{ui("Todos")}</button>{allTags.map(t => <button aria-pressed={tags.includes(t)} key={t} className={`tag-chip ${tags.includes(t) ? 'selected' : ''}`} onClick={() => setTags(prev => prev.includes(t) ? prev.filter(v => v !== t) : [...prev, t])}>#{t}</button>)}</div></div>}
+        {view === 'universe' ? <UniverseFeed posts={posts} isLoading={loading} paused={!!selected || !!modal || !!commentsPost || !leaseValid} onSelectPost={setSelected} onSwitchToList={() => navigate('feed')} /> : <div className="max-w-2xl mx-auto space-y-5">{loading && !posts.length ? <LoaderCircle className="animate-spin mx-auto" /> : shown.map(p => <Publication mediaActive={!modal && !selected && !commentsPost} key={p.id} post={p} admin={isAdmin} {...engagement} onDeleted={load} />)}{!loading && !shown.length && <p className="niuniu-card p-8 text-center text-zinc-400">{tags.length ? ui("Nenhuma publicação com as hashtags selecionadas.") : ui("Ainda não há publicações.")}</p>}</div>}
       </>}
     </main></div>
     <nav className="lg:hidden fixed bottom-3 left-3 right-3 max-w-lg mx-auto z-40 niuniu-card flex justify-around p-2 pb-safe">{nav.map(n => <button key={n.id} onClick={() => navigate(n.id)} className={`flex flex-col items-center gap-1 px-3 py-2 rounded-2xl ${view === n.id ? 'text-emerald-300 bg-emerald-500/10' : 'text-zinc-400'}`}><n.icon size={21} /><span className="text-[10px]">{n.label}</span></button>)}</nav>
-    {selected && allowed && <div className="fixed inset-0 z-50 bg-black/80 overflow-y-auto p-4" role="dialog" aria-modal="true" aria-label="Publicação"><div className="max-w-2xl mx-auto"><button className="p-3 bg-[var(--surface-card)] rounded-full mb-3" aria-label="Fechar" onClick={() => setSelected(null)}><X /></button><Publication post={selected} admin={isAdmin} onDeleted={() => { setSelected(null); load(); }} /></div></div>}
-    {modal === 'auth' && <AuthModal onClose={() => setModal('')} />}
+    {selected && allowed && <div className="fixed inset-0 z-50 bg-black/80 overflow-y-auto p-4" role="dialog" aria-modal="true" aria-label={ui("Publicação")}><div className="max-w-2xl mx-auto"><button className="p-3 bg-[var(--surface-card)] rounded-full mb-3" aria-label={ui("Fechar")} onClick={() => setSelected(null)}><X /></button><Publication mediaActive={!modal && !commentsPost} post={selected} admin={isAdmin} {...engagement} onDeleted={() => { setSelected(null); load(); }} /></div></div>}
+    {(notice || error || (hasAccess && !leaseValid && !quota?.blocked)) && <div role="status" aria-live="polite" className="fixed bottom-28 left-1/2 -translate-x-1/2 z-[70] pointer-events-none rounded-full bg-[var(--surface-elevated)] border border-white/15 text-xs text-zinc-300 px-4 py-2 shadow-lg max-w-[90vw]">{ui(notice || error || 'Reconectando…')}</div>}
+    {commentsPost && allowed && <CommentsModal post={commentsPost} onClose={() => setCommentsPost(null)} onNavigateUser={() => {}} onCommentCountChange={(id, count) => updatePost({ id, commentsCount: count })} />}
+    {modal === 'auth'  && <AuthModal onClose={() => setModal('')} />}
     {modal === 'admin' && isAdmin && <AdminPanel onClose={() => setModal('')} onPostCreated={load} />}
     {modal === 'edit' && user && <EditProfileModal onClose={() => setModal('')} onProfileUpdated={() => setModal('')} />}
     <LanguageModal isOpen={modal === 'language'} onClose={() => setModal('')} />
