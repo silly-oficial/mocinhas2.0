@@ -3,6 +3,7 @@ import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import { randomBytes, randomUUID } from 'node:crypto';
 import bcrypt from 'bcryptjs';
 import { validateDatabase } from '../scripts/database-utils.mjs';
+import { cloudReadFailure } from './cloud-diagnostics';
 export const CLOUD = process.env.STORAGE_BACKEND === 'supabase';
 const bucket = 'mocinhas-media';
 let revision = -1;
@@ -18,8 +19,8 @@ export function cloudClient() {
   return client;
 }
 async function getRow() {
- const { data, error } = await cloudClient().from('mocinhas_app_state').select('payload,revision').eq('id','main').maybeSingle();
- if (error) throw Error('SUPABASE_DATABASE_UNAVAILABLE: confira as credenciais e execute supabase/mocinhas_persistence.sql. Nenhum banco local será usado como substituto.');
+ const { data, error, status } = await cloudClient().from('mocinhas_app_state').select('payload,revision').eq('id','main').maybeSingle();
+ if (error) throw Error(cloudReadFailure(status, error));
  return data;
 }
 export async function initializeCloud() {

@@ -1,3 +1,7 @@
+# Diagnóstico de conexão — 12/10/2026
+
+A falha inicial de leitura do Supabase agora informa o status HTTP e códigos conhecidos, com orientação específica para autenticação, permissão, tabela, endpoint e rede. Mensagens brutas do provedor, URLs e credenciais não são registradas. Esta atualização não muda o SQL, banco ou configuração e não afirma corrigir a conexão de produção sem conhecer a causa.
+
 # Integração sobre o ZIP mais recente
 Base: mocinhas2.0-main (2).zip. As telas, mídia, tradução e recursos solicitados já estavam presentes e foram preservados. Mudanças adicionais: persistência Supabase efetiva para o Render Free, mídia privada, proteção contra sobrescrita entre instâncias, primeiro ADM por ambiente, isolamento de credenciais privadas, métodos de cota compatíveis e build npm. Leia GUIA_RENDER.md antes do deploy: SQL + variáveis privadas são necessários. Não houve modificação do banco online.
 
