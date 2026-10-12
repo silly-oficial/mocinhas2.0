@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: mocinhas-app
+    env: node
+    region: oregon
+    plan: free
+    buildCommand: npm run build
+    startCommand: npm start
+    envVars:
+      - key: NODE_VERSION
+        value: 20.10.0
+      - key: PORT
+        value: 3000

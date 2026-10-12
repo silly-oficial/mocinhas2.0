@@ -398,6 +398,32 @@ export const api = {
     });
   },
 
+  // Daily Time Limit System
+  async pingUsage(deviceId: string): Promise<{
+    timeUsedSeconds: number;
+    dailyLimitMinutes: number;
+    isLimitReached: boolean;
+    isUnlimited: boolean;
+    isAdmin: boolean;
+    secondsRemaining: number;
+  }> {
+    return request('/usage/ping', {
+      method: 'POST',
+      body: JSON.stringify({ deviceId }),
+    });
+  },
+
+  async getAdminUsageLimit(): Promise<{ dailyTimeLimitMinutes: number }> {
+    return request('/admin/usage-limit');
+  },
+
+  async setAdminUsageLimit(limitMinutes: number): Promise<{ success: boolean; dailyTimeLimitMinutes: number; message: string }> {
+    return request('/admin/usage-limit', {
+      method: 'POST',
+      body: JSON.stringify({ limitMinutes }),
+    });
+  },
+
   async getSupabaseSchema(): Promise<string> {
     const res = await fetch('/api/supabase/schema');
     return res.text();

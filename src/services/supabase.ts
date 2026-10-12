@@ -77,3 +77,15 @@ export const supabase: SupabaseClient | null = new Proxy({} as any, {
     return typeof val === 'function' ? val.bind(client) : val;
   },
 });
+
+// Auto-sync Supabase config from server if available and not configured locally
+if (typeof window !== 'undefined' && !checkIsConfigured()) {
+  fetch('/api/supabase/public-config')
+    .then((r) => r.json())
+    .then((data) => {
+      if (data?.url && data?.anonKey) {
+        saveSupabaseConfig(data.url, data.anonKey);
+      }
+    })
+    .catch(() => {});
+}

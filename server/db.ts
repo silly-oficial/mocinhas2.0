@@ -245,9 +245,10 @@ let db: DatabaseSchema = {
 function saveDB() { writeDatabase(db); }
 
 export function loadDB(): DatabaseSchema {
-  // Explicit demo seeding is limited to development; production never recreates data.
-  if (!fs.existsSync(DB_FILE) && process.env.NODE_ENV !== 'production' && process.env.ALLOW_DEMO_SEED === '1') {
-    seedInitialData(); return db;
+  if (!fs.existsSync(DB_FILE)) {
+    console.info('[storage] DB_FILE missing, initializing new database instance...');
+    seedInitialData();
+    return db;
   }
   db = readDatabase() as DatabaseSchema;
   // Add missing optional collections in memory only; never inject sample users/posts/groups.

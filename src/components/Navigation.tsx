@@ -1,5 +1,5 @@
 import React from 'react';
-import { Home, Compass, Plus, Film, User as UserIcon } from 'lucide-react';
+import { Home, Compass, Plus, Film, User as UserIcon, Globe } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 
@@ -27,18 +27,18 @@ export const Navigation: React.FC<NavigationProps> = ({
   );
 
   const navItems = [
-    { id: 'feed', label: t('nav_feed'), icon: Home },
-    { id: 'explore', label: t('nav_explore'), icon: Compass },
-    ...(user ? [{ id: 'create', label: t('create_post'), isCreate: true }] : []),
-    { id: 'reels', label: t('nav_reels'), icon: Film },
-    { id: 'profile', label: t('nav_profile'), icon: UserIcon, isProfile: true },
+    { id: 'feed', label: 'Feed', icon: Home },
+    { id: 'reels', label: 'Vídeos', icon: Film },
+    ...(isAdmin
+      ? [{ id: 'create', label: 'Criar', isCreate: true }]
+      : [{ id: 'universe', label: 'Universo', isUniversoButton: true }]),
+    ...(isAdmin ? [{ id: 'universe', label: 'Universo', icon: Globe }] : []),
+    { id: 'profile', label: 'Perfil', icon: UserIcon, isProfile: true },
   ];
 
   return (
     <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 sm:bottom-4 max-w-lg mx-auto pointer-events-none px-3 pb-2 sm:pb-0">
-      <div
-        className="pointer-events-auto w-full px-3 py-2 rounded-full bg-[#12121B]/95 border border-white/15 backdrop-blur-2xl shadow-2xl shadow-black/80 flex items-center justify-around"
-      >
+      <div className="pointer-events-auto w-full px-3 py-2 rounded-full bg-[#12121B]/95 border border-white/15 backdrop-blur-2xl shadow-2xl shadow-black/80 flex items-center justify-around">
         {navItems.map(item => {
           if (item.isCreate) {
             return (
@@ -46,11 +46,30 @@ export const Navigation: React.FC<NavigationProps> = ({
                 key="create-btn"
                 id="btn-nav-create"
                 onClick={onOpenCreateModal}
-                className="relative -top-4 flex flex-col items-center group cursor-pointer"
+                className="relative -top-3 flex flex-col items-center group cursor-pointer"
                 title="Criar Publicação"
               >
-                <div className="w-12 h-12 rounded-full bg-white text-black flex items-center justify-center shadow-xl shadow-white/10 group-hover:scale-110 group-active:scale-95 transition-all duration-200 border-2 border-black">
+                <div className="w-12 h-12 rounded-full bg-white text-black flex items-center justify-center shadow-xl group-hover:scale-110 active:scale-95 transition-all duration-200 border-2 border-black">
                   <Plus className="w-6 h-6 stroke-[3]" />
+                </div>
+              </button>
+            );
+          }
+
+          if (item.isUniversoButton) {
+            const isUniversoActive = activeView === 'universe';
+            return (
+              <button
+                key="universo-center-btn"
+                id="btn-nav-universo-center"
+                onClick={() => onNavigate('universe')}
+                className="relative -top-3 flex flex-col items-center group cursor-pointer"
+                title="Modo Universo"
+              >
+                <div className={`w-12 h-12 rounded-full flex items-center justify-center shadow-xl transition-all duration-200 border-2 border-black ${
+                  isUniversoActive ? 'bg-white text-black scale-105' : 'bg-[#171724] text-white hover:bg-[#20202F]'
+                }`}>
+                  <Globe className="w-6 h-6 stroke-[2.5]" />
                 </div>
               </button>
             );
