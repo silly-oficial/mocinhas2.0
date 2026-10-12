@@ -398,30 +398,22 @@ export const api = {
     });
   },
 
-  // Daily Time Limit System
-  async pingUsage(deviceId: string): Promise<{
-    timeUsedSeconds: number;
-    dailyLimitMinutes: number;
-    isLimitReached: boolean;
-    isUnlimited: boolean;
-    isAdmin: boolean;
-    secondsRemaining: number;
-  }> {
-    return request('/usage/ping', {
-      method: 'POST',
-      body: JSON.stringify({ deviceId }),
-    });
+  // Compatibility for the alternate overlay: server quota and signed device cookie remain authoritative.
+  async pingUsage(_deviceId: string) {
+    const value = await request<any>('/usage/consume', { method: 'POST', body: '{}' });
+    const limit = value.dailyLimitMinutes || 0;
+    return { timeUsedSeconds: value.timeUsedSeconds || 0, dailyLimitMinutes: limit,
+      isLimitReached: value.blocked, isUnlimited: value.unlimited, isAdmin: value.isAdmin || false,
+      secondsRemaining: Math.ceil((value.remainingMs || 0) / 1000), resetAt: value.resetAt };
   },
-
-  async getAdminUsageLimit(): Promise<{ dailyTimeLimitMinutes: number }> {
-    return request('/admin/usage-limit');
+  async getAdminUsageLimit() {
+    const value = await request<any>('/admin/usage-settings');
+    return { dailyTimeLimitMinutes: value.dailyMinutes };
   },
-
-  async setAdminUsageLimit(limitMinutes: number): Promise<{ success: boolean; dailyTimeLimitMinutes: number; message: string }> {
-    return request('/admin/usage-limit', {
-      method: 'POST',
-      body: JSON.stringify({ limitMinutes }),
-    });
+  async setAdminUsageLimit(limitMinutes: number) {
+    const current = await request<any>('/admin/usage-settings');
+    const value = await request<any>('/admin/usage-settings', { method: 'PUT', body: JSON.stringify({ dailyMinutes: limitMinutes, bindNetwork: current.bindNetwork }) });
+    return { success: true, dailyTimeLimitMinutes: value.dailyMinutes, message: 'Limite atualizado.' };
   },
 
   async getSupabaseSchema(): Promise<string> {

@@ -37,9 +37,9 @@ export function installConsumptionPolicy(app: express.Express, db: typeof Databa
   function state(req: express.Request, res: express.Response, consume = false) {
     const userId = auth(req);
     if (!userId || !db.findUserById(userId)) return null;
-    if (db.findUserById(userId)?.isAdmin) return { unlimited: true, remainingMs: null, allowedMs: DAY, resetAt: null, blocked: false };
+    if (db.findUserById(userId)?.isAdmin) return { unlimited: true, remainingMs: null, allowedMs: DAY, resetAt: null, blocked: false, isAdmin: db.findUserById(userId)?.isAdmin === true, dailyLimitMinutes: 0, timeUsedSeconds: 0 };
     const config = settings();
-    if (!config.dailyMinutes) return { unlimited: true, remainingMs: null, allowedMs: DAY, resetAt: null, blocked: false };
+    if (!config.dailyMinutes) return { unlimited: true, remainingMs: null, allowedMs: DAY, resetAt: null, blocked: false, isAdmin: db.findUserById(userId)?.isAdmin === true, dailyLimitMinutes: 0, timeUsedSeconds: 0 };
     const device = identity(req, res);
     const keys = [digest('user:' + userId), digest('device:' + device)];
     if (config.bindNetwork) keys.push(digest('network:' + req.ip));
@@ -52,7 +52,7 @@ export function installConsumptionPolicy(app: express.Express, db: typeof Databa
     keys.forEach(k => { all[k] = { ...merged }; });
     for (const [key, value] of Object.entries(all)) if (now >= value.startedAt + DAY) delete all[key];
     if (changed) db.save();
-    return { unlimited: false, remainingMs: Math.max(0, limit - merged.usedMs) + Math.max(0, merged.leaseUntil - now),
+    return { unlimited: false, isAdmin: false, dailyLimitMinutes: config.dailyMinutes, timeUsedSeconds: Math.floor(merged.usedMs / 1000), remainingMs: Math.max(0, limit - merged.usedMs) + Math.max(0, merged.leaseUntil - now),
       allowedMs: Math.max(0, merged.leaseUntil - now), resetAt: merged.startedAt + DAY,
       blocked: merged.usedMs >= limit && merged.leaseUntil <= now };
   }

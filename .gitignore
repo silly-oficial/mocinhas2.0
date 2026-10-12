@@ -12,3 +12,5 @@ data/
 uploads/
 backups/
 *.db-backup.json
+
+.runtime-cache/

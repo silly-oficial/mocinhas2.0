@@ -1,3 +1,4 @@
+import { CLOUD } from './cloud-store';
 import fs from 'fs';
 import path from 'path';
 import bcrypt from 'bcryptjs';
@@ -245,11 +246,7 @@ let db: DatabaseSchema = {
 function saveDB() { writeDatabase(db); }
 
 export function loadDB(): DatabaseSchema {
-  if (!fs.existsSync(DB_FILE)) {
-    console.info('[storage] DB_FILE missing, initializing new database instance...');
-    seedInitialData();
-    return db;
-  }
+  if (!fs.existsSync(DB_FILE) && process.env.NODE_ENV !== 'production' && process.env.ALLOW_DEMO_SEED === '1') { seedInitialData(); return db; }
   db = readDatabase() as DatabaseSchema;
   // Add missing optional collections in memory only; never inject sample users/posts/groups.
   for (const key of ['likes','saves','comments','commentLikes','follows','stories','storyViews','conversations','messages','notifications','reports','blocks','mutes'] as const) {
@@ -807,4 +804,4 @@ export const DB = {
 };
 
 // Auto load DB on module import
-loadDB();
+if (!CLOUD) loadDB();

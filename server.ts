@@ -1,3 +1,6 @@
+import { Readable } from 'node:stream';
+import { CLOUD, flushCloud, assertCloudHealthy, uploadCloud, signedMedia } from './server/cloud-store';
+import { hydrateCloudDatabase } from './server/storage';
 import 'dotenv/config';
 import { UPLOADS_DIR, DB_FILE, storageDiagnostics } from './server/storage';
 import { randomBytes } from 'node:crypto';
@@ -12,9 +15,11 @@ import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import multer from 'multer';
 import { GoogleGenAI } from '@google/genai';
-import { DB, DBPost, DBUser, DBStory, DBComment, DBMessage, DBConversation, DBNotification } from './server/db.ts';
+import { DB, loadDB, DBPost, DBUser, DBStory, DBComment, DBMessage, DBConversation, DBNotification } from './server/db.ts';
 import { checkSupabaseConnection, isSupabaseConfigured, updateSupabaseCredentials } from './server/supabase.ts';
 
+async function bootApplication() {
+if (CLOUD) { await hydrateCloudDatabase(); loadDB(); }
 const app = express();
 if (!DB.get().engagementRestored) {
   DB.get().posts.forEach(p => { p.allowComments = true; });
@@ -40,11 +45,24 @@ const storage = multer.diskStorage({
     cb(null, uniqueName);
   },
 });
-const upload = multer({ storage, limits: { fileSize: 50 * 1024 * 1024 } });
+const upload = multer({ storage: CLOUD ? multer.memoryStorage() : storage, limits: { fileSize: 50 * 1024 * 1024 } });
 
 // Middlewares
 app.use(express.json({ limit: '50mb', verify: (req, _res, buf) => { if (req.url === '/api/syncpay/webhook') (req as any).rawBody = Buffer.from(buf); } }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
+// No API acknowledgement is sent before its queued remote snapshot is durable.
+app.use((req, res, next) => {
+  if (!CLOUD || (!req.path.startsWith('/api/') && !req.path.startsWith('/uploads/'))) return next();
+  try { assertCloudHealthy(); } catch { return res.status(503).json({error:'Banco temporariamente indisponível. Aguarde a reconexão do serviço.'}); }
+  const send = res.json.bind(res);
+  res.json = ((body: unknown) => {
+    flushCloud().then(() => { if (!res.destroyed) send(body); }).catch(() => {
+      if (!res.destroyed) { res.removeHeader('Set-Cookie'); res.status(503); send({error:'A gravação no banco não foi confirmada. Reinicie o serviço para reconectar; os dados remotos foram preservados.'}); }
+    });
+    return res;
+  }) as typeof res.json;
+  next();
+});
 // Media is served after the consumption policy below.
 
 // SSE Clients for Live Real-Time Notifications & Messages
@@ -55,7 +73,7 @@ interface SSEClient {
 }
 let sseClients: SSEClient[] = [];
 
-export function broadcastEvent(recipientUserId: string, eventType: string, data: any) {
+function broadcastEvent(recipientUserId: string, eventType: string, data: any) {
   const targets = sseClients.filter(c => c.userId === recipientUserId);
   targets.forEach(client => {
     try {
@@ -89,12 +107,35 @@ function requireAuth(req: express.Request, res: express.Response, next: express.
 }
 
 installConsumptionPolicy(app, DB, JWT_SECRET, getAuthUserId, requireAdmin);
-app.use('/uploads', express.static(UPLOADS_DIR, { maxAge: 0, setHeaders: res => res.setHeader('Cache-Control', 'private, no-store') }));
+app.use('/uploads', async (req, res, next) => {
+  if (!CLOUD) return next();
+  const controller = new AbortController();
+  res.on('close', () => controller.abort());
+  try {
+    await flushCloud(); const url = await signedMedia(req.path.slice(1));
+    const upstream = await fetch(url, { method: req.method === 'HEAD' ? 'HEAD' : 'GET', headers: req.headers.range ? { Range: req.headers.range } : {}, signal: AbortSignal.any([controller.signal, AbortSignal.timeout(120000)]) });
+    res.status(upstream.status); res.setHeader('Cache-Control','private, no-store');
+    for (const header of ['content-type','content-length','content-range','accept-ranges','etag']) { const value = upstream.headers.get(header); if(value)res.setHeader(header,value); }
+    if (!upstream.body || req.method === 'HEAD') return res.end();
+    const stream = Readable.fromWeb(upstream.body as any); stream.on('error', () => res.destroy()); stream.pipe(res);
+  } catch { if (!res.headersSent && !res.destroyed) res.status(503).json({error:'Mídia temporariamente indisponível.'}); }
+
+});
+if (!CLOUD) app.use('/uploads', express.static(UPLOADS_DIR, { maxAge: 0, setHeaders: res => res.setHeader('Cache-Control', 'private, no-store') }));
 
 // ----------------------------------------------------
 //  SUPABASE INTEGRATION & STATUS
 // ----------------------------------------------------
+app.get('/api/supabase/public-config', (_req, res) => {
+ const url = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || '';
+ const key = process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY || '';
+ let safe = key.startsWith('sb_publishable_');
+ try { safe ||= JSON.parse(Buffer.from(key.split('.')[1] || '', 'base64url').toString()).role === 'anon'; } catch {}
+ res.json({url, anonKey: safe ? key : ''});
+});
+
 app.get('/api/supabase/status', async (_req, res) => {
+  if (CLOUD) return res.json({status:'connected',configured:true,connected:true,url:process.env.SUPABASE_URL,tablesFound:['mocinhas_app_state','mocinhas_app_backups'],tablesMissing:[],message:'Persistência Supabase ativa.'});
   const status = await checkSupabaseConnection();
   res.json({
     status: status.connected ? 'connected' : (status.configured ? 'misconfigured' : 'not_configured'),
@@ -112,7 +153,7 @@ app.get('/api/supabase/status', async (_req, res) => {
 
 app.get('/api/supabase/schema', (_req, res) => {
   try {
-    const schemaPath = path.join(process.cwd(), 'supabase_schema.sql');
+    const schemaPath = path.join(process.cwd(), CLOUD ? 'supabase/mocinhas_persistence.sql' : 'supabase_schema.sql');
     if (fs.existsSync(schemaPath)) {
       const sql = fs.readFileSync(schemaPath, 'utf-8');
       return res.type('text/plain; charset=utf-8').send(sql);
@@ -124,6 +165,7 @@ app.get('/api/supabase/schema', (_req, res) => {
 });
 
 app.post('/api/supabase/config', requireAdmin, express.json(), async (req, res) => {
+  if (CLOUD) return res.status(409).json({error:'Para trocar o banco ativo, altere as variáveis do Render e reinicie o serviço. O painel não muda o projeto em uso.'});
   const { url, key, serviceRoleKey } = req.body;
   if (!url || !key) {
     return res.status(400).json({ error: 'URL e Anon Key do Supabase são obrigatórios.' });
@@ -1918,10 +1960,12 @@ app.get('/api/search', (req, res) => {
 // ----------------------------------------------------
 //  MEDIA UPLOAD (FILE + BASE64 SUPPORT)
 // ----------------------------------------------------
-app.post('/api/upload', requireAdmin, upload.single('file'), (req, res) => {
+app.post('/api/upload', requireAdmin, upload.single('file'), async (req, res) => {
   if (req.file) {
     const isVideo = req.file.mimetype.startsWith('video');
-    const url = `/uploads/${req.file.filename}`;
+    let url: string;
+    try { url = CLOUD ? await uploadCloud(`media_${Date.now()}_${randomBytes(8).toString('hex')}${path.extname(req.file.originalname).replace(/[^.a-zA-Z0-9]/g,'')}`, req.file.buffer, req.file.mimetype) : `/uploads/${req.file.filename}`; }
+    catch (e) { return res.status(503).json({error:'Não foi possível salvar a mídia no armazenamento remoto.'}); }
     return res.json({ url, type: isVideo ? 'video' : 'image' });
   }
 
@@ -1941,7 +1985,9 @@ app.post('/api/upload', requireAdmin, upload.single('file'), (req, res) => {
     const fname = `yume_b64_${Date.now()}_${cleanFilename}`;
     const fpath = path.join(UPLOADS_DIR, fname);
     try {
-      fs.writeFileSync(fpath, Buffer.from(base64Data, 'base64'));
+      const bytes = Buffer.from(base64Data, 'base64');
+      if (CLOUD) await uploadCloud(fname, bytes, mime);
+      else fs.writeFileSync(fpath, bytes);
       return res.json({ url: `/uploads/${fname}`, type: isVideo ? 'video' : 'image' });
     } catch (saveErr: any) {
       console.error('Error saving base64 upload:', saveErr);
@@ -2105,9 +2151,11 @@ app.get('/api/admin/storage', requireAdmin, (_req, res) => {
   res.setHeader('Cache-Control', 'no-store');
   res.json(storageDiagnostics());
 });
-app.get('/api/admin/storage/export', requireAdmin, (_req, res) => {
+app.get('/api/admin/storage/export', requireAdmin, async (_req, res) => {
   res.setHeader('Cache-Control', 'no-store');
-  res.download(DB_FILE, `mocinhas-backup-${new Date().toISOString().slice(0,10)}.json`);
+  try { await flushCloud(); } catch { return res.status(503).json({error:'Não foi possível confirmar o banco remoto.'}); }
+  res.attachment(`mocinhas-backup-${new Date().toISOString().slice(0,10)}.json`);
+  res.json(DB.get());
 });
 
 app.get('/api/admin/stats', requireAdmin, (_req, res) => {
@@ -2279,4 +2327,7 @@ async function startServer() {
   });
 }
 
-startServer();
+await flushCloud();
+await startServer();
+}
+bootApplication().catch(error => { console.error(error.message); process.exitCode = 1; });

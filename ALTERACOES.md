@@ -1,3 +1,8 @@
+# Integração sobre o ZIP mais recente
+Base: mocinhas2.0-main (2).zip. As telas, mídia, tradução e recursos solicitados já estavam presentes e foram preservados. Mudanças adicionais: persistência Supabase efetiva para o Render Free, mídia privada, proteção contra sobrescrita entre instâncias, primeiro ADM por ambiente, isolamento de credenciais privadas, métodos de cota compatíveis e build npm. Leia GUIA_RENDER.md antes do deploy: SQL + variáveis privadas são necessários. Não houve modificação do banco online.
+
+Os registros abaixo são históricos; a exigência de DATA_DIR aplica-se apenas ao backend local. No modo Supabase a pasta local é cache descartável.
+
 # Correção de persistência — ler primeiro
 Consulte **RECUPERACAO-DO-BANCO.md antes de fazer deploy**. O ZIP deixou de incluir banco e uploads. Produção exige DATA_DIR em disco persistente fora do código, com banco restaurado previamente. Falha de leitura não cria mais dados de exemplo. Um diagnóstico e exportação de backup foram adicionados ao ADM. Dados reais da hospedagem ainda precisam ser analisados para recuperação.
 

@@ -6,13 +6,11 @@ export function getStoredSupabaseConfig(): { url: string; anonKey: string } {
   const url = 
     (typeof window !== 'undefined' ? localStorage.getItem('mocinhas_supabase_url') : null) ||
     env.VITE_SUPABASE_URL ||
-    env.SUPABASE_URL ||
     '';
 
   const anonKey = 
     (typeof window !== 'undefined' ? localStorage.getItem('mocinhas_supabase_anon_key') : null) ||
     env.VITE_SUPABASE_ANON_KEY ||
-    env.SUPABASE_ANON_KEY ||
     '';
 
   return { url: url.trim(), anonKey: anonKey.trim() };

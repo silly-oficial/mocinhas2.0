@@ -7,7 +7,7 @@ const root=fs.mkdtempSync(path.join(os.tmpdir(),'mocinhas-storage-'));
 const module=path.resolve('server/db.ts'), recovery=path.resolve('scripts/recover-data.mjs');
 const base={users:[{id:'owner',isAdmin:true,displayName:'Owner'}],posts:[{id:'post-existing',userId:'owner',media:[],caption:'Existing post'}]};
 function run(dir,extra={},code=`await import(${JSON.stringify(module)})`) {
- return spawnSync(process.execPath,['--import','tsx','--input-type=module','-e',code],{env:{...process.env,NODE_ENV:'production',DATA_DIR:dir,...extra},encoding:'utf8'});
+ return spawnSync(process.execPath,['--import','tsx','--input-type=module','-e',code],{env:{...process.env,STORAGE_BACKEND:'local',NODE_ENV:'production',DATA_DIR:dir,...extra},encoding:'utf8'});
 }
 try {
  const missing=path.join(root,'missing');assert.notEqual(run(missing).status,0);assert.equal(fs.existsSync(path.join(missing,'db.json')),false);

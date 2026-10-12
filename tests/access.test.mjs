@@ -12,7 +12,7 @@ const user=(id,isAdmin=false)=>({id,username:id,email:id+'@example.test',display
 const base={ users:[user('owner',true),user('viewer'),user('viewer2')], posts:[], likes:[],saves:[],comments:[],commentLikes:[],follows:[],stories:[],storyViews:[],conversations:[{id:'disabled',isGroup:true}],messages:[],notifications:[],reports:[],blocks:[],mutes:[],usageSettings:{dailyMinutes:1,bindNetwork:false}};
 fs.writeFileSync(path.join(root,'db.json'),JSON.stringify(base));
 let child;
-async function start(){ child=spawn(process.execPath,['dist/server.cjs'],{env:{...process.env,NODE_ENV:'production',DATA_DIR:root,JWT_SECRET:secret},stdio:'ignore'}); for(let i=0;i<100;i++){try { await fetch('http://localhost:3000'); return;}catch{await new Promise(r=>setTimeout(r,100));}} throw Error('server failed'); }
+async function start(){ child=spawn(process.execPath,['dist/server.cjs'],{env:{...process.env,STORAGE_BACKEND:'local',NODE_ENV:'production',DATA_DIR:root,JWT_SECRET:secret},stdio:'ignore'}); for(let i=0;i<100;i++){try { await fetch('http://localhost:3000'); return;}catch{await new Promise(r=>setTimeout(r,100));}} throw Error('server failed'); }
 async function stop(){child.kill();await new Promise(r=>child.once('exit',r));}
 async function call(url,id='viewer',method='GET',body,cookie=''){const res=await fetch('http://localhost:3000'+url,{method,headers:{authorization:'Bearer '+token(id),'content-type':'application/json',cookie},body:body===undefined?undefined:JSON.stringify(body)});return {status:res.status,body:await res.json(),cookies:res.headers.getSetCookie().map(c=>c.split(';')[0]).join('; ')};}
 try {

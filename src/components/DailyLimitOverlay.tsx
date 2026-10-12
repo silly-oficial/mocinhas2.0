@@ -16,6 +16,7 @@ export const DailyLimitOverlay: React.FC = () => {
   const [limitMinutes, setLimitMinutes] = useState(0);
   const [timeUsedSeconds, setTimeUsedSeconds] = useState(0);
   const [timeToMidnight, setTimeToMidnight] = useState('');
+  const [resetAt, setResetAt] = useState<number | null>(null);
 
   useEffect(() => {
     const deviceId = getOrCreateDeviceId();
@@ -24,6 +25,7 @@ export const DailyLimitOverlay: React.FC = () => {
       try {
         const res = await api.pingUsage(deviceId);
         setLimitMinutes(res.dailyLimitMinutes);
+        setResetAt(res.resetAt);
         setTimeUsedSeconds(res.timeUsedSeconds);
         setIsLimitReached(Boolean(res.isLimitReached));
       } catch (e) {
@@ -45,8 +47,7 @@ export const DailyLimitOverlay: React.FC = () => {
 
     const updateMidnightCountdown = () => {
       const now = new Date();
-      const midnight = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 0, 0);
-      const diffMs = midnight.getTime() - now.getTime();
+      const diffMs = Math.max(0, (resetAt || now.getTime()) - now.getTime());
 
       const hours = Math.floor(diffMs / (1000 * 60 * 60));
       const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
@@ -60,7 +61,7 @@ export const DailyLimitOverlay: React.FC = () => {
     updateMidnightCountdown();
     const timer = setInterval(updateMidnightCountdown, 1000);
     return () => clearInterval(timer);
-  }, [isLimitReached]);
+  }, [isLimitReached, resetAt]);
 
   if (!isLimitReached) return null;
 

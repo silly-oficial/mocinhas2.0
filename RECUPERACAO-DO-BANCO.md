@@ -1,3 +1,6 @@
+# Versão atual: veja GUIA_RENDER.md
+A entrega atual suporta `STORAGE_BACKEND=supabase` no Render Free. As instruções abaixo sobre DATA_DIR referem-se SOMENTE ao backend local. Não restaure arquivos por cima de um banco remoto existente. O modo Supabase carrega sua própria tabela mocinhas_app_state e não importa automaticamente tabelas antigas.
+
 # Leia antes de outro deploy
 
 ## O que foi encontrado
