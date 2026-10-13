@@ -580,3 +580,13 @@ html[data-theme=orix], [data-theme=orix] body { background:#fff; color:var(--the
 }
 [data-theme=orix] .orix-gallery .orix-video.show-full-media .media-tap-target:focus-visible { outline:2px solid var(--orix-orange); outline-offset:-3px; }
 [data-theme=orix] .orix-gallery .orix-video.show-full-media .media-play { display:grid; z-index:3; top:calc(var(--orix-full-video-height,100%) / 2); }
+/* Cards stay the same size while scrolling, including horizontal navigation. */
+[data-theme=orix] .orix-gallery>.publication { transform:none!important; transition:none; }
+[data-theme=orix] .orix-gallery .has-visual:not(.document-publication) .sky-media-stage { transition:none; }
+.orix-photo-viewer {
+ position:fixed; inset:0; margin:auto; width:100vw; height:100dvh; max-width:none; max-height:none;
+ padding:16px; border:0; background:#fff; outline:none;
+}
+.orix-photo-viewer[open] { display:flex; align-items:center; justify-content:center; }
+.orix-photo-viewer::backdrop { background:#fff; }
+.orix-photo-viewer img { display:block; width:auto; height:auto; max-width:100%; max-height:100%; object-fit:contain; border-radius:26px; }

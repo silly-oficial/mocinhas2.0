@@ -25,8 +25,6 @@ export function PublicationGallery({ orix, videos = false, children }: { orix: b
     const stableTop = Math.max(headerBottom + 12, wrapper.getBoundingClientRect().top);
     const available = Math.max(0, bottom - stableTop - 24);
     const headingRect = document.querySelector('.orix-page-heading')?.getBoundingClientRect();
-    const headingHeight = headingRect?.height || 1;
-    const progress = Math.max(0, Math.min(1, (headerBottom + headingHeight - (headingRect?.bottom || 0)) / headingHeight));
     // Finish every geometry read before changing styles: no layout flush per card.
     const measurements = cards.map(card => {
       const width = card.offsetWidth;
@@ -35,13 +33,13 @@ export function PublicationGallery({ orix, videos = false, children }: { orix: b
       const video = card.querySelector('video');
       const isVideo = card.classList.contains('orix-video');
       const full = card.classList.contains('show-full-media');
-      const base = Math.min(width * 5 / 3, Math.max(280, room - (isVideo ? 198 : 230)));
+      const base = Math.min(width * 4 / 3, 440);
       const ratio = video?.videoWidth && video.videoHeight ? video.videoWidth / video.videoHeight : 9 / 16;
       const videoHeight = Math.max(0, Math.min(width / ratio, room - (headingRect?.height || 0) - 64));
-      const height = Math.max(0, isVideo ? videoHeight + 64 : Math.min(available, full ? room : base + 180 * progress));
-      return { card, stage, height, scale: 1 - .14 * Math.min(1, distance / Math.max(1, width)), videoHeight, videoWidth: videoHeight * ratio };
+      const height = isVideo && full ? videoHeight + 64 : base;
+      return { card, stage, height, distance, scale: 1, videoHeight, videoWidth: videoHeight * ratio };
     });
-    const nearest = measurements.reduce<typeof measurements[number] | undefined>((best, item) => !best || item.scale > best.scale ? item : best, undefined);
+    const nearest = measurements.reduce<typeof measurements[number] | undefined>((best, item) => !best || item.distance < best.distance ? item : best, undefined);
     const set = (node: HTMLElement, key: string, value: string) => {
       if (node.style.getPropertyValue(key) !== value) node.style.setProperty(key, value);
     };

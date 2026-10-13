@@ -30,7 +30,7 @@ function install() {
   document.addEventListener('keydown', event => { if ((event.key === 'Enter' || event.key === ' ') && (!(event.target instanceof Element) || !event.target.closest('button,input,a,audio,video'))) choose(); }, true);
 }
 function choose() {
-  if (document.hidden) return;
+  if (document.hidden || document.querySelector('.orix-photo-viewer[open]')) return;
   const ranked = [...candidates].filter(([v, c]) => c.active && c.ratio >= .55 && v.isConnected)
     .sort(([a], [b]) => Math.abs(a.getBoundingClientRect().top + a.clientHeight / 2 - innerHeight / 2) - Math.abs(b.getBoundingClientRect().top + b.clientHeight / 2 - innerHeight / 2));
   const winner = ranked[0]?.[0];

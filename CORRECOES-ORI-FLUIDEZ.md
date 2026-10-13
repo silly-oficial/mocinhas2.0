@@ -1,20 +1,23 @@
-# Ori: vídeos fixos e controles limpos; SkyGlass: letras de nuvem
+# Correção: controles por modo e fotos fixas
 
-## Resultado atual
+## Vídeos Ori
 
-No Ori, vídeos usam um único modo com imagem inteira, cantos arredondados, barra laranja e tempo decorrido/duração. Removidos os botões de curtir, comentar, salvar e expandir dos cartões de vídeo. O vídeo não cresce ao rolar a página. Tocar na imagem pausa/reproduz; se a reprodução estiver bloqueada, o botão de play aparece sobre a imagem. Navegação de álbuns continua disponível quando necessária.
+Modo normal: visual original com curtidas, comentários, salvar, som, play/pause, legenda e botão de mídia completa.
+Modo de mídia completa: sem botões de engajamento, navegação do álbum ou expansão; mantidos imagem arredondada, barra laranja e tempo. Tocar na imagem pausa/reproduz. Dois toques retornam ao modo normal; Escape também retorna. O botão de play aparece se o navegador bloquear a reprodução.
+Som configurado como ligado. Navegadores que restringem autoplay com áudio exigem interação.
+Os vídeos normais têm tamanho fixo durante a rolagem.
 
-O som dos vídeos comuns começa ligado. A seleção automática continua limitando a reprodução a um vídeo visível por vez. Navegadores que bloqueiam autoplay com som exigem um toque; o app tenta novamente dentro de uma interação válida, sem silenciar automaticamente.
+## Fotos Ori
 
-As correções anteriores de fluidez das fotos pequenas foram mantidas.
+Altura fixa por largura de tela, sem aumento ao rolar verticalmente ou ao passar entre cartões. O layout adapta o tamanho somente quando a largura da janela muda.
+Ver foto completa abre uma visualização sobre o app com somente a foto inteira, sem corte, com cantos arredondados e sem botões, legenda ou navegação. Um toque na foto ou no fundo retorna ao feed; Escape também fecha. O feed permanece na posição anterior. Vídeos são pausados enquanto a foto completa estiver aberta.
 
-SkyGlass usa um alfabeto original de nuvens volumétricas, inspirado nas referências, para montar o texto dinâmico da legenda e da tradução. O recorte da pessoa continua acima das letras. O asset é compartilhado entre cartões e o filtro SVG anterior foi removido. Há suporte a letras latinas, números e acentos; outros caracteres usam texto normal. Se a imagem não carregar, a legenda continua legível em texto normal.
+As letras de nuvem do SkyGlass continuam presentes e atrás do recorte da pessoa.
 
-## Verificação
+## Validação
 
-TypeScript e build de produção aprovados. Todos os testes existentes passaram.
-Chromium, viewport 390×844, vídeo com áudio: sem botões de engajamento/expansão, áudio não silenciado, altura estável antes e depois de rolar, play/pause por toque e avanço real pela barra verificados. Alfabeto: texto acessível preservado, glyphs corretos e pessoa com z-index acima da legenda. Não testado em iPhone/Android físico.
+TypeScript, compilação de produção e testes existentes. Verificação em Chromium: controles presentes no vídeo normal, ausentes no completo e restaurados ao retornar; avanço real pela barra e som não silenciado; foto com altura estável em ambas as direções de rolagem, sem escala; visualização completa com apenas uma imagem e nenhum botão, bordas de 26 px, fechamento por toque e Escape. Não testado em dispositivo Android/iPhone físico.
 
 ## Aplicação
 
-Substituir os arquivos do repositório pelos do ZIP e fazer o deploy normalmente. Incluir public/assets/skyglass/cloud-glyphs-v2.png. Nenhuma alteração de banco de dados.
+Substituir os arquivos do repositório pelo conteúdo do ZIP e fazer o deploy normal. Nenhuma alteração de banco de dados.

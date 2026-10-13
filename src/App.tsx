@@ -1,3 +1,4 @@
+import { FullPhotoViewer } from './components/FullPhotoViewer';
 import { CloudCaption } from './components/CloudCaption';
 import { SkyglassPhoto } from './components/SkyglassPhoto';
 import { PublicationGallery } from './components/PublicationGallery';
@@ -35,7 +36,24 @@ function Publication({ post, admin, onDeleted, onUpdate, onComments, onNotice, d
   const [busy, setBusy] = useState('');
   const [depthReady, setDepthReady] = useState(false);
   const onDepthReady = useCallback((ready:boolean) => setDepthReady(ready), []);
+  const orixVideo = useRef<HTMLVideoElement | null>(null);
+  const [videoPlaying, setVideoPlaying] = useState(false);
   const publicationRef = useRef<HTMLElement | null>(null);
+  const markPlaying = useCallback(() => setVideoPlaying(true), []);
+  const markPaused = useCallback(() => setVideoPlaying(false), []);
+  const bindVideo = useCallback((element: HTMLVideoElement | null) => {
+    orixVideo.current?.removeEventListener('play', markPlaying);
+    orixVideo.current?.removeEventListener('pause', markPaused);
+    orixVideo.current = element;
+    setVideoPlaying(Boolean(element && !element.paused));
+    element?.addEventListener('play', markPlaying);
+    element?.addEventListener('pause', markPaused);
+  }, [markPlaying, markPaused]);
+  useEffect(() => {
+    bindVideo(theme === 'orix' ? publicationRef.current?.querySelector('video') || null : null);
+    return () => bindVideo(null);
+  }, [theme, mediaIndex, post.id, bindVideo]);
+
   async function interact(action: 'like' | 'save') {
     if (busy || disabled) return;
     setBusy(action);
@@ -54,17 +72,20 @@ function Publication({ post, admin, onDeleted, onUpdate, onComments, onNotice, d
   if (theme === 'skyglass' || theme === 'orix') {
     const m = post.media[Math.min(mediaIndex, post.media.length - 1)];
     const visual = m && !['audio','pdf'].includes(m.type);
-    const cleanVideo = theme === 'orix' && m?.type === 'video';
-    return <article ref={publicationRef} onContextMenu={e=>e.preventDefault()} className={`publication sky-publication ${visual ? 'has-visual' : 'document-publication'} ${theme === 'orix' && visual ? m.type === 'video' ? 'orix-video' : 'orix-photo' : ''} ${theme === 'skyglass' && m?.type === 'image' ? 'sky-photo' : ''} ${theme === 'skyglass' && m?.type === 'image' && depthReady && !fullImage ? 'sky-depth-photo' : ''} ${fullImage || cleanVideo ? 'show-full-media' : ''}`}>
-      <div className="sky-media-stage">
+    const cleanVideo = theme === 'orix' && m?.type === 'video' && fullImage;
+    const fullPhoto = theme === 'orix' && m?.type === 'image' && fullImage;
+    return <article ref={publicationRef} tabIndex={cleanVideo ? 0 : undefined} onKeyDown={e => { if (cleanVideo && e.key === 'Escape') setFullImage(false); }} onContextMenu={e=>e.preventDefault()} className={`publication sky-publication ${visual ? 'has-visual' : 'document-publication'} ${theme === 'orix' && visual ? m.type === 'video' ? 'orix-video' : 'orix-photo' : ''} ${theme === 'skyglass' && m?.type === 'image' ? 'sky-photo' : ''} ${theme === 'skyglass' && m?.type === 'image' && depthReady && !fullImage ? 'sky-depth-photo' : ''} ${fullImage && !fullPhoto ? 'show-full-media' : ''}`}>
+      <div className="sky-media-stage" onDoubleClick={cleanVideo ? () => setFullImage(false) : undefined}>
         {m && <div className="publication-media" key={m.id}>
-          {m.type === 'video' ? <ManagedVideo active={!disabled && mediaActive} src={m.url} poster={m.thumbnail !== m.url ? m.thumbnail : undefined} className="sky-media" showTime={cleanVideo} showSeek={theme !== 'orix' || cleanVideo} showSound={!cleanVideo} tapToToggle={cleanVideo} /> : m.type === 'audio' ? <audio controls src={m.url} onPlay={e => { document.querySelectorAll<HTMLMediaElement>('video,audio').forEach(v => { if (v !== e.currentTarget) v.pause(); }); if (disabled || !mediaActive) e.currentTarget.pause(); }} /> : m.type === 'pdf' ? <a className="sky-document-link" href={m.url} target="_blank" rel="noreferrer">{ui("Abrir documento")}<ArrowRight size={20}/></a> : theme === 'skyglass' && m.type === 'image' ? <SkyglassPhoto src={m.url} alt={cleanText(post.caption) || ui('Publicação')} style={m.focus && !fullImage ? { objectPosition: `${m.focus.x}% ${m.focus.y}%`, transform: `scale(${m.focus.zoom || 1})`, transformOrigin: `${m.focus.x}% ${m.focus.y}%` } : undefined} enabled={!fullImage && !!post.caption} onReady={onDepthReady}/>: <img draggable={false} loading="lazy" src={m.url} alt={cleanText(post.caption) || ui('Publicação')} className="sky-media" style={m.focus && !fullImage ? { objectPosition: `${m.focus.x}% ${m.focus.y}%`, transform: `scale(${m.focus.zoom || 1})`, transformOrigin: `${m.focus.x}% ${m.focus.y}%` } : undefined}/>}
+          {m.type === 'video' ? <ManagedVideo active={!disabled && mediaActive} src={m.url} poster={m.thumbnail !== m.url ? m.thumbnail : undefined} className="sky-media" showTime={cleanVideo} showSeek={theme !== 'orix' || cleanVideo} showSound={!cleanVideo} tapToToggle={cleanVideo} onElement={theme === 'orix' ? bindVideo : undefined} /> : m.type === 'audio' ? <audio controls src={m.url} onPlay={e => { document.querySelectorAll<HTMLMediaElement>('video,audio').forEach(v => { if (v !== e.currentTarget) v.pause(); }); if (disabled || !mediaActive) e.currentTarget.pause(); }} /> : m.type === 'pdf' ? <a className="sky-document-link" href={m.url} target="_blank" rel="noreferrer">{ui("Abrir documento")}<ArrowRight size={20}/></a> : theme === 'skyglass' && m.type === 'image' ? <SkyglassPhoto src={m.url} alt={cleanText(post.caption) || ui('Publicação')} style={m.focus && !fullImage ? { objectPosition: `${m.focus.x}% ${m.focus.y}%`, transform: `scale(${m.focus.zoom || 1})`, transformOrigin: `${m.focus.x}% ${m.focus.y}%` } : undefined} enabled={!fullImage && !!post.caption} onReady={onDepthReady}/>: <img draggable={false} loading="lazy" src={m.url} alt={cleanText(post.caption) || ui('Publicação')} className="sky-media" style={m.focus && !fullImage ? { objectPosition: `${m.focus.x}% ${m.focus.y}%`, transform: `scale(${m.focus.zoom || 1})`, transformOrigin: `${m.focus.x}% ${m.focus.y}%` } : undefined}/>}
         </div>}
         <div className="sky-card-top">{theme === 'orix' ? <><span className="orix-category" title={sequenceIndex % 2 === 0 && post.hashtags?.[0] ? '#'+post.hashtags[0] : undefined}>{sequenceIndex % 2 === 0 && post.hashtags?.[0] ? '#'+post.hashtags[0] : ui('Fotos')}</span><span className="orix-album-count">{post.media.length > 1 ? `${mediaIndex + 1} / ${post.media.length}` : `${post.likesCount || 0} ${ui('Curtidas')}`}</span></> : <><time>{new Date(post.createdAt).toLocaleDateString(language)}</time>{post.media.length > 1 && <span>{mediaIndex + 1} / {post.media.length}</span>}</>}{admin && <button aria-label={ui('Excluir publicação')} onClick={async () => { if (confirm(ui('Excluir esta publicação permanentemente?'))) { try { await api.deletePost(post.id); onDeleted(); } catch(e:any) { onNotice(e.message); } } }}><Trash2 size={18}/></button>}</div>
         {!cleanVideo && <div className="sky-action-rail">{actions}{visual && theme !== 'orix' && <button className={undefined} aria-label={ui(fullImage ? 'Enquadrar mídia' : 'Ver mídia completa')} aria-pressed={fullImage} onClick={() => setFullImage(v => !v)}><Maximize2 size={20}/></button>}</div>}
         {visual && !cleanVideo && theme === 'orix' && !(fullImage && m?.type !== 'video') && <button className={`orix-expand orix-expand-float ${m?.type === 'video' ? 'orix-video-expand' : ''}`} aria-label={ui(fullImage ? 'Enquadrar mídia' : 'Ver mídia completa')} aria-pressed={fullImage} onClick={() => setFullImage(v => !v)}><Maximize2 size={20}/></button>}
-        {post.media.length > 1 && <div className="sky-media-pager"><button disabled={mediaIndex === 0} aria-label={ui('Mídia anterior')} onClick={() => { pauseMedia(); setMediaIndex(i => i - 1); }}><ChevronLeft size={20}/></button><button disabled={mediaIndex === post.media.length - 1} aria-label={ui('Próxima mídia')} onClick={() => { pauseMedia(); setMediaIndex(i => i + 1); }}><ChevronRight size={20}/></button></div>}
-        {theme === 'orix' && fullImage && visual && m.type !== 'video' && <button className="orix-full-return" aria-label={ui('Enquadrar mídia')} onClick={() => setFullImage(false)}><X size={20}/></button>}
+        {!cleanVideo && post.media.length > 1 && <div className="sky-media-pager"><button disabled={mediaIndex === 0} aria-label={ui('Mídia anterior')} onClick={() => { pauseMedia(); setMediaIndex(i => i - 1); }}><ChevronLeft size={20}/></button><button disabled={mediaIndex === post.media.length - 1} aria-label={ui('Próxima mídia')} onClick={() => { pauseMedia(); setMediaIndex(i => i + 1); }}><ChevronRight size={20}/></button></div>}
+        {theme === 'orix' && m?.type === 'video' && !cleanVideo && <button className="orix-video-toggle" disabled={disabled || !mediaActive} aria-label={ui(videoPlaying ? 'Pausar vídeo' : 'Reproduzir vídeo')} onClick={() => { const video = orixVideo.current; if (!video) return; if (video.paused) video.play().catch(() => onNotice(ui('Toque novamente para reproduzir.'))); else video.pause(); }}>{videoPlaying ? <Pause size={24} fill="currentColor"/> : <Play size={24} fill="currentColor"/>}</button>}
+        {fullPhoto && <FullPhotoViewer src={m.url} alt={displayCaption || ui('Publicação')} onClose={() => setFullImage(false)}/>}
+
         {displayCaption && !cleanVideo && !(fullImage && m?.type === 'video') && <div className={`sky-card-caption ${expanded ? 'expanded' : ''}`}><div><AutoTranslatedText text={displayCaption} renderTransformed={theme === 'skyglass' && m?.type === 'image' && depthReady && !fullImage && !expanded ? text => <CloudCaption text={text}/> : theme === 'orix' ? text => withoutTags ? text.replace(/#[a-zA-Z0-9_À-ÿ]+/g, '').replace(/[ \t]{2,}/g, ' ').trim() : text : undefined} contentClassName={theme === 'orix' && !expanded ? 'orix-caption-text' : undefined}/></div>{displayCaption.length > 95 && <button onClick={() => setExpanded(v => !v)}>{ui(expanded ? 'Ver menos' : 'Ver mais')}</button>}</div>}
       </div>
     </article>;
