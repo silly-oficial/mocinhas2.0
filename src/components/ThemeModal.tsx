@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from 'react';
+import { containDialogFocus } from './ModalFrame';
 import { Check, CloudSun, Moon, Palette, X, Sparkles } from 'lucide-react';
 import { useTheme, AppTheme } from '../context/ThemeContext';
 import { useUi } from '../i18n/ui';
@@ -22,6 +23,7 @@ export function ThemeModal({ onClose }: { onClose: () => void }) {
     { id: 'orely', label: 'Orelly Pop', description: 'Tema anterior preservado.', icon: Sparkles },
   ];
   return <dialog ref={dialog} className="theme-dialog" aria-labelledby="theme-title" aria-describedby="theme-description"
+    onKeyDown={containDialogFocus}
     onCancel={event => { event.preventDefault(); onClose(); }}
     onClick={event => { if (event.target === event.currentTarget) { const rect = event.currentTarget.getBoundingClientRect(); if (event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom) onClose(); } }}>
     <header className="theme-dialog-header"><span className="theme-heading-icon"><Palette size={22} /></span><h2 id="theme-title">{ui('Aparência')}</h2><button autoFocus className="icon-button" aria-label={ui('Fechar')} onClick={onClose}><X size={20} /></button></header>

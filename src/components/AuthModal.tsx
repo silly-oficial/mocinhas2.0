@@ -1,3 +1,4 @@
+import { ModalFrame } from './ModalFrame';
 import { ui, useUi } from '../i18n/ui';
 import React, { useState, useRef } from 'react';
 import { X, Sparkles, Heart, Eye, EyeOff, User, Lock, Mail, Upload, Image as ImageIcon, ShieldCheck, FileText, Check } from 'lucide-react';
@@ -64,15 +65,15 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   };
 
   return (
-    <div className="legacy-modal fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
+    <ModalFrame onClose={onClose} label={ui("Autenticação")} className="legacy-modal      flex items-center justify-center p-4">
       <div
-        className="w-full max-w-md rounded-[32px] niuniu-card text-white shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200 flex flex-col"
+        className="auth-surface w-full max-w-md rounded-[32px] niuniu-card text-white shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200 flex flex-col"
       >
         {/* Header */}
         <div className="p-4.5 border-b border-white/10 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-2xl bg-black border border-white/15 flex items-center justify-center text-white shadow-xs">
-              <span className="text-lg font-black leading-none text-white"></span>
+              <User className="w-5 h-5" />
             </div>
             <div>
               <h2 className="font-heading text-sm font-extrabold text-white">
@@ -86,6 +87,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
           </div>
           <button
             onClick={onClose}
+            aria-label={ui("Fechar autenticação")}
             className="w-8 h-8 rounded-full flex items-center justify-center text-zinc-400 hover:text-white hover:bg-white/10 cursor-pointer"
           >
             <X className="w-5 h-5" />
@@ -95,7 +97,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         {/* Modal Form */}
         <div className="p-5 overflow-y-auto max-h-[75vh] space-y-4">
           {errorMsg && (
-            <div className="p-2.5 rounded-xl bg-white/5 text-zinc-200 text-xs font-bold border border-white/15">
+            <div role="alert" className="auth-error p-2.5 rounded-xl bg-white/5 text-zinc-200 text-xs font-bold border border-white/15">
               {ui(errorMsg)}
             </div>
           )}
@@ -110,7 +112,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             {mode === 'register' && (
               <>
                 <div>
-                  <label className="text-[11px] font-bold text-zinc-200 block mb-1">
+                  <label htmlFor="auth-name" className="text-[11px] font-bold text-zinc-200 block mb-1">
                     {ui("Nome Completo:")}</label>
                   <div className="flex items-center gap-2 bg-[#171724] px-3 py-2 rounded-xl border border-white/10">
                     <Heart className="w-4 h-4 text-zinc-400" />
@@ -118,7 +120,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                       type="text"
                       required
                       placeholder={ui("Ex: Clara Mendes")}
-                      value={displayName}
+                      id="auth-name" value={displayName}
                       onChange={e => setDisplayName(e.target.value)}
                       className="flex-1 bg-transparent text-xs text-white placeholder-zinc-500 focus:outline-none"
                     />
@@ -126,7 +128,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 </div>
 
                 <div>
-                  <label className="text-[11px] font-bold text-zinc-200 block mb-1">
+                  <label htmlFor="auth-username" className="text-[11px] font-bold text-zinc-200 block mb-1">
                     {ui("Nome de Usuário (@):")}</label>
                   <div className="flex items-center gap-2 bg-[#171724] px-3 py-2 rounded-xl border border-white/10">
                     <User className="w-4 h-4 text-zinc-400" />
@@ -134,7 +136,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                       type="text"
                       required
                       placeholder="clara_m"
-                      value={username}
+                      id="auth-username" value={username}
                       onChange={e => setUsername(e.target.value.toLowerCase().replace(/\s+/g, '_'))}
                       className="flex-1 bg-transparent text-xs text-white placeholder-zinc-500 focus:outline-none"
                     />
@@ -146,7 +148,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
             {(mode === 'login' || mode === 'register' || mode === 'recovery') && (
               <div>
-                <label className="text-[11px] font-bold text-zinc-200 block mb-1">
+                <label htmlFor="auth-email" className="text-[11px] font-bold text-zinc-200 block mb-1">
                   {mode === 'login' ? ui("Usuário ou E-mail:") : 'E-mail:'}
                 </label>
                 <div className="flex items-center gap-2 bg-[#171724] px-3 py-2 rounded-xl border border-white/10">
@@ -155,7 +157,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                     type={mode === 'login' ? 'text' : 'email'}
                     required
                     placeholder={mode === 'login' ? 'clara_m ou seu@email.com' : 'seu@email.com'}
-                    value={mode === 'login' ? (username || email) : email}
+                    id="auth-email" value={mode === 'login' ? (username || email) : email}
                     onChange={e => {
                       if (mode === 'login') {
                         setUsername(e.target.value);
@@ -172,7 +174,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
             {mode !== 'recovery' && (
               <div>
-                <label className="text-[11px] font-bold text-zinc-200 block mb-1">
+                <label htmlFor="auth-password" className="text-[11px] font-bold text-zinc-200 block mb-1">
                   {ui("Senha:")}</label>
                 <div className="flex items-center gap-2 bg-[#171724] px-3 py-2 rounded-xl border border-white/10">
                   <Lock className="w-4 h-4 text-zinc-400" />
@@ -180,13 +182,13 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                     type={showPassword ? 'text' : 'password'}
                     required
                     placeholder="••••••••"
-                    value={password}
+                    id="auth-password" value={password}
                     onChange={e => setPassword(e.target.value)}
                     className="flex-1 bg-transparent text-xs text-white placeholder-zinc-500 focus:outline-none"
                   />
                   <button
                     type="button"
-                    onClick={() => setShowPassword(!showPassword)}
+                    aria-label={ui(showPassword ? "Ocultar senha" : "Mostrar senha")} onClick={() => setShowPassword(!showPassword)}
                     className="text-zinc-400 hover:text-white cursor-pointer"
                   >
                     {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -212,6 +214,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   <button
                     type="button"
                     role="checkbox"
+                    aria-label={ui("Li e concordo com os")+" "+ui("Termos de Uso e Responsabilidade")}
                     aria-checked={acceptedTerms}
                     id="checkbox-terms"
                     onClick={() => setAcceptedTerms(!acceptedTerms)}
@@ -296,6 +299,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({
           showAcceptButton={true}
         />
       )}
-    </div>
+    </ModalFrame>
   );
 };

@@ -1,3 +1,4 @@
+import { ModalFrame } from './ModalFrame';
 import { ui, useUi } from '../i18n/ui';
 import React, { useState, useEffect, useRef } from 'react';
 import { X, Send, Heart, Trash2, CornerDownRight, Sparkles } from 'lucide-react';
@@ -126,7 +127,7 @@ export const CommentsModal: React.FC<CommentsModalProps> = ({
   };
 
   return (
-    <div className="legacy-modal fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4">
+    <ModalFrame onClose={onClose} label={ui("Comentários")} className="legacy-modal      flex items-end sm:items-center justify-center p-0 sm:p-4">
       <div className="w-full max-w-lg max-h-[85vh] h-[85vh] sm:h-[620px] rounded-t-3xl sm:rounded-[28px] bg-[#12121B] text-white border border-white/10 shadow-2xl flex flex-col overflow-hidden animate-bento-fade">
         {/* Header */}
         <div className="p-4 border-b border-white/10 flex items-center justify-between bg-[#12121B]">
@@ -336,6 +337,6 @@ export const CommentsModal: React.FC<CommentsModalProps> = ({
           </button>
         </form>
       </div>
-    </div>
+    </ModalFrame>
   );
 };

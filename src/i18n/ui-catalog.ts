@@ -11,6 +11,13 @@ const rows: Record<string, string[]> = {
 "Concluir": ["Done", "Listo", "Terminer", "Fertig", "Fine", "完了", "완료", "完成", "Готово", "تم"],
 "Navegação principal": ["Main navigation", "Navegación principal", "Navigation principale", "Hauptnavigation", "Navigazione principale", "メインナビゲーション", "주 탐색", "主导航", "Основная навигация", "التنقل الرئيسي"],
 
+ 'Salvos': ['Saved','Guardados','Enregistrés','Gespeichert','Salvati','保存済み','저장됨','已收藏','Сохранённое','المحفوظات'],
+ 'Mídia anterior': ['Previous media','Contenido anterior','Média précédent','Vorheriges Medium','Contenuto precedente','前のメディア','이전 미디어','上一项媒体','Предыдущий файл','الوسائط السابقة'],
+ 'Próxima mídia': ['Next media','Siguiente contenido','Média suivant','Nächstes Medium','Contenuto successivo','次のメディア','다음 미디어','下一项媒体','Следующий файл','الوسائط التالية'],
+ 'Ver mídia completa': ['Show full media','Ver contenido completo','Afficher le média entier','Vollständiges Medium anzeigen','Mostra contenuto completo','メディア全体を表示','전체 미디어 보기','查看完整媒体','Показать полностью','عرض الوسائط كاملة'],
+ 'Enquadrar mídia': ['Fill media frame','Ajustar encuadre','Remplir le cadre','Rahmen füllen','Riempi il riquadro','フレームを埋める','프레임 채우기','填满媒体框','Заполнить кадр','ملء الإطار'],
+ 'Ver mais': ['Show more','Ver más','Voir plus','Mehr anzeigen','Mostra altro','もっと見る','더 보기','展开','Подробнее','عرض المزيد'],
+ 'Ver menos': ['Show less','Ver menos','Voir moins','Weniger anzeigen','Mostra meno','表示を減らす','접기','收起','Свернуть','عرض أقل'],
 'Início': ['Home','Inicio','Accueil','Startseite','Home','ホーム','홈','首页','Главная','الرئيسية'],
 'Vídeos': ['Videos','Vídeos','Vidéos','Videos','Video','動画','동영상','视频','Видео','الفيديوهات'],
 'Universo': ['Universe','Universo','Univers','Universum','Universo','ユニバース','유니버스','宇宙','Вселенная','الكون'],

@@ -1,3 +1,4 @@
+import { ModalFrame } from './ModalFrame';
 import { ui, useUi } from '../i18n/ui';
 import React from 'react';
 import {
@@ -25,10 +26,7 @@ export const TermsModal: React.FC<TermsModalProps> = ({
 }) => {
   useUi();
   return (
-    <div
-      id="terms-modal-backdrop"
-      className="legacy-modal fixed inset-0 z-[60] bg-black/80 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 animate-in fade-in duration-200"
-    >
+    <ModalFrame onClose={onClose} label={ui("Termos de Uso e Responsabilidade")} className="legacy-modal   ]   flex items-center justify-center p-3 sm:p-4 animate-in fade-in duration-200">
       <div
         id="terms-modal-card"
         className="w-full max-w-2xl max-h-[90vh] rounded-3xl bg-[#0E0E15] text-white border border-white/15 shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-200"
@@ -183,6 +181,6 @@ export const TermsModal: React.FC<TermsModalProps> = ({
           </div>
         </div>
       </div>
-    </div>
+    </ModalFrame>
   );
 };

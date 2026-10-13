@@ -1,3 +1,4 @@
+import { ModalFrame } from './ModalFrame';
 import { ui, useUi } from '../i18n/ui';
 import React from 'react';
 import { useLanguage } from '../context/LanguageContext';
@@ -22,10 +23,7 @@ export const LanguageModal: React.FC<LanguageModalProps> = ({ isOpen = true, onC
   if (!isOpen) return null;
 
   return (
-    <div
-      className="legacy-modal fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm animate-fadeIn"
-      onClick={onClose}
-    >
+    <ModalFrame onClose={onClose} label={ui("Idioma")} className="legacy-modal    flex items-center justify-center p-4   animate-fadeIn">
       <div
         className="bg-[#12121B] rounded-3xl w-full max-w-md shadow-2xl border border-white/15 overflow-hidden flex flex-col max-h-[85vh] animate-scaleUp"
         onClick={(e) => e.stopPropagation()}
@@ -135,6 +133,6 @@ export const LanguageModal: React.FC<LanguageModalProps> = ({ isOpen = true, onC
           </button>
         </div>
       </div>
-    </div>
+    </ModalFrame>
   );
 };

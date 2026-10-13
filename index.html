@@ -1,28 +1,30 @@
 <!doctype html>
-<html lang="pt-BR" class="dark" data-theme="original">
+<html lang="pt-BR" data-theme="skyglass">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <meta name="theme-color" content="#09090E" />
+    <meta name="theme-color" content="#EAF3FD" />
     <script>
       try {
-        var theme = localStorage.getItem("mocinhas_visual_theme") === "skyglass" ? "skyglass" : "original";
-        if (localStorage.getItem('mocinhas_visual_theme') === 'orely') theme = 'orely';
+        var savedTheme = localStorage.getItem("mocinhas_visual_theme");
+        var theme = ["original","skyglass","orely","lilac"].includes(savedTheme) ? savedTheme : "skyglass";
         document.documentElement.dataset.theme = theme;
         document.documentElement.classList.toggle("dark", theme === "original");
-        document.querySelector('meta[name="theme-color"]').content = theme === "skyglass" ? "#EAF3FD" : theme === "orely" ? "#E8DDFB" : "#09090E";
+        document.querySelector('meta[name="theme-color"]').content = ({skyglass:"#EAF3FD",orely:"#E8DDFB",lilac:"#E8DEFF",original:"#09090E"})[theme];
       } catch (_) {}
     </script>
     <title>mocinhas</title>
-    <meta name="description" content="Rede social exclusiva mocinhas com chat profissional, grupos, reels, stories e design moderno de alta fidelidade." />
+    <meta name="description" content="Mocinhas: fotos e vídeos publicados pela administração, com comentários, favoritos e um universo de conteúdo." />
     <meta property="og:title" content="mocinhas" />
-    <meta property="og:description" content="Rede social exclusiva mocinhas com chat profissional, grupos, reels, stories e design moderno de alta fidelidade." />
+    <meta property="og:description" content="Mocinhas: fotos e vídeos publicados pela administração, com comentários, favoritos e um universo de conteúdo." />
     <meta property="og:type" content="website" />
     <meta name="twitter:card" content="summary_large_image" />
     <link rel="stylesheet" href="/fonts/plus-jakarta.css">
     <style>
       html { --boot-bg:#09090e; --boot-text:#fff; --boot-muted:#94a3b8; }
-      html[data-theme="skyglass"] { --boot-bg:#eef5fe; --boot-text:#12172a; --boot-muted:#6b7280; color-scheme:light; }\n      html[data-theme="orely"] { --boot-bg:#f8f5ff; --boot-text:#171326; --boot-muted:#756d87; color-scheme:light; }
+      html[data-theme="skyglass"] { --boot-bg:#eef5fe; --boot-text:#12172a; --boot-muted:#6b7280; color-scheme:light; }
+      html[data-theme="lilac"] { --boot-bg:#e8deff; --boot-text:#201832; --boot-muted:#756d87; color-scheme:light; }
+      html[data-theme="orely"] { --boot-bg:#f8f5ff; --boot-text:#171326; --boot-muted:#756d87; color-scheme:light; }
       html,body { background:var(--boot-bg); color:var(--boot-text); margin:0; padding:0; min-height:100dvh; }
       .boot-screen { min-height:100dvh; display:grid; place-content:center; gap:12px; text-align:center; font-family:'Plus Jakarta Sans',sans-serif; }
       .boot-screen h1 { font-size:24px; margin:0; letter-spacing:-.5px; }

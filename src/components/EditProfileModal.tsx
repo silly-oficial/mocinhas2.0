@@ -1,3 +1,4 @@
+import { ModalFrame } from './ModalFrame';
 import { ui, useUi } from '../i18n/ui';
 import React, { useState } from 'react';
 import { X, Check, UserRound, LoaderCircle } from 'lucide-react';
@@ -8,7 +9,7 @@ export function EditProfileModal({ onClose, onProfileUpdated }: { onClose: () =>
   const { user, updateUser } = useAuth();
   const [name, setName] = useState(user?.displayName || '');
   const [saving, setSaving] = useState(false), [error, setError] = useState('');
-  return <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm grid place-items-center p-4" role="dialog" aria-modal="true" aria-label={ui("Editar perfil")}>
+  return <ModalFrame onClose={onClose} label={ui("Editar perfil")} className="     grid place-items-center p-4">
     <section className="niuniu-card w-full max-w-md overflow-hidden">
       <header className="p-5 flex items-center justify-between border-b border-white/10"><h2 className="font-bold">{ui("Editar perfil")}</h2><button className="icon-button" onClick={onClose} aria-label={ui("Fechar")}><X size={19} /></button></header>
       <form className="p-6 space-y-5" onSubmit={async e => { e.preventDefault(); if (!name.trim()) return; setSaving(true); setError(''); try { await updateUser({ displayName: name.trim() }); onProfileUpdated(); onClose(); } catch { setError("Não foi possível salvar. Tente novamente."); } finally { setSaving(false); } }}>
@@ -20,5 +21,5 @@ export function EditProfileModal({ onClose, onProfileUpdated }: { onClose: () =>
         <button disabled={saving || !name.trim()} className="w-full rounded-xl bg-emerald-500 text-black font-bold py-3 flex justify-center items-center gap-2 disabled:opacity-40">{saving ? <LoaderCircle size={18} className="animate-spin" /> : <Check size={18} />}{ui("Salvar alterações")}</button>
       </form>
     </section>
-  </div>;
+  </ModalFrame>;
 }

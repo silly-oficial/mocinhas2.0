@@ -1,3 +1,4 @@
+import { ModalFrame } from './ModalFrame';
 import { ui, useUi } from '../i18n/ui';
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Crown, Copy, Check, X, ShieldCheck, LoaderCircle, HeartHandshake } from 'lucide-react';
@@ -35,7 +36,7 @@ export function SyncpayModal({ onClose, onSuccess }: SyncpayModalProps) {
     catch (e: any) { if (mounted.current) setMessage(e.message); } finally { if (mounted.current) setBusy(false); }
   }
   const available = config?.enabled && config?.hasCredentials;
-  return <div role="dialog" aria-modal="true" aria-label={ui("Mocinhas Premium")} className="fixed inset-0 z-50 bg-black/75 flex items-center justify-center p-3">
+  return <ModalFrame onClose={onClose} label={ui("Mocinhas Premium")} className="    flex items-center justify-center p-3">
     <section className="w-full max-w-md max-h-[90dvh] overflow-y-auto bg-[var(--surface-card)] border border-emerald-500/20 rounded-3xl shadow-2xl text-white">
       <header className="relative p-6 bg-gradient-to-br from-emerald-950 via-emerald-900/50 to-[var(--surface-card)] text-center">
         <button aria-label={ui("Fechar Premium")} onClick={onClose} className="absolute top-3 right-3 rounded-full p-2 bg-black/20 hover:bg-white/10"><X size={20} /></button>
@@ -66,5 +67,5 @@ export function SyncpayModal({ onClose, onSuccess }: SyncpayModalProps) {
         {step === 'success' && <div className="text-center space-y-4"><Check className="mx-auto text-emerald-400" size={40} /><h3 className="font-bold">{ui("Pagamento confirmado")}</h3><p className="text-sm text-zinc-400">{ui("Seu Premium está ativo por 30 dias.")}</p><button onClick={onClose} className="w-full rounded-full bg-emerald-500 text-black py-3 font-bold">{ui("Continuar")}</button></div>}
       </div>
     </section>
-  </div>;
+  </ModalFrame>;
 }

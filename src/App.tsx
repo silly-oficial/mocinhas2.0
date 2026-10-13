@@ -1,3 +1,5 @@
+import { ModalFrame } from './components/ModalFrame';
+import { ChevronLeft, ChevronRight, Maximize2, ArrowRight, SlidersHorizontal, Tag, Layers } from 'lucide-react';
 import { ThemeProvider, useTheme } from './context/ThemeContext';
 import { ThemeModal } from './components/ThemeModal';
 import { TranslationStatus } from './components/TranslationStatus';
@@ -22,6 +24,8 @@ const cleanText = (value: string) => value.replace(/[\p{Extended_Pictographic}\p
 function Publication({ post, admin, onDeleted, onUpdate, onComments, onNotice, disabled, mediaActive = true }: { post: Post; admin: boolean; onDeleted: () => void; onUpdate: (value: Partial<Post> & { id: string }) => void; onComments: (post: Post) => void; onNotice: (message: string) => void; disabled: boolean; mediaActive?: boolean }) {
   useUi();
   const { language } = useLanguage();
+  const { theme } = useTheme();
+  const [mediaIndex, setMediaIndex] = useState(0), [fullImage, setFullImage] = useState(false), [expanded, setExpanded] = useState(false);
   const [busy, setBusy] = useState('');
   async function interact(action: 'like' | 'save') {
     if (busy || disabled) return;
@@ -29,6 +33,26 @@ function Publication({ post, admin, onDeleted, onUpdate, onComments, onNotice, d
     try { if (action === 'like') { const result = await api.toggleLikePost(post.id); onUpdate({ id: post.id, isLiked: result.isLiked, likesCount: result.likesCount }); }
       else { const result = await api.toggleSavePost(post.id); onUpdate({ id: post.id, isSaved: result.isSaved }); onNotice(result.isSaved ? "Publicação salva" : "Removida dos salvos"); } }
     catch (e: any) { onNotice(e.message); } finally { setBusy(''); }
+  }
+  const actions = <>
+    <button disabled={disabled || !!busy} aria-label={post.isLiked ? ui("Descurtir publicação") : ui("Curtir publicação")} aria-pressed={!!post.isLiked} onClick={() => interact('like')}><Heart size={21} fill={post.isLiked ? 'currentColor' : 'none'} /><span>{post.likesCount || 0}</span></button>
+    {post.allowComments !== false && <button disabled={disabled} aria-label={ui("Comentários")} onClick={() => onComments(post)}><MessageCircle size={21} /><span>{post.commentsCount || 0}</span></button>}
+    <button disabled={disabled || !!busy} aria-label={post.isSaved ? ui("Remover dos salvos") : ui("Salvar publicação")} aria-pressed={!!post.isSaved} onClick={() => interact('save')}><Bookmark size={21} fill={post.isSaved ? 'currentColor' : 'none'} /></button>
+  </>;
+  if (theme === 'skyglass') {
+    const m = post.media[Math.min(mediaIndex, post.media.length - 1)];
+    const visual = m && !['audio','pdf'].includes(m.type);
+    return <article className={`publication sky-publication ${visual ? 'has-visual' : 'document-publication'} ${fullImage ? 'show-full-media' : ''}`}>
+      <div className="sky-media-stage">
+        {m && <div className="publication-media" key={m.id}>
+          {m.type === 'video' ? <ManagedVideo active={!disabled && mediaActive} src={m.url} poster={m.thumbnail !== m.url ? m.thumbnail : undefined} className="sky-media" /> : m.type === 'audio' ? <audio controls src={m.url} onPlay={e => { document.querySelectorAll<HTMLMediaElement>('video,audio').forEach(v => { if (v !== e.currentTarget) v.pause(); }); if (disabled || !mediaActive) e.currentTarget.pause(); }} /> : m.type === 'pdf' ? <a className="sky-document-link" href={m.url} target="_blank" rel="noreferrer">{ui("Abrir documento")}<ArrowRight size={20}/></a> : <img loading="lazy" src={m.url} alt={cleanText(post.caption) || ui('Publicação')} className="sky-media"/>}
+        </div>}
+        <div className="sky-card-top"><time>{new Date(post.createdAt).toLocaleDateString(language)}</time>{post.media.length > 1 && <span>{mediaIndex + 1} / {post.media.length}</span>}{admin && <button aria-label={ui('Excluir publicação')} onClick={async () => { if (confirm(ui('Excluir esta publicação permanentemente?'))) { try { await api.deletePost(post.id); onDeleted(); } catch(e:any) { onNotice(e.message); } } }}><Trash2 size={18}/></button>}</div>
+        <div className="sky-action-rail">{actions}{visual && <button aria-label={ui(fullImage ? 'Enquadrar mídia' : 'Ver mídia completa')} aria-pressed={fullImage} onClick={() => setFullImage(v => !v)}><Maximize2 size={20}/></button>}</div>
+        {post.media.length > 1 && <div className="sky-media-pager"><button disabled={mediaIndex === 0} aria-label={ui('Mídia anterior')} onClick={() => { pauseMedia(); setMediaIndex(i => i - 1); }}><ChevronLeft size={20}/></button><button disabled={mediaIndex === post.media.length - 1} aria-label={ui('Próxima mídia')} onClick={() => { pauseMedia(); setMediaIndex(i => i + 1); }}><ChevronRight size={20}/></button></div>}
+        {post.caption && <div className={`sky-card-caption ${expanded ? 'expanded' : ''}`}><div><AutoTranslatedText text={cleanText(post.caption)}/></div>{post.caption.length > 95 && <button onClick={() => setExpanded(v => !v)}>{ui(expanded ? 'Ver menos' : 'Ver mais')}</button>}</div>}
+      </div>
+    </article>;
   }
   return <article className="publication niuniu-card overflow-hidden">
     <div className="flex items-center justify-between p-4 text-xs text-zinc-400"><time>{new Date(post.createdAt).toLocaleDateString(language)}</time>
@@ -43,6 +67,7 @@ function Publication({ post, admin, onDeleted, onUpdate, onComments, onNotice, d
       <button disabled={disabled || !!busy} aria-label={post.isSaved ? ui("Remover dos salvos") : ui("Salvar publicação")} aria-pressed={!!post.isSaved} className={`ml-auto disabled:opacity-40 ${post.isSaved ? 'text-emerald-400' : 'text-zinc-400'}`} onClick={() => interact('save')}><Bookmark size={20} fill={post.isSaved ? 'currentColor' : 'none'} /></button>
     </div>
   </article>;
+
 }
 function MainApp() {
   useUi();
@@ -51,31 +76,10 @@ function MainApp() {
   const { user, isLoading, logout } = useAuth();
   const [view, setView] = useState('feed'), [posts, setPosts] = useState<Post[]>([]), [loading, setLoading] = useState(false);
   const [modal, setModal] = useState(''), [selected, setSelected] = useState<Post | null>(null), [tags, setTags] = useState<string[]>([]);
-  const [feedToolbarHidden, setFeedToolbarHidden] = useState(false);
   const [commentsPost, setCommentsPost] = useState<Post | null>(null), [notice, setNotice] = useState('');
   const [hasAccess, setHasAccess] = useState(false);
   const loadedFor = useRef('');
   const headerRef = useRef<HTMLElement>(null);
-  // Esconde o título e os filtros do feed ao rolar para baixo, liberando a área dos vídeos.
-  useEffect(() => {
-    let lastY = window.scrollY;
-    let ticking = false;
-    const onScroll = () => {
-      if (ticking) return;
-      ticking = true;
-      window.requestAnimationFrame(() => {
-        const y = window.scrollY;
-        if (y < 90) setFeedToolbarHidden(false);
-        else if (y > lastY + 5) setFeedToolbarHidden(true);
-        else if (y < lastY - 5) setFeedToolbarHidden(false);
-        lastY = y;
-        ticking = false;
-      });
-    };
-    window.addEventListener('scroll', onScroll, { passive: true });
-    return () => window.removeEventListener('scroll', onScroll);
-  }, []);
-  useEffect(() => { setFeedToolbarHidden(false); }, [view]);
   useEffect(() => {
     const header = headerRef.current; if (!header) return;
     const measure = () => document.documentElement.style.setProperty("--app-header-height", `${header.getBoundingClientRect().height}px`);
@@ -118,36 +122,38 @@ function MainApp() {
     setCommentsPost(prev => prev?.id === value.id ? { ...prev, ...value } : prev);
   };
   const engagement = { onUpdate: updatePost, onComments: setCommentsPost, onNotice: setNotice, disabled: !leaseValid };
-  const nav = [{ id: 'feed', label: ui("Início"), icon: Home }, { id: 'videos', label: ui("Vídeos"), icon: Film }, { id: isAdmin ? 'create' : 'universe', label: isAdmin ? ui("Publicar") : ui("Universo"), icon: isAdmin ? Plus : Orbit }, { id: 'profile', label: ui("Conta"), icon: UserRound }];
+  const nav = theme === 'skyglass'
+    ? [{id:'feed',label:ui('Início'),icon:Home},{id:'videos',label:ui('Vídeos'),icon:Film},{id:'universe',label:ui('Universo'),icon:Orbit},{id:'saved',label:ui('Salvos'),icon:Heart},{id:'profile',label:ui('Conta'),icon:UserRound}]
+    : [{ id: 'feed', label: ui("Início"), icon: Home }, { id: 'videos', label: ui("Vídeos"), icon: Film }, { id: isAdmin ? 'create' : 'universe', label: isAdmin ? ui("Publicar") : ui("Universo"), icon: isAdmin ? Plus : Orbit }, { id: 'profile', label: ui("Conta"), icon: UserRound }];
   function navigate(id: string) { pauseMedia(); if (id === 'create') setModal('admin'); else { setView(id); setTags([]); setSelected(null); window.scrollTo(0, 0); } }
   if (isLoading) return <div className="min-h-screen grid place-items-center"><LoaderCircle className="animate-spin" /></div>;
   return <div className="app-shell min-h-screen max-w-7xl mx-auto px-3 sm:px-6 pb-28">
     <header ref={headerRef} className="app-header sticky top-0 z-30 py-3 bg-[var(--canvas-bg)]"><div className="app-topbar">
-      <div className="brand-group"><button className="brand-wordmark" onClick={() => navigate('feed')}>mocinhas</button>{user && quota && !quota.unlimited && <span className="quota-pill"><Clock size={15} />{Math.ceil((quota.remainingMs || 0) / 60000)} {ui("min")}</span>}</div>
+      <div className="brand-group">{theme === "skyglass" && <button className="sky-brand-avatar" aria-label={ui("Minha conta")} onClick={() => navigate(user ? "profile" : "feed")}>{user ? user.displayName.slice(0,2).toUpperCase() : <Orbit size={22}/>}</button>}<div className="brand-copy"><button className="brand-wordmark" onClick={() => navigate('feed')}>mocinhas</button>{user && quota && !quota.unlimited && <span className="quota-pill"><Clock size={15} />{Math.ceil((quota.remainingMs || 0) / 60000)} {ui("min")}</span>}</div></div>
       <div className="header-actions">
-        <button aria-label={ui("Aparência")} className="icon-button" onClick={() => setModal("theme")}><Palette size={19} /></button>
+        <button aria-label={ui("Aparência")} className="icon-button header-appearance" onClick={() => setModal("theme")}><Palette size={19} /></button>
 
-        <button aria-label={ui("Idioma")} className="icon-button" title={currentLanguageInfo.nativeName} onClick={() => setModal('language')}><Globe size={18} /></button>
-        {user && <button aria-label={ui("Publicações salvas")} className="icon-button" onClick={() => navigate('saved')}><Bookmark size={19} /></button>}
+        <button aria-label={ui("Idioma")} className="icon-button header-language" title={currentLanguageInfo.nativeName} onClick={() => setModal('language')}><Globe size={18} /></button>
+        {user && <button aria-label={ui("Publicações salvas")} className="icon-button header-saved" onClick={() => navigate('saved')}><Bookmark size={19} /></button>}
         {user && <button aria-label={ui("Premium")} className="icon-button premium-button" onClick={() => setModal('premium')}><Crown size={19} /></button>}
-        {isAdmin && <button className="header-admin hidden sm:flex items-center gap-2 p-2" onClick={() => setModal('admin')}><ShieldCheck size={19} /><span className="hidden sm:block">{ui("Admin")}</span></button>}
+        {isAdmin && <button aria-label={ui("Admin")} className="header-admin icon-button items-center gap-2 p-2" onClick={() => setModal('admin')}><ShieldCheck size={19} /><span className="hidden sm:block">{ui("Admin")}</span></button>}
         {!user && <button className="flex items-center gap-2" onClick={() => setModal('auth')}><LogIn size={19} />{ui("Entrar")}</button>}
       </div></div><TranslationStatus /></header>
-    <div className="app-layout flex gap-6"><aside className="app-sidebar hidden lg:block w-52 shrink-0"><nav className="niuniu-card p-3 sticky top-24 space-y-2">{nav.map(n => <button key={n.id} data-destination={n.id} aria-current={view === n.id ? "page" : undefined} onClick={() => navigate(n.id)} className={`w-full flex items-center gap-3 p-3 rounded-2xl ${view === n.id ? 'bg-emerald-500/15 text-emerald-300' : 'text-zinc-400 hover:bg-white/5'}`}><span className="nav-icon"><n.icon size={20} /></span>{n.label}</button>)}{isAdmin && <button className="w-full flex gap-3 p-3 text-zinc-400" onClick={() => navigate('universe')}><Orbit size={20} />{ui("Universo")}</button>}</nav></aside>
+    <div className="app-layout flex gap-6"><aside className="app-sidebar hidden lg:block w-52 shrink-0"><nav className="niuniu-card p-3 sticky top-24 space-y-2">{nav.map(n => <button aria-label={n.label} key={n.id} data-destination={n.id} aria-current={view === n.id ? "page" : undefined} onClick={() => navigate(n.id)} className={`w-full flex items-center gap-3 p-3 rounded-2xl ${view === n.id ? 'bg-emerald-500/15 text-emerald-300' : 'text-zinc-400 hover:bg-white/5'}`}><span className="nav-icon"><n.icon size={20} /></span>{n.label}</button>)}{isAdmin && theme !== "skyglass" && <button className="w-full flex gap-3 p-3 text-zinc-400" onClick={() => navigate('universe')}><Orbit size={20} />{ui("Universo")}</button>}</nav></aside>
     <main className="min-w-0 flex-1">
-      {!user ? <section className="welcome-card niuniu-card p-10 text-center space-y-4"><Orbit className="mx-auto text-emerald-400" size={40} /><h1 className="text-2xl font-bold">{ui("Seu universo de conteúdo")}</h1><p className="text-zinc-400">{ui("Entre para ver as publicações e os vídeos.")}</p><button className="rounded-full bg-emerald-500 text-black font-bold px-6 py-3" onClick={() => setModal('auth')}>{ui("Entrar ou criar conta")}</button></section> : view === 'profile' ? <section className="account-page max-w-2xl mx-auto space-y-5">
+      {!user ? <section className="welcome-card niuniu-card p-10 text-center space-y-4"><div className="sky-welcome-art" aria-hidden="true"><span>mocinhas</span><Orbit/></div><Orbit className="mx-auto text-emerald-400" size={40} /><h1 className="text-2xl font-bold">{ui("Seu universo de conteúdo")}</h1><p className="text-zinc-400">{ui("Entre para ver as publicações e os vídeos.")}</p><button className="rounded-full bg-emerald-500 text-black font-bold px-6 py-3" onClick={() => setModal('auth')}>{ui("Entrar ou criar conta")}</button></section> : view === 'profile' ? <section className="account-page max-w-2xl mx-auto space-y-5">
       <div className="niuniu-card overflow-hidden"><div className="account-cover"><span className="text-xs uppercase tracking-[.2em] text-emerald-200">{ui("Seu espaço")}</span><Orbit size={100} className="account-orbit" /></div>
       <div className="px-6 pb-6"><div className="account-monogram -mt-8 relative">{user.displayName.slice(0, 2).toUpperCase()}</div><div className="mt-4 flex items-center justify-between gap-3"><div className="min-w-0"><h1 className="text-2xl font-bold truncate">{user.displayName}</h1><p className="text-sm text-zinc-400 mt-1">{ui("Minha conta")}</p></div><span className="account-badge">{isAdmin ? ui("Administrador") : user.isPremium ? ui("Premium") : ui("Membro")}</span></div>
       <div className="grid grid-cols-2 gap-3 mt-6"><button onClick={() => navigate('saved')} className="account-stat"><Bookmark size={19} /><strong>{posts.filter(p => p.isSaved).length}</strong><span>{ui("Publicações salvas")}</span></button><div className="account-stat"><Clock size={19} /><strong>{quota?.unlimited ? ui("Sem limite") : `${Math.ceil((quota?.remainingMs || 0) / 60000)} min`}</strong><span>{ui("Tempo disponível")}</span></div></div></div></div>
-      <div className="niuniu-card p-2"><button className="account-row" onClick={() => setModal("theme")}><Palette size={20} /><span><strong>{ui("Aparência")}</strong><small>{theme === "lilac" ? "Lilac Studio" : theme === "skyglass" ? "Skyglass" : theme === "orely" ? "Orelly Pop" : "Original"}</small></span><span aria-hidden="true">›</span></button><button className="account-row" onClick={() => setModal('edit')}><Settings size={20} /><span><strong>{ui("Editar perfil")}</strong><small>{ui("Seu nome nos comentários")}</small></span><span aria-hidden="true">›</span></button><button className="account-row" onClick={() => setModal('language')}><Globe size={20} /><span><strong>{ui("Idioma do aplicativo")}</strong><small>{currentLanguageInfo.nativeName}</small></span><span aria-hidden="true">›</span></button><button className="account-row" onClick={() => setModal('premium')}><Crown size={20} /><span><strong>{ui("Mocinhas Premium")}</strong><small>{ui("Gerencie seu acesso Premium")}</small></span><span aria-hidden="true">›</span></button></div>
+      <div className="niuniu-card p-2">{isAdmin && <button className="account-row" onClick={() => setModal("admin")}><ShieldCheck size={20}/><span><strong>{ui("Painel Administrativo")}</strong><small>{ui("Publicações e configurações")}</small></span><span aria-hidden="true">›</span></button>}<button className="account-row" onClick={() => setModal("theme")}><Palette size={20} /><span><strong>{ui("Aparência")}</strong><small>{theme === "lilac" ? "Lilac Studio" : theme === "skyglass" ? "Skyglass" : theme === "orely" ? "Orelly Pop" : "Original"}</small></span><span aria-hidden="true">›</span></button><button className="account-row" onClick={() => setModal('edit')}><Settings size={20} /><span><strong>{ui("Editar perfil")}</strong><small>{ui("Seu nome nos comentários")}</small></span><span aria-hidden="true">›</span></button><button className="account-row" onClick={() => setModal('language')}><Globe size={20} /><span><strong>{ui("Idioma do aplicativo")}</strong><small>{currentLanguageInfo.nativeName}</small></span><span aria-hidden="true">›</span></button><button className="account-row" onClick={() => setModal('premium')}><Crown size={20} /><span><strong>{ui("Mocinhas Premium")}</strong><small>{ui("Gerencie seu acesso Premium")}</small></span><span aria-hidden="true">›</span></button></div>
       <button className="account-row text-zinc-400 w-full rounded-2xl border border-white/10" onClick={() => { pauseMedia(); logout(); }}><LogOut size={19} /><span>{ui("Sair da conta")}</span></button>
       </section> : !allowed ? <section className="niuniu-card p-10 text-center space-y-4"><Clock className="mx-auto text-emerald-400" size={36} /><h1 className="text-xl font-bold">{quota?.blocked ? ui("Seu tempo de hoje terminou") : error ? ui("Não foi possível autorizar o acesso") : ui("Verificando seu acesso")}</h1><p className="text-zinc-400">{quota?.blocked ? `${ui('Disponível novamente em')} ${new Date(quota.resetAt).toLocaleString(language)}.` : ui(error || 'Aguarde um instante.')}</p></section> : <>
-        {(view === 'videos' || view === 'feed' || view === 'saved') && <div className={`feed-toolbar sticky top-[85px] z-20 bg-[var(--canvas-bg)] py-3 transition-[transform,opacity] duration-200 ${feedToolbarHidden ? '-translate-y-[130%] opacity-0 pointer-events-none' : 'translate-y-0 opacity-100'}`}>{view !== 'feed' && <h1 className="font-bold text-xl mb-3">{view === 'videos' ? ui("Vídeos") : ui("Publicações salvas")}</h1>}<div className="flex gap-2 overflow-x-auto pb-2"><button className={`tag-chip ${!tags.length ? 'selected' : ''}`} onClick={() => setTags([])}>{ui("Todos")}</button>{allTags.map(t => <button aria-pressed={tags.includes(t)} key={t} className={`tag-chip ${tags.includes(t) ? 'selected' : ''}`} onClick={() => setTags(prev => prev.includes(t) ? prev.filter(v => v !== t) : [...prev, t])}>#{t}</button>)}</div></div>}
+        {(view === 'videos' || view === 'feed' || view === 'saved') && <div className={`feed-toolbar relative z-10 bg-[var(--canvas-bg)] py-3 transition-[transform,opacity] duration-200 `}>{view !== 'feed' && <h1 className="font-bold text-xl mb-3">{view === 'videos' ? ui("Vídeos") : ui("Publicações salvas")}</h1>}<div className="tag-scroll flex gap-2 overflow-x-auto pb-2"><button aria-pressed={!tags.length} className={`tag-chip ${!tags.length ? 'selected' : ''}`} onClick={() => setTags([])}>{theme === "skyglass" && <span className="sky-filter-icon"><Layers size={18}/></span>}<span>{ui("Todos")}</span></button>{allTags.map((t,index) => <button aria-pressed={tags.includes(t)} title={"#"+t} key={t} className={`tag-chip ${tags.includes(t) ? 'selected' : ''}`} onClick={() => setTags(prev => prev.includes(t) ? prev.filter(v => v !== t) : [...prev, t])}>{theme === "skyglass" && <span className="sky-filter-icon" data-color={index % 5}><Tag size={18}/></span>}<span>#{t}</span></button>)}</div></div>}
         {view === 'universe' ? <UniverseFeed posts={posts} isLoading={loading} paused={!!selected || !!modal || !!commentsPost || !leaseValid} onSelectPost={setSelected} onSwitchToList={() => navigate('feed')} /> : <div className="publication-list max-w-2xl mx-auto space-y-5">{loading && !posts.length ? <LoaderCircle className="animate-spin mx-auto" /> : shown.map(p => <Publication mediaActive={!modal && !selected && !commentsPost} key={p.id} post={p} admin={isAdmin} {...engagement} onDeleted={load} />)}{!loading && !shown.length && <p className="niuniu-card p-8 text-center text-zinc-400">{tags.length ? ui("Nenhuma publicação com as hashtags selecionadas.") : ui("Ainda não há publicações.")}</p>}</div>}
       </>}
     </main></div>
-    <nav aria-label={ui("Navegação principal")} className="app-bottom-nav lg:hidden fixed bottom-3 left-3 right-3 max-w-lg mx-auto z-40 niuniu-card flex justify-around p-2 pb-safe">{nav.map(n => <button key={n.id} data-destination={n.id} aria-current={view === n.id ? "page" : undefined} onClick={() => navigate(n.id)} className={`flex flex-col items-center gap-1 px-3 py-2 rounded-2xl ${view === n.id ? 'text-emerald-300 bg-emerald-500/10' : 'text-zinc-400'}`}><span className="nav-icon"><n.icon size={21} /></span><span className="text-[10px]">{n.label}</span></button>)}</nav>
-    {selected && allowed && <div className="fixed inset-0 z-50 bg-black/80 overflow-y-auto p-4" role="dialog" aria-modal="true" aria-label={ui("Publicação")}><div className="max-w-2xl mx-auto"><button className="p-3 bg-[var(--surface-card)] rounded-full mb-3" aria-label={ui("Fechar")} onClick={() => setSelected(null)}><X /></button><Publication mediaActive={!modal && !commentsPost} post={selected} admin={isAdmin} {...engagement} onDeleted={() => { setSelected(null); load(); }} /></div></div>}
+    <nav aria-label={ui("Navegação principal")} className="app-bottom-nav lg:hidden fixed bottom-3 left-3 right-3 max-w-lg mx-auto z-40 niuniu-card flex justify-around p-2 pb-safe">{nav.map(n => <button aria-label={n.label} key={n.id} data-destination={n.id} aria-current={view === n.id ? "page" : undefined} onClick={() => navigate(n.id)} className={`flex flex-col items-center gap-1 px-3 py-2 rounded-2xl ${view === n.id ? 'text-emerald-300 bg-emerald-500/10' : 'text-zinc-400'}`}><span className="nav-icon"><n.icon size={21} /></span><span className="nav-label text-[10px]">{n.label}</span></button>)}</nav>
+    {selected && allowed && <ModalFrame label={ui("Publicação")} onClose={() => setSelected(null)} className="publication-dialog grid place-items-center overflow-y-auto p-4"><div className="max-w-2xl mx-auto"><button className="p-3 bg-[var(--surface-card)] rounded-full mb-3" aria-label={ui("Fechar")} onClick={() => setSelected(null)}><X /></button><Publication mediaActive={!modal && !commentsPost} post={selected} admin={isAdmin} {...engagement} onDeleted={() => { setSelected(null); load(); }} /></div></ModalFrame>}
     {(notice || error || (hasAccess && !leaseValid && !quota?.blocked)) && <div role="status" aria-live="polite" className="fixed bottom-28 left-1/2 -translate-x-1/2 z-[70] pointer-events-none rounded-full bg-[var(--surface-elevated)] border border-white/15 text-xs text-zinc-300 px-4 py-2 shadow-lg max-w-[90vw]">{ui(notice || error || 'Reconectando…')}</div>}
     {commentsPost && allowed && <CommentsModal post={commentsPost} onClose={() => setCommentsPost(null)} onNavigateUser={() => {}} onCommentCountChange={(id, count) => updatePost({ id, commentsCount: count })} />}
     {modal === 'theme' && <ThemeModal onClose={() => setModal('')} />}

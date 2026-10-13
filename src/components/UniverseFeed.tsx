@@ -239,9 +239,9 @@ const NodeView = React.memo(function NodeView({ node, tier, focused, lite, sound
             height: '100%',
             overflow: 'hidden',
             background: planetBg,
-            borderRadius: focused ? 28 : 40,
+            borderRadius: focused ? 'var(--uni-radius-focus, 28px)' : 'var(--uni-radius, 40px)',
             boxShadow: focused ? 'var(--uni-node-focus-shadow, 0 0 0 2px #34d399, 0 16px 48px #0008)' : 'var(--uni-node-shadow, 0 0 0 1px #ffffff30, 0 8px 24px #0008)',
-            transition: 'border-radius 380ms ease',
+            transition: 'opacity 160ms ease',
           }}
         >
           {poster && (
@@ -277,6 +277,7 @@ const NodeView = React.memo(function NodeView({ node, tier, focused, lite, sound
               width: Math.max(d, 200),
               transform: 'translateX(-50%)',
               textAlign: 'center',
+              display: 'var(--uni-label-display, block)',
               fontSize: 20,
               fontWeight: 800,
               color: 'var(--uni-label, #fff)',
@@ -811,6 +812,7 @@ export const UniverseFeed: React.FC<UniverseFeedProps> = ({
       className="universe-frame relative w-full rounded-[28px] overflow-hidden border border-white/10 bg-[#05050b] select-none"
       style={{ height: 'calc(100dvh - 10.5rem)', minHeight: 420 }}
     >
+      <h1 className="sky-universe-title">{ui("Universo")}</h1>
       {/* Área de gestos + mundo */}
       <div
         ref={rootRef}
@@ -861,7 +863,7 @@ export const UniverseFeed: React.FC<UniverseFeedProps> = ({
       )}
 
       {/* Barra superior: busca + modo lista */}
-      <div className="absolute top-3 left-3 right-3 flex items-center gap-2 z-10 pointer-events-none">
+      <div className="universe-search-row absolute top-3 left-3 right-3 flex items-center gap-2 z-10 pointer-events-none">
         <div className="relative flex-1 pointer-events-auto">
           <div
             className={`universe-search flex items-center gap-2 px-3.5 py-2 rounded-full border border-white/15 ${
@@ -928,7 +930,7 @@ export const UniverseFeed: React.FC<UniverseFeedProps> = ({
       </div>
 
       {/* Controles de zoom */}
-      <div className="absolute right-3 top-16 z-10 flex flex-col gap-2">
+      <div className="universe-zoom-rail absolute right-3 top-16 z-10 flex flex-col gap-2">
         {[
           { label: ui("Aproximar"), icon: Plus, onClick: () => zoomBy(1.7) },
           { label: ui("Afastar"), icon: Minus, onClick: () => zoomBy(1 / 1.7) },

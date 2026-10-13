@@ -2,10 +2,10 @@ import React, { createContext, useContext, useEffect, useLayoutEffect, useState 
 
 export type AppTheme = 'original' | 'skyglass' | 'orely' | 'lilac';
 export const THEME_KEY = 'mocinhas_visual_theme';
-// Lilac Studio is a new theme based on the supplied mobile UI reference.
-const normalize = (value: unknown): AppTheme => value === 'skyglass' || value === 'original' || value === 'orely' || value === 'lilac' ? value : 'lilac';
+// Skyglass is the default for new browsers; saved theme selections remain valid.
+const normalize = (value: unknown): AppTheme => value === 'skyglass' || value === 'original' || value === 'orely' || value === 'lilac' ? value : 'skyglass';
 function readTheme(): AppTheme {
-  try { return normalize(localStorage.getItem(THEME_KEY)); } catch { return 'lilac'; }
+  try { return normalize(localStorage.getItem(THEME_KEY)); } catch { return 'skyglass'; }
 }
 const ThemeContext = createContext<{ theme: AppTheme; setTheme: (theme: AppTheme) => void; persisted: boolean } | null>(null);
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
