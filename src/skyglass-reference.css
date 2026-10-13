@@ -322,3 +322,7 @@ html[data-theme=skyglass] body { background-image:var(--sky-bg);background-size:
 [data-theme=skyglass] .modal-frame .media-seek { font-size:inherit;min-height:44px; }
 .publication :is(img,video),.welcome-carousel :is(img,video),.universe-frame img { -webkit-touch-callout:none;-webkit-user-select:none;user-select:none;-webkit-user-drag:none; }
 @media(prefers-reduced-motion:reduce) { .welcome-slide { animation:none; } }
+
+/* Processed frames follow the exact same fit and crop as the original video. */
+.media-enhanced { position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:1; }
+[data-theme=skyglass] .show-full-media:has(video) .publication-media,[data-theme=skyglass] .show-full-media:has(video) .video-shell { background:#080c14; }

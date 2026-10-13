@@ -1,0 +1,10 @@
+import assert from 'node:assert/strict';
+import {mediaFeed} from '../src/media/feed';
+import type {Post} from '../src/types';
+const posts=[{id:'mixed',caption:'#mixed',isSaved:true,media:[{id:'p',type:'image',url:'/photo.jpg'},{id:'v',type:'video',url:'/video.mp4'}]},{id:'video',media:[{id:'v2',type:'video',url:'/other.mp4'}]},{id:'photo',media:[{id:'p2',type:'image',url:'/other.jpg'}]}] as Post[];
+const original=JSON.stringify(posts);
+assert.deepEqual(mediaFeed(posts,'feed').map(p=>[p.id,p.media.map(m=>m.id)]),[['mixed',['p']],['photo',['p2']]]);
+assert.deepEqual(mediaFeed(posts,'videos').map(p=>[p.id,p.media.map(m=>m.id)]),[['mixed',['v']],['video',['v2']]]);
+assert.equal(mediaFeed(posts,'feed')[0].isSaved,true);
+assert.equal(JSON.stringify(posts),original,'navigation must not modify persisted albums');
+console.log('Media feed passed: separate tabs, mixed albums preserved, engagement retained, original state unchanged.');

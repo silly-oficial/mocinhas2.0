@@ -1,3 +1,5 @@
+import {useVideoClarity} from '../media/videoQuality';
+import {startVideoEnhancer} from '../media/videoEnhancer';
 import React, { useEffect, useRef, useState } from 'react';
 import { Volume2, VolumeX, Play } from 'lucide-react';
 import { useUi } from '../i18n/ui';
@@ -38,6 +40,8 @@ export function ManagedVideo({ src, poster, className, active = true, universe =
   src: string; poster?: string; className?: string; active?: boolean; universe?: boolean; soundOn?: boolean; onElement?: (element: HTMLVideoElement | null) => void;
 }) {
   const ref = useRef<HTMLVideoElement>(null);
+  const canvas=useRef<HTMLCanvasElement>(null),clarity=useVideoClarity();
+  const [enhanced,setEnhanced]=useState(false),[bypass,setBypass]=useState(false);
   const [muted, setMuted] = useState(true), [playing, setPlaying] = useState(false);
   const ui = useUi();
   const [duration,setDuration]=useState(0),[position,setPosition]=useState(0);
@@ -56,7 +60,7 @@ export function ManagedVideo({ src, poster, className, active = true, universe =
       choose();
     }, { threshold: [0, .25, .55, .75, 1] });
     candidates.set(video, { ratio: universe ? 1 : 0, active });
-    setDuration(0);setPosition(0);
+    setDuration(0);setPosition(0);setBypass(false);setEnhanced(false);
     video.src = src;
     video.load();
     observer.observe(video);
@@ -73,6 +77,7 @@ export function ManagedVideo({ src, poster, className, active = true, universe =
     if (!active) video.pause();
     choose();
   }, [active]);
+  useEffect(()=>{setEnhanced(false);if(!clarity||bypass||!playing||!active)return;const v=ref.current,c=canvas.current;if(!v||!c)return;return startVideoEnhancer(v,c,()=>setEnhanced(true),()=>{setEnhanced(false);setBypass(true);});},[src,clarity,bypass,playing,active]);
   return <div className={universe ? 'absolute inset-0' : 'relative video-shell'}>
     <video ref={ref} poster={poster} muted={universe ? !soundOn : muted} loop playsInline preload="metadata" controls={false} controlsList="nodownload noremoteplayback" disablePictureInPicture disableRemotePlayback onContextMenu={e=>e.preventDefault()}
       className={className || 'w-full max-h-[75vh] object-contain'}
@@ -81,6 +86,7 @@ export function ManagedVideo({ src, poster, className, active = true, universe =
       onLoadedMetadata={event => { const v = event.currentTarget; setDuration(Number.isFinite(v.duration)?v.duration:0); if (!poster && v.paused && v.duration > .1) v.currentTime = .05; }}
       onPlay={event => { if (!active) event.currentTarget.pause(); else setPlaying(true); }} onPause={() => setPlaying(false)}
       onVolumeChange={event => setMuted(event.currentTarget.muted)} />
+    {clarity&&!bypass&&playing&&active&&<canvas key={src} ref={canvas} aria-hidden="true" className={`${className || 'w-full max-h-[75vh] object-contain'} media-enhanced`} style={{visibility:enhanced?'visible':'hidden'}}/>}
     {!universe && <input className="media-seek" type="range" aria-label={ui('Posição do vídeo')} aria-valuetext={`${format(position)} / ${format(duration)}`} min="0" max={duration||1} step="0.1" value={Math.min(position,duration||1)} disabled={!active||duration<=0}
       style={{'--seek-progress':`${duration?position/duration*100:0}%`} as React.CSSProperties}
       onPointerDown={()=>{seeking.current=true;}} onPointerUp={()=>{seeking.current=false;}} onPointerCancel={()=>{seeking.current=false;}} onBlur={()=>{seeking.current=false;}}
