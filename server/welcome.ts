@@ -17,13 +17,15 @@ export function validateWelcome(value:any):WelcomeConfig {
     if((s.type==='video')!==/\.(mp4|webm|mov|m4v)$/i.test(file))throw Error('Tipo da mídia inválido.');
     let id=typeof s.id==='string'&&/^[a-zA-Z0-9_-]{1,80}$/.test(s.id)?s.id:randomUUID();
     if(seen.has(id))throw Error('Mídias com identificador repetido.');seen.add(id);
-    return {id,type:s.type,url:s.url,name:typeof s.name==='string'?s.name.slice(0,120):undefined};
+    if(s.frame && (!['cover','contain'].includes(s.frame.fit) || !Number.isFinite(s.frame.x) || s.frame.x<0 || s.frame.x>100 || !Number.isFinite(s.frame.y) || s.frame.y<0 || s.frame.y>100 || !Number.isFinite(s.frame.zoom) || s.frame.zoom<1 || s.frame.zoom>2.5))throw Error('Enquadramento inválido.');
+    const frame=s.frame?{fit:s.frame.fit,x:s.frame.x,y:s.frame.y,zoom:s.frame.zoom}:undefined;
+    return {id,type:s.type,url:s.url,frame,name:typeof s.name==='string'?s.name.slice(0,120):undefined};
   });
   return {intervalSeconds:value.intervalSeconds,slides};
 }
 export function installWelcome(app:express.Express,db:typeof DB,admin:express.RequestHandler){
   const config=()=>db.get().welcomeCarousel||fallback;
-  app.get('/api/welcome',(_req,res)=>{res.setHeader('Cache-Control','no-store');const c=config();res.json({intervalSeconds:c.intervalSeconds,slides:c.slides.map(s=>({id:s.id,type:s.type,url:'/api/welcome/media/'+s.id}))});});
+  app.get('/api/welcome',(_req,res)=>{res.setHeader('Cache-Control','no-store');const c=config();res.json({intervalSeconds:c.intervalSeconds,slides:c.slides.map(s=>({id:s.id,type:s.type,frame:s.frame,url:'/api/welcome/media/'+s.id}))});});
   app.get('/api/admin/welcome',admin,(_req,res)=>res.json(config()));
   app.put('/api/admin/welcome',admin,(req,res)=>{try{const c=validateWelcome(req.body);db.get().welcomeCarousel=c;db.save();res.json(c);}catch(e:any){res.status(400).json({error:e.message});}});
   // Only explicitly selected promotional slides are public, never the private uploads route.

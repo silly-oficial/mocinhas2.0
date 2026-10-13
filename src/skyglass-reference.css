@@ -289,13 +289,23 @@ html[data-theme=skyglass] body { background-image:var(--sky-bg);background-size:
 [data-theme=skyglass] .document-publication .sky-document-link { margin-top:0; }
 /* The entrance artwork keeps its original dimensions; only its contents cycle. */
 [data-theme=skyglass] .welcome-carousel { position:relative;isolation:isolate; }
-.welcome-slide { position:absolute;inset:0;z-index:-1;animation:welcome-dissolve 400ms ease; }
+ .welcome-slide { position:absolute;inset:0;z-index:0;opacity:0;pointer-events:none;overflow:hidden;background:#0b1930; }
+.welcome-slide.is-previous { opacity:1;z-index:1; }
+.welcome-slide.is-current { opacity:1;z-index:2;animation:welcome-dissolve 400ms ease; }
 .welcome-slide :is(img,video) { width:100%;height:100%;object-fit:cover;object-position:center; }
-[data-theme=skyglass] .welcome-carousel:has(.welcome-slide)::after { content:'';position:absolute;inset:0;background:linear-gradient(transparent 50%,#08143c77);z-index:-1;pointer-events:none; }
-[data-theme=skyglass] .welcome-carousel .welcome-wordmark { pointer-events:none; }
-[data-theme=skyglass] .welcome-carousel-controls { position:absolute;bottom:16px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:8px;color:#fff; }
-[data-theme=skyglass] .welcome-carousel-controls button { width:44px;height:44px;border-radius:50%;background:#08143ca6;display:grid;place-items:center;border:1px solid #ffffff59; }
-[data-theme=skyglass] .welcome-carousel-controls>span { position:static;font-size:12px;font-weight:600;letter-spacing:normal;background:#08143ca6;padding:6px 10px;border-radius:999px;color:white; }
+[data-theme=skyglass] .welcome-carousel.has-slides { background:#0b1930; }
+[data-theme=skyglass] .welcome-edge { position:absolute;top:50%;transform:translateY(-50%);z-index:4;width:44px;height:44px;border-radius:50%;background:#08143c66;backdrop-filter:blur(12px);display:grid;place-items:center;color:white;border:1px solid #ffffff66; }
+[data-theme=skyglass] .welcome-edge-left { left:10px; }
+[data-theme=skyglass] .welcome-edge-right { right:10px; }
+[data-theme=skyglass] .welcome-edge:active { transform:translateY(-50%) scale(.96); }
+.welcome-edge:focus-visible { outline:2px solid white;outline-offset:3px; }
+.welcome-framing { width:100%;display:grid;gap:12px;padding-top:12px;border-top:1px solid var(--theme-border); }
+.welcome-framing label { display:grid;gap:6px;font-size:13px; }
+.welcome-framing p { color:var(--theme-muted);font-size:12px; }
+.welcome-framing input[type=range] { width:100%;min-height:44px;accent-color:#246ed6; }
+.welcome-framing select { width:100%;padding:10px;border-radius:12px;background:var(--theme-bg);color:var(--theme-text); }
+.welcome-frame-preview { position:relative;aspect-ratio:366/422;width:min(100%,300px);overflow:hidden;border-radius:20px;background:#0b1930;margin:auto; }
+.welcome-admin-list .welcome-frame-preview :is(img,video) { width:100%;height:100%;border-radius:0;max-width:none;object-fit:cover; }
 .welcome-admin-list video { width:48px;height:48px;border-radius:12px;object-fit:cover;flex-shrink:0; }
 .welcome-admin-list li { flex-wrap:wrap; }
 .welcome-admin-list li>span:not(.admin-file-icon) { min-width:100px; }

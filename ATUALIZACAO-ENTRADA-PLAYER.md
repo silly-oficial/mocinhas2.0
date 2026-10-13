@@ -2,7 +2,7 @@
 
 A área azul da entrada no tema Skyglass agora pode apresentar fotos e vídeos. O restante da tela e o degradê das publicações foram preservados.
 
-No Painel Administrativo, abra **Tela de entrada**. Adicione até 20 fotos ou vídeos, ajuste a ordem e o tempo de troca (2 a 30 segundos) e pressione **Salvar apresentação**. Cada arquivo pode ter até 50 MB. Vídeos da apresentação são reproduzidos sem som. Sem mídias, a arte azul original continua aparecendo. O carrossel tem navegação manual e pausa; respeita movimento reduzido e pausa quando a página fica oculta.
+No Painel Administrativo, abra **Tela de entrada**. Adicione até 20 fotos ou vídeos, ajuste a ordem e o tempo de troca (2 a 30 segundos) e pressione **Salvar apresentação**. Cada arquivo pode ter até 50 MB. No botão **Ajustar enquadramento** de cada mídia, ajuste posição horizontal, vertical e zoom com prévia, ou escolha **Mostrar mídia inteira**. Salve a apresentação para aplicar. O recorte se adapta à proporção da tela; a prévia usa a proporção mobile da entrada. Vídeos da apresentação são reproduzidos sem som. Sem mídias, a arte azul original continua aparecendo. As setas de navegação ficam nas bordas esquerda e direita da mídia, sem botão de pausa. O carrossel respeita movimento reduzido e interrompe reprodução quando a página fica oculta. As mídias são montadas e pré-carregadas em conjunto; a mídia atual permanece visível até a próxima foto ser decodificada ou o próximo vídeo ter seu primeiro quadro disponível. Não há retorno à arte azul nem à marca sobreposta durante as trocas.
 
 As mídias escolhidas e salvas nessa seção são públicas, pois aparecem antes do login. Somente os itens dessa apresentação recebem acesso público; as postagens e os demais uploads continuam protegidos. Remover um item e salvar revoga seu acesso público pela apresentação.
 
@@ -34,3 +34,7 @@ Não foram usados banco de produção nem pagamentos reais. Safari/iOS em dispos
 - `tests/welcome.test.mjs`, `package.json`.
 
 O ZIP inclui o projeto completo na raiz, sem node_modules, build gerado, caches, banco de execução ou credenciais privadas.
+
+## Verificação dos ajustes da entrada
+
+Lint, build e suíte npm test aprovados novamente. Os testes do servidor verificam também limites e persistência do enquadramento. No Chromium, uma resposta de vídeo foi atrasada intencionalmente: a foto anterior permaneceu visível enquanto o vídeo carregava. Foram conferidos pré-carregamento, setas nas bordas, ausência de pausa e marca sobreposta, prévia do enquadramento, salvamento e aplicação após recarregar, e ausência de overflow em 320/390/430/1280 px. O player de publicações permanece igual à entrega anterior e teve sua barra de avanço verificada novamente.
