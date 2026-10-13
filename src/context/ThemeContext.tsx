@@ -2,9 +2,10 @@ import React, { createContext, useContext, useEffect, useLayoutEffect, useState 
 
 export type AppTheme = 'original' | 'skyglass' | 'orely';
 export const THEME_KEY = 'mocinhas_visual_theme';
-const normalize = (value: unknown): AppTheme => value === 'skyglass' || value === 'orely' ? value : 'original';
+// Orelly Pop is the reference-inspired default for fresh installations.
+const normalize = (value: unknown): AppTheme => value === 'skyglass' || value === 'original' || value === 'orely' ? value : 'orely';
 function readTheme(): AppTheme {
-  try { return normalize(localStorage.getItem(THEME_KEY)); } catch { return 'original'; }
+  try { return normalize(localStorage.getItem(THEME_KEY)); } catch { return 'orely'; }
 }
 const ThemeContext = createContext<{ theme: AppTheme; setTheme: (theme: AppTheme) => void; persisted: boolean } | null>(null);
 export function ThemeProvider({ children }: { children: React.ReactNode }) {

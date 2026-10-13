@@ -482,3 +482,101 @@ html[data-theme="orely"] body {
   [data-theme="orely"] .legacy-modal > div { max-height:calc(100dvh - 24px) !important; width:100% !important; }
   [data-theme="orely"] .legacy-modal .admin-tabs { padding-inline:12px !important; }
 }
+
+
+/* Reference-inspired finish: lavender canvas, colorful editorial surfaces,
+   rounded controls and a compact pill navigation, applied to every existing route. */
+:root[data-theme="orely"] {
+  --canvas-bg:#F7F3FF;
+  --surface-card:#FFFEFC;
+  --surface-elevated:#F0E7FF;
+  --accent-purple:#8B5BE7;
+  --orely-lavender:#B88BFA;
+  --orely-blue:#A8C9FF;
+  --orely-orange:#FFC15B;
+  --orely-pink:#F49AE8;
+  --orely-yellow:#E0FF45;
+}
+[data-theme="orely"] .app-shell { color:var(--orely-ink); }
+[data-theme="orely"] .app-header { background:rgba(247,243,255,.92) !important; }
+[data-theme="orely"] .app-topbar {
+  border:1px solid #E6DDF2 !important;
+  border-radius:24px !important;
+  padding:10px 14px !important;
+}
+[data-theme="orely"] .app-layout { align-items:flex-start; }
+[data-theme="orely"] .app-sidebar nav { border-radius:24px !important; }
+[data-theme="orely"] .app-sidebar button,
+[data-theme="orely"] .app-bottom-nav button { min-height:44px; }
+[data-theme="orely"] .welcome-card {
+  background:linear-gradient(135deg,#DCCBFF 0%,#C4A7FF 58%,#B7D4FF 100%) !important;
+  color:#201832 !important;
+  border:0 !important;
+}
+[data-theme="orely"] .welcome-card h1,
+[data-theme="orely"] .welcome-card p { color:#201832 !important; }
+[data-theme="orely"] .welcome-card svg { color:#7042C4 !important; }
+[data-theme="orely"] .publication-list { gap:20px; }
+[data-theme="orely"] .publication {
+  overflow:hidden;
+  border-radius:24px !important;
+}
+[data-theme="orely"] .publication-actions button { min-width:44px; min-height:44px; }
+[data-theme="orely"] .feed-toolbar { border-radius:20px; }
+[data-theme="orely"] .tag-chip {
+  border-color:#D9C9F4 !important;
+  background:#FFFEFC !important;
+  color:#746A86 !important;
+}
+[data-theme="orely"] .tag-chip.selected {
+  background:#D7FF38 !important;
+  border-color:#201832 !important;
+  color:#201832 !important;
+}
+[data-theme="orely"] .premium-button {
+  background:#F0E7FF !important;
+  border:1px solid #D9C9F4 !important;
+  color:#7042C4 !important;
+  border-radius:999px !important;
+}
+[data-theme="orely"] .quota-pill {
+  background:#FFFEFC;
+  border:1px solid #E6DDF2;
+  border-radius:999px;
+  padding:7px 10px;
+}
+[data-theme="orely"] .account-row,
+[data-theme="orely"] .account-stat { border-radius:18px !important; }
+[data-theme="orely"] .legacy-modal,
+[data-theme="orely"] [role="dialog"] {
+  color:#201832;
+}
+[data-theme="orely"] :is(input,textarea,select) {
+  min-height:44px;
+  border-color:#D9C9F4 !important;
+}
+[data-theme="orely"] textarea { min-height:100px; }
+[data-theme="orely"] :is(button,a,[role="button"]) { -webkit-tap-highlight-color:transparent; }
+[data-theme="orely"] :is(button,a,[role="button"]):focus-visible {
+  outline:3px solid #8B5BE7 !important;
+  outline-offset:3px;
+}
+[data-theme="orely"] ::selection { background:#DCCBFF; color:#201832; }
+[data-theme="orely"] ::-webkit-scrollbar-thumb { background:#C7B1E9; }
+[data-theme="orely"] ::-webkit-scrollbar-thumb:hover { background:#A889D7; }
+@media (max-width:640px) {
+  [data-theme="orely"] .app-shell { padding-inline:12px; }
+  [data-theme="orely"] .app-header { padding-bottom:8px; }
+  [data-theme="orely"] .app-bottom-nav {
+    bottom:calc(8px + env(safe-area-inset-bottom)) !important;
+    left:10px !important; right:10px !important;
+    width:auto !important; max-width:520px;
+    border-radius:24px !important;
+    padding:7px !important;
+  }
+  [data-theme="orely"] .app-bottom-nav button { flex:1; min-width:0; }
+  [data-theme="orely"] .publication-list { padding-inline:0; }
+}
+@media (prefers-reduced-motion:reduce) {
+  [data-theme="orely"] :is(button,a,[role="button"],.niuniu-card) { transition:none !important; }
+}
