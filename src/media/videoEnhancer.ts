@@ -2,7 +2,7 @@
 // No remote API, model, generated detail, transcoding or change to stored media.
 const vertex=`attribute vec2 p;varying vec2 uv;void main(){uv=p*.5+.5;gl_Position=vec4(p,0.,1.);}`;
 export const clarityFragment=`precision mediump float;
-uniform sampler2D image;uniform vec2 stepSize;varying vec2 uv;
+uniform sampler2D image;uniform vec2 stepSize;uniform float intensity;varying vec2 uv;
 float luma(vec3 c){return dot(c,vec3(.299,.587,.114));}
 void main(){
  vec3 c=texture2D(image,uv).rgb;
@@ -10,20 +10,24 @@ void main(){
  vec3 s=texture2D(image,uv-vec2(0.,stepSize.y)).rgb;
  vec3 e=texture2D(image,uv+vec2(stepSize.x,0.)).rgb;
  vec3 w=texture2D(image,uv-vec2(stepSize.x,0.)).rgb;
- vec3 blur=(n+s+e+w+c*4.)/8.;
+ vec3 diagonal=texture2D(image,uv+stepSize).rgb+texture2D(image,uv-stepSize).rgb+texture2D(image,uv+vec2(stepSize.x,-stepSize.y)).rgb+texture2D(image,uv+vec2(-stepSize.x,stepSize.y)).rgb;
+ vec3 blur=(n+s+e+w+diagonal+c*4.)/12.;
  float contrast=abs(luma(c)-luma(blur));
  // Leave flat areas mostly untouched to avoid amplifying compression noise.
- vec3 sharp=clamp((c-blur)*.65,vec3(-.045),vec3(.045));
- vec3 outColor=c+sharp*smoothstep(.005,.025,contrast);
+ float amount=clamp(intensity,0.,1.);
+ float gain=4.5*amount*amount;
+ float limit=.18*amount;
+ vec3 sharp=clamp((c-blur)*gain,vec3(-limit),vec3(limit));
+ vec3 outColor=c+sharp*smoothstep(.003,.018,contrast);
  float wn=exp(-abs(luma(n)-luma(c))*35.);
  float ws=exp(-abs(luma(s)-luma(c))*35.);
  float we=exp(-abs(luma(e)-luma(c))*35.);
  float ww=exp(-abs(luma(w)-luma(c))*35.);
  vec3 smoothColor=(c*4.+n*wn+s*ws+e*we+w*ww)/(4.+wn+ws+we+ww);
- outColor=mix(outColor,smoothColor,.12*(1.-smoothstep(.005,.025,contrast)));
+ outColor=mix(outColor,smoothColor,.22*amount*(1.-smoothstep(.003,.018,contrast)));
  gl_FragColor=vec4(clamp(outColor,0.,1.),1.);
 }`;
-export function startVideoEnhancer(video:HTMLVideoElement,canvas:HTMLCanvasElement,onReady:()=>void,onFallback:()=>void){
+export function startVideoEnhancer(video:HTMLVideoElement,canvas:HTMLCanvasElement,onReady:()=>void,onFallback:()=>void,getIntensity:()=>number=()=>70){
  const gl=canvas.getContext('webgl',{alpha:false,antialias:false,depth:false,stencil:false,preserveDrawingBuffer:false,powerPreference:'low-power'});
  if(!gl){onFallback();return()=>{};}
  let stopped=false,frame=0,raf=0,slow=0,announced=false;
@@ -41,6 +45,7 @@ export function startVideoEnhancer(video:HTMLVideoElement,canvas:HTMLCanvasEleme
    if(canvas.width!==w||canvas.height!==h){canvas.width=w;canvas.height=h;gl!.viewport(0,0,w,h);}
    gl!.texImage2D(gl!.TEXTURE_2D,0,gl!.RGB,gl!.RGB,gl!.UNSIGNED_BYTE,video);
    gl!.uniform2f(gl!.getUniformLocation(program!,'stepSize'),1/w,1/h);
+   gl!.uniform1f(gl!.getUniformLocation(program!,'intensity'),Math.min(100,Math.max(0,getIntensity()))/100);
    gl!.drawArrays(gl!.TRIANGLE_STRIP,0,4);
    if(gl!.getError()!==gl!.NO_ERROR){fallback();return;}
    if(!announced){announced=true;onReady();}

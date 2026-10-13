@@ -1,4 +1,4 @@
-import {useVideoClarity} from '../media/videoQuality';
+import {useVideoClarity,useVideoIntensity} from '../media/videoQuality';
 import {startVideoEnhancer} from '../media/videoEnhancer';
 import React, { useEffect, useRef, useState } from 'react';
 import { Volume2, VolumeX, Play } from 'lucide-react';
@@ -40,7 +40,8 @@ export function ManagedVideo({ src, poster, className, active = true, universe =
   src: string; poster?: string; className?: string; active?: boolean; universe?: boolean; soundOn?: boolean; onElement?: (element: HTMLVideoElement | null) => void;
 }) {
   const ref = useRef<HTMLVideoElement>(null);
-  const canvas=useRef<HTMLCanvasElement>(null),clarity=useVideoClarity();
+  const canvas=useRef<HTMLCanvasElement>(null),clarity=useVideoClarity(),intensity=useVideoIntensity();
+  const intensityRef=useRef(intensity);intensityRef.current=intensity;
   const [enhanced,setEnhanced]=useState(false),[bypass,setBypass]=useState(false);
   const [muted, setMuted] = useState(true), [playing, setPlaying] = useState(false);
   const ui = useUi();
@@ -77,7 +78,7 @@ export function ManagedVideo({ src, poster, className, active = true, universe =
     if (!active) video.pause();
     choose();
   }, [active]);
-  useEffect(()=>{setEnhanced(false);if(!clarity||bypass||!playing||!active)return;const v=ref.current,c=canvas.current;if(!v||!c)return;return startVideoEnhancer(v,c,()=>setEnhanced(true),()=>{setEnhanced(false);setBypass(true);});},[src,clarity,bypass,playing,active]);
+  useEffect(()=>{setEnhanced(false);if(!clarity||bypass||!playing||!active)return;const v=ref.current,c=canvas.current;if(!v||!c)return;return startVideoEnhancer(v,c,()=>setEnhanced(true),()=>{setEnhanced(false);setBypass(true);},()=>intensityRef.current);},[src,clarity,bypass,playing,active]);
   return <div className={universe ? 'absolute inset-0' : 'relative video-shell'}>
     <video ref={ref} poster={poster} muted={universe ? !soundOn : muted} loop playsInline preload="metadata" controls={false} controlsList="nodownload noremoteplayback" disablePictureInPicture disableRemotePlayback onContextMenu={e=>e.preventDefault()}
       className={className || 'w-full max-h-[75vh] object-contain'}
