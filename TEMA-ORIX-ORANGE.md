@@ -52,3 +52,16 @@ O ZIP tem package.json na raiz e pode ser importado no Zip2Git. Instale as depen
 A apresentação anterior com moldura e legenda abaixo da foto foi substituída no tema Orix: fotos de ponta a ponta, cantos arredondados, legenda sobreposta e carrossel horizontal de publicações no Início e Salvos. A opção de foto completa mantém a proporção original e remove o degradê. O modo enquadrado usa recorte de capa, como a referência. O álbum dentro de cada publicação continua com suas setas, separado da rolagem entre publicações.
 
 Verificação adicional no Chromium: rolagem horizontal do carrossel, foto preenchendo a largura do cartão, ausência de overflow horizontal da página, expansão da foto, troca de mídia, curtida e comentários. Capturas em 320, 390, 430, 768 e 1280 px. Os 34 arquivos antigos removidos na versão enxuta estão preservados nesta entrega completa, sem reativar funções sociais desativadas.
+
+## Revisão do topo, navegação e vídeos — 13/10/2026
+
+- Topo no Orix: ação Aparência com ícone laranja à esquerda, no lugar de Search. Perfil com o avatar real (ou iniciais quando não há imagem utilizável) à direita. O perfil abre Minha conta; visitantes abrem a autenticação.
+- Menu superior de mais opções mantém Idioma, Salvos, Premium e Administração, respeitando a autenticação e as permissões existentes.
+- Barra inferior com quatro destinos: Início, Vídeos, Universo e Conta. Somente o destino ativo exibe o texto, ao lado do círculo laranja; os demais ficam com ícones cinza. Salvos permanece acessível no menu superior e na conta. A navegação dos outros temas permanece intacta.
+- Fotos: degradê preto reforçado atrás da legenda, texto na base ao lado da ação laranja de enquadramento completo. Curtidas, comentários e favoritos continuam disponíveis com contraste melhorado.
+- Vídeos: carrossel com cartões de fundo escuro, mídia arredondada, legenda na base e botão laranja Play/Pause. Este botão controla o elemento de vídeo existente; não é apenas decorativo. O som, a barra de posição, o enquadramento completo e a nitidez continuam no player existente. A conexão entre botão e vídeo é mantida ao mudar de tema.
+- Selo amarelo: primeira hashtag real da publicação; sem hashtag, mostra o tipo de mídia. Selo escuro: posição no álbum quando há várias mídias ou quantidade real de curtidas quando há uma mídia única. Não foram adicionados números de espectadores ou indicação de transmissão ao vivo sem dados reais.
+
+Verificações desta revisão: build e TypeScript aprovados, testes existentes aprovados; Chromium com comparação de capturas, perfil no topo, quatro destinos inferiores, acesso a Salvos e Administração pelo menu, selos com dados reais, vídeo pausando/retomando pelo botão laranja e funcionando após trocar de Skyglass para Orix. As verificações de integração e a revisão visual usam ambiente isolado; não houve cobrança ou alteração de dados publicados. Safari e aparelhos físicos não foram testados.
+
+O ZIP desta revisão contém todos os arquivos do ZIP original e package.json na raiz. Não inclui node_modules, dist, caches, banco local nem conteúdo de teste.
