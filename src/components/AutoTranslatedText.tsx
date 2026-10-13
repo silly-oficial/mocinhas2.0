@@ -5,6 +5,7 @@ import { Languages, RotateCcw } from 'lucide-react';
 interface AutoTranslatedTextProps {
   text: string;
   className?: string;
+  contentClassName?: string;
   showBadge?: boolean;
   inline?: boolean;
   renderTransformed?: (text: string) => React.ReactNode;
@@ -13,6 +14,7 @@ interface AutoTranslatedTextProps {
 export const AutoTranslatedText: React.FC<AutoTranslatedTextProps> = ({
   text,
   className = '',
+  contentClassName = '',
   showBadge = true,
   inline = false,
   renderTransformed,
@@ -82,6 +84,7 @@ export const AutoTranslatedText: React.FC<AutoTranslatedTextProps> = ({
         {isTranslated && showBadge && (
           <button
             type="button"
+            data-translation-toggle="true"
             onClick={(e) => {
               e.stopPropagation();
               setShowOriginal(!showOriginal);
@@ -99,11 +102,12 @@ export const AutoTranslatedText: React.FC<AutoTranslatedTextProps> = ({
 
   return (
     <div className="relative group/translate">
-      <div className={className}>{contentToRender}</div>
+      <div className={`${className} ${contentClassName}`}>{contentToRender}</div>
       {isTranslated && showBadge && (
         <div className="mt-1 flex items-center gap-2">
           <button
             type="button"
+            data-translation-toggle="true"
             onClick={(e) => {
               e.stopPropagation();
               setShowOriginal(!showOriginal);

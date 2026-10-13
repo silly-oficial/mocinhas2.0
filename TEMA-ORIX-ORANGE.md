@@ -65,3 +65,17 @@ Verificação adicional no Chromium: rolagem horizontal do carrossel, foto preen
 Verificações desta revisão: build e TypeScript aprovados, testes existentes aprovados; Chromium com comparação de capturas, perfil no topo, quatro destinos inferiores, acesso a Salvos e Administração pelo menu, selos com dados reais, vídeo pausando/retomando pelo botão laranja e funcionando após trocar de Skyglass para Orix. As verificações de integração e a revisão visual usam ambiente isolado; não houve cobrança ou alteração de dados publicados. Safari e aparelhos físicos não foram testados.
 
 O ZIP desta revisão contém todos os arquivos do ZIP original e package.json na raiz. Não inclui node_modules, dist, caches, banco local nem conteúdo de teste.
+
+## Ajustes finais de proporção, tradução e entrada — 13/10/2026
+
+- Galeria de fotos: PublicationGallery.tsx identifica o cartão mais próximo do centro enquanto o usuário arrasta. O central usa escala 1; os vizinhos usam escala 0,86. O espaçamento foi ajustado para os cartões vizinhos continuarem aparecendo. A rolagem e o encaixe são nativos, com respeito a movimento reduzido.
+- Tradução: botão compacto e escuro com texto branco. A limitação de duas linhas foi aplicada apenas ao texto da legenda, preservando o botão de tradução visível. Alternar original/traduzido continua usando o mecanismo existente. A área de toque se estende além da superfície visual compacta.
+- Vídeos: aba em lista vertical, largura máxima de 430 px e área de exibição 4:5, min-height 320 px e max-height calc(100dvh - 124px), como Skyglass. A legenda e os controles ficam sobre a mídia; a base externa anterior foi removida. O modo completo preserva a imagem sem recorte. Play/Pause continua ligado ao player real.
+- Selos amarelos: alternância por posição na lista entre a primeira hashtag real e Fotos, seguindo a sequência solicitada. Sem hashtag, a alternativa também é Fotos. Os selos escuros continuam informando álbum ou curtidas reais.
+- Perfil: o avatar padrão verde profile-placeholder.svg é representado por um ícone laranja no Orix; avatares personalizados são preservados. O asset padrão e os demais temas não foram alterados.
+- Cubo laranja: removido do cabeçalho de conteúdo. O cabeçalho não é mostrado antes da autenticação, evitando duplicação do título na entrada.
+- Entrada: carrossel com a mesma faixa de altura do Skyglass, título e descrição abaixo e botão de entrada com seta. Foram usadas superfícies brancas, gradiente laranja e botão escuro. Imagens/vídeos configurados no painel e os controles do carrossel permanecem ativos.
+
+Arquivos desta revisão: src/App.tsx, src/orix.css, src/components/AutoTranslatedText.tsx e novo src/components/PublicationGallery.tsx. Nenhum arquivo de backend foi modificado.
+
+Validação: npm run lint, npm run build e as nove suítes de npm test aprovados. Revisão Chromium de 320 a 1280 px, sem overflow horizontal da página. Conferidos escala do cartão central, sequência de selos, fallback laranja do perfil, botão de tradução com altura visual de até 30 px e alternância real do conteúdo. As dimensões do cartão de vídeo foram comparadas entre Orix e Skyglass a 390 px, com diferença inferior a 2 px. Tela de entrada e botão de autenticação conferidos. Não foram testados aparelhos físicos ou Safari.
