@@ -232,3 +232,33 @@ html[data-theme=orix], [data-theme=orix] body { background:#fff; color:var(--the
 [data-theme=orix] .media-seek::-webkit-slider-thumb { box-shadow:0 0 0 3px #ed460945; }
 [data-theme=orix] .media-seek::-webkit-slider-runnable-track { background:linear-gradient(to right,#ff8b50 var(--seek-progress),#ffffff70 var(--seek-progress)); }
 @media (min-width:1024px) { [data-theme=orix] .universe-frame { min-height:480px!important; } }
+
+/* Reference correction: edge-to-edge photos and horizontal cover gallery. */
+[data-theme=orix] .orix-gallery { display:flex; align-items:flex-start; gap:20px; overflow-x:auto; width:100%; max-width:none; padding:4px 10% 20px; scroll-padding-inline:10%; scroll-snap-type:x mandatory; overscroll-behavior-x:contain; scrollbar-width:thin; scrollbar-color:#ed460940 transparent; }
+[data-theme=orix] .orix-gallery>.publication { flex:0 0 100%; min-width:0; max-width:370px; margin:0!important; scroll-snap-align:center; }
+[data-theme=orix] .orix-gallery>p { flex:1; min-width:100%; }
+[data-theme=orix] .orix-photo { padding:0; border-radius:34px; background:#111; }
+[data-theme=orix] .orix-photo .sky-media-stage { position:relative; display:block; aspect-ratio:3/5; height:auto; min-height:0; }
+[data-theme=orix] .orix-photo .publication-media { position:absolute; inset:0; aspect-ratio:auto; border-radius:0; }
+[data-theme=orix] .orix-photo .sky-media { object-fit:cover; width:100%; height:100%; object-position:center; }
+[data-theme=orix] .orix-photo .sky-media-stage::after { content:''; position:absolute; inset:40% 0 0; pointer-events:none; z-index:1; background:linear-gradient(transparent,#0004 40%,#000e 90%,#000); }
+[data-theme=orix] .orix-photo .sky-card-top { top:18px; left:18px; right:18px; }
+[data-theme=orix] .orix-photo .sky-card-top time { background:#1a1a1a8c; }
+[data-theme=orix] .orix-photo .sky-media-pager { top:78px; left:18px; }
+[data-theme=orix] .orix-photo .sky-card-caption { position:absolute; inset:auto 0 80px; padding:24px 22px 0; color:#fff; font-size:23px; font-weight:500; line-height:1.2; z-index:2; max-height:55%; overflow:auto; }
+[data-theme=orix] .orix-photo .sky-card-caption button { font-size:12px; }
+[data-theme=orix] .orix-photo .sky-card-caption.expanded { background:#111e; padding-top:16px; border-radius:20px 20px 0 0; }
+[data-theme=orix] .orix-photo .sky-action-rail { position:absolute; bottom:16px; left:16px; right:16px; z-index:3; padding:0; gap:6px; align-items:center; }
+[data-theme=orix] .orix-photo .sky-action-rail button { background:#ffffff1a; border-radius:16px; min-width:44px; min-height:44px; }
+[data-theme=orix] .orix-photo .sky-action-rail button:last-child { width:56px; height:56px; background:var(--orix-orange); border-radius:18px; margin-inline-start:auto; }
+[data-theme=orix] .orix-photo .sky-action-rail button[aria-pressed=true] { background:var(--orix-orange); }
+[data-theme=orix] .orix-photo.show-full-media .sky-media-stage { aspect-ratio:auto; display:flex; flex-direction:column; }
+[data-theme=orix] .orix-photo.show-full-media .publication-media { position:relative; inset:auto; min-height:240px; }
+[data-theme=orix] .orix-photo.show-full-media .sky-media { object-fit:contain; height:auto; max-height:65dvh; }
+[data-theme=orix] .orix-photo.show-full-media .sky-media-stage::after { display:none; }
+[data-theme=orix] .orix-photo.show-full-media .sky-card-caption { position:static; max-height:none; padding:16px 20px 4px; font-size:18px; background:none; }
+[data-theme=orix] .orix-photo.show-full-media .sky-action-rail { position:static; padding:12px 16px 16px; }
+@media (min-width:768px) { [data-theme=orix] .orix-gallery { padding-inline:20px; scroll-padding-inline:20px; gap:24px; } [data-theme=orix] .orix-gallery>.publication { flex-basis:320px; } }
+@media (max-width:767px) { [data-theme=orix] .orix-gallery .orix-photo:not(.show-full-media) .sky-media-stage { max-height:max(340px,calc(100dvh - var(--app-header-height) - 330px)); } }
+[data-theme=orix] .orix-photo .sky-media-stage { width:100%; }
+[data-theme=orix] .orix-photo:not(.show-full-media) .publication-media { width:100%; height:100%; }

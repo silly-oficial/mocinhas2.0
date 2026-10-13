@@ -8,7 +8,7 @@ Visível na imagem: superfícies brancas, títulos pretos com pesos contrastante
 
 Deduzido: valores exatos de cor, fonte, raios e espaçamento, pois a imagem não fornece medidas ou arquivos de fonte. Foram usados o sistema de fontes já disponível no projeto e proporções ajustadas ao conteúdo real. O cubo decorativo foi desenhado em CSS, sem download externo. Não foram importados personagens, jogos, marcas, textos ou funções da referência.
 
-O tema aplica fundo branco, acentos laranja, títulos amplos, cubo decorativo, ícones ativos circulares e cartões de mídia com base escura. A mesma linguagem se estende à entrada, conta, filtros, Universo, comentários, formulários, idiomas, Premium e painel administrativo. O Universo mantém busca, zoom e navegação reais, com superfícies claras e controles de 44 px. Nomes longos na conta quebram em linhas no tema novo.
+O tema aplica fundo branco, acentos laranja, títulos amplos, cubo decorativo e ícones ativos circulares. As fotos usam cartões verticais preenchidos pela imagem até as bordas, legenda branca sobre um degradê preto inferior e ações sobre a própria foto. Início e Salvos usam uma galeria horizontal com encaixe central e o próximo cartão parcialmente visível no celular. Os vídeos mantêm sua apresentação e player existentes. A mesma linguagem se estende à entrada, conta, filtros, Universo, comentários, formulários, idiomas, Premium e painel administrativo. O Universo mantém busca, zoom e navegação reais, com superfícies claras e controles de 44 px. Nomes longos na conta quebram em linhas no tema novo.
 
 ## Arquitetura examinada
 
@@ -46,3 +46,9 @@ A imagem mostra apenas duas telas de outro produto; as demais áreas são uma ex
 O comando vite preview encontrou uma limitação de rede do ambiente de execução; a inspeção no Chromium utilizou os mesmos arquivos finais de dist servidos localmente por Express.
 
 O ZIP tem package.json na raiz e pode ser importado no Zip2Git. Instale as dependências e mantenha as variáveis e o armazenamento que a hospedagem já utiliza. O ZIP não inclui node_modules, dist, bancos locais, dados de revisão, caches ou credenciais privadas. Não é necessário recriar tabelas, importar dados nem substituir o banco para ativar o tema.
+
+## Correção da apresentação das fotos — 13/10/2026
+
+A apresentação anterior com moldura e legenda abaixo da foto foi substituída no tema Orix: fotos de ponta a ponta, cantos arredondados, legenda sobreposta e carrossel horizontal de publicações no Início e Salvos. A opção de foto completa mantém a proporção original e remove o degradê. O modo enquadrado usa recorte de capa, como a referência. O álbum dentro de cada publicação continua com suas setas, separado da rolagem entre publicações.
+
+Verificação adicional no Chromium: rolagem horizontal do carrossel, foto preenchendo a largura do cartão, ausência de overflow horizontal da página, expansão da foto, troca de mídia, curtida e comentários. Capturas em 320, 390, 430, 768 e 1280 px. Os 34 arquivos antigos removidos na versão enxuta estão preservados nesta entrega completa, sem reativar funções sociais desativadas.
