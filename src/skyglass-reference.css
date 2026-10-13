@@ -335,3 +335,21 @@ html[data-theme=skyglass] body { background-image:var(--sky-bg);background-size:
 .video-quality-scale { display:flex;justify-content:space-between;font-size:11px;color:var(--theme-muted); }
 .video-quality-control p { margin-top:12px;font-size:12px;line-height:1.5;color:var(--theme-muted); }
 .video-quality-control input:focus-visible { outline:2px solid var(--theme-selected);outline-offset:2px;border-radius:10px; }
+/* Administrative photo framing; no attribution is added to published media. */
+.admin-focus-details { width:100%; flex-basis:100%; min-width:0; margin-top:12px; }
+.admin-focus-details>summary { min-height:44px; padding:10px 12px; cursor:pointer; color:var(--theme-selected); font-size:13px; }
+.photo-focus-editor { min-width:0; padding:16px; border:1px solid var(--theme-border); border-radius:20px; background:var(--surface-card); color:var(--theme-text); }
+.photo-focus-editor>h4 { font-size:14px; font-weight:650; }
+.photo-focus-editor>p { margin:8px 0; font-size:12px; line-height:1.5; color:var(--theme-muted); }
+.photo-focus-previews { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,.65fr); align-items:center; gap:12px; margin:12px 0; }
+.photo-focus-source { aspect-ratio:4/3; background:var(--theme-choice); border-radius:12px; overflow:hidden; touch-action:none; cursor:crosshair; }
+.photo-focus-cover { aspect-ratio:3/5; background:var(--theme-choice); border-radius:16px; overflow:hidden; }
+.photo-focus-source img,.photo-focus-cover img { display:block!important; width:100%!important; height:100%!important; max-width:none!important; max-height:none!important; border-radius:0!important; }
+.photo-focus-source img { object-fit:contain; }
+.photo-focus-cover img { object-fit:cover; }
+.photo-focus-editor fieldset { min-width:0; display:grid; gap:10px; }
+.photo-focus-editor label { font-size:12px; display:block; }
+.photo-focus-editor output { float:right; font-variant-numeric:tabular-nums; }
+.photo-focus-editor input[type=range] { width:100%; min-height:44px; padding:0; accent-color:var(--theme-selected); }
+.admin-upload-list>li:has(.admin-focus-details),.admin-content-list>article:has(.admin-focus-details) { flex-wrap:wrap; }
+.photo-focus-editor button { border-radius:14px; display:inline-flex; align-items:center; justify-content:center; width:auto; }

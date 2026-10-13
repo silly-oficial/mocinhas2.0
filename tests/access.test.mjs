@@ -25,8 +25,18 @@ try {
  assert.equal((await call('/api/admin/storage/export','viewer')).status,403);
  assert.equal((await call('/api/admin/storage/export','owner')).body.users.length,3);
  assert.equal((await call('/api/posts','viewer','POST',{media:[{url:'/test.jpg',type:'image'}]},cookie)).status,403);
- const posted=await call('/api/posts','owner','POST',{caption:'Teste #arte',media:[{url:'/test.jpg',type:'image'}],isTemporary:true});assert.equal(posted.status,200);assert.equal(posted.body.post.isTemporary,false);assert.equal(posted.body.post.user.username,'');
+ const posted=await call('/api/posts','owner','POST',{caption:'Teste #arte',media:[{url:'/test.jpg',type:'image',focus:{x:25,y:75}}],isTemporary:true});assert.equal(posted.status,200);assert.equal(posted.body.post.isTemporary,false);assert.equal(posted.body.post.user.username,'');
+ assert.equal((await call('/api/posts','owner','POST',{media:[{url:'/test.mp4',type:'video',focus:{x:50,y:50}}]})).status,400);
  const id=posted.body.post.id;
+ const mediaId=posted.body.post.media[0].id;
+ assert.deepEqual(posted.body.post.media[0].focus,{x:25,y:75});
+ assert.equal((await call('/api/admin/posts/'+id+'/focus','viewer','PATCH',{mediaId,focus:{x:80,y:20}},cookie)).status,403);
+ assert.equal((await call('/api/admin/posts/'+id+'/focus','owner','PATCH',{mediaId,focus:{x:101,y:20}})).status,400);
+ assert.equal((await call('/api/admin/posts/'+id+'/focus','owner','PATCH',{mediaId,focus:{x:'20',y:20}})).status,400);
+ const focused=await call('/api/admin/posts/'+id+'/focus','owner','PATCH',{mediaId,focus:{x:80,y:20,editedBy:'admin'}});
+ assert.equal(focused.status,200);assert.deepEqual(focused.body.post.media[0].focus,{x:80,y:20});assert.equal(focused.body.post.media[0].url,'/test.jpg');
+ assert.equal(focused.body.post.userId,'');assert.ok(!JSON.stringify(focused.body.post).includes('editedBy'));
+ assert.deepEqual((await call('/api/posts/'+id,'viewer','GET',undefined,cookie)).body.post.media[0].focus,{x:80,y:20});
  assert.equal((await call('/api/posts/'+id+'/like','viewer','POST',{},cookie)).body.isLiked,true);
  assert.equal((await call('/api/posts/'+id+'/save','viewer','POST',{},cookie)).body.isSaved,true);
  assert.equal((await call('/api/posts/saved/all','viewer','GET',undefined,cookie)).body.posts[0].id,id);
@@ -44,11 +54,12 @@ try {
  assert.equal((await call('/api/admin/usage-settings','owner','PUT',{dailyMinutes:-1,bindNetwork:false})).status,400);
  const signup=await call('/api/auth/register','viewer','POST',{username:'admin',displayName:'test',email:'fresh@example.test',password:'test-password-123',acceptedTerms:true});assert.equal(signup.body.user.isAdmin,false,'admin name grants no privileges');
  await stop();
- const persisted=JSON.parse(fs.readFileSync(path.join(root,'db.json')));for(const b of Object.values(persisted.usageBuckets)){b.usedMs=60000;b.leaseUntil=0;}
+ const persisted=JSON.parse(fs.readFileSync(path.join(root,'db.json')));assert.deepEqual(persisted.posts.find(p=>p.id===id).media[0].focus,{x:80,y:20});for(const b of Object.values(persisted.usageBuckets)){b.usedMs=60000;b.leaseUntil=0;}
  fs.writeFileSync(path.join(root,'db.json'),JSON.stringify(persisted));await start();
  const exhausted=await call('/api/usage/consume','viewer2','POST',{},cookie);assert.equal(exhausted.body.blocked,true,'quota survives restart');
  assert.equal((await call('/api/posts','viewer2','GET',undefined,cookie)).status,429);
  assert.equal((await call('/api/usage/consume','owner','POST',{})).body.unlimited,true);
+ assert.deepEqual((await call('/api/posts/'+id,'owner')).body.post.media[0].focus,{x:80,y:20},'photo focus survives restart');
  assert.equal((await call('/api/posts/'+id,'owner','DELETE')).status,200);
  console.log('Integration passed: authorization, admin-only publication, hidden identity, disabled routes, permanent posts, quotas, multiple accounts and restart persistence.');
 } finally {if(child && child.exitCode===null)await stop();fs.rmSync(root,{recursive:true,force:true});}

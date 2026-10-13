@@ -36,6 +36,7 @@ export interface PostMedia {
   filter?: string;
   aspectRatio?: string;
   thumbnail?: string;
+  focus?: { x: number; y: number };
   fileName?: string;
 }
 

@@ -388,3 +388,16 @@ html[data-theme=orix], [data-theme=orix] body { background:#fff; color:var(--the
  [data-theme=orix] .orix-gallery { gap:8px; }
  [data-theme=orix] .orix-gallery>.publication+.publication { margin-inline-start:-12px!important; }
 }
+/* Fade is attached to the media plane, below the position control. */
+[data-theme=orix] .orix-video .video-shell::after { content:''; position:absolute; inset:40% 0 0; z-index:1; pointer-events:none; background:linear-gradient(transparent,#0008 45%,#000e 100%); border-radius:0 0 26px 26px; }
+[data-theme=orix] .orix-video .sky-card-caption:not(.expanded) { background:none; }
+[data-theme=orix] .orix-video .media-seek { z-index:5; }
+[data-theme=orix] .orix-video.show-full-media .video-shell::after { display:none; }
+/* Complete photo has no footer; only floating return/album controls remain. */
+[data-theme=orix] .orix-photo.show-full-media { background:transparent; box-shadow:none; }
+[data-theme=orix] .orix-photo.show-full-media .sky-media-stage { background:transparent; min-height:0; display:block; }
+[data-theme=orix] .orix-photo.show-full-media .publication-media { min-height:0; height:auto; background:transparent; display:flex; justify-content:center; border-radius:26px; }
+[data-theme=orix] .orix-photo.show-full-media .sky-media { width:auto; max-width:100%; height:auto; max-height:75dvh; border-radius:26px; object-fit:contain; }
+[data-theme=orix] .orix-photo.show-full-media :is(.sky-action-rail,.sky-card-caption,.sky-card-top) { display:none; }
+[data-theme=orix] .orix-photo.show-full-media .sky-media-pager { top:12px; left:12px; }
+.orix-full-return { position:absolute; top:12px; right:12px; display:grid; place-items:center; width:44px; height:44px; z-index:5; color:#fff; background:#12121bbf; border-radius:50%; }
