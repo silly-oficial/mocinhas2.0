@@ -263,7 +263,18 @@
 .admin-metrics span { overflow-wrap:anywhere; }
 [data-theme=skyglass] .auth-surface [role=checkbox][aria-checked=true] svg { color:white; }
 [data-theme=skyglass] .auth-error { background:#fef3f2;color:#b42318;border-color:#fecdca; }
-[data-theme=skyglass] .sky-card-caption { background:linear-gradient(180deg,transparent 0,rgba(8,20,60,.88) 32px,rgba(8,20,60,.94) 100%); }
+/* A separate, longer fade avoids a solid blue rectangle tied to caption height.
+   Videos fade out over the native-control area instead of ending at a hard seam. */
+[data-theme=skyglass] .has-visual .sky-card-caption:not(.expanded) { background:none; }
+[data-theme=skyglass] .has-visual .sky-card-caption:not(.expanded)::before {
+  content:'';position:absolute;inset:-72px 0 0;z-index:-1;pointer-events:none;
+  background:linear-gradient(180deg,transparent 0,rgba(8,20,60,.08) 32px,rgba(8,20,60,.32) 64px,rgba(8,20,60,.68) 110px,rgba(8,20,60,.82) 100%);
+}
+[data-theme=skyglass] .has-visual:has(video) .sky-card-caption:not(.expanded)::before {
+  bottom:-54px;
+  -webkit-mask-image:linear-gradient(180deg,#000 calc(100% - 54px),transparent 100%);
+  mask-image:linear-gradient(180deg,#000 calc(100% - 54px),transparent 100%);
+}
 html[data-theme=skyglass] body { background-image:var(--sky-bg);background-size:100% 100%;background-repeat:no-repeat;background-attachment:fixed; }
 [data-theme=skyglass] .sky-brand-avatar { min-width:44px;min-height:44px; }
 [data-theme=skyglass] .sky-card-caption.expanded { background:rgba(8,20,60,.94);border-radius:20px 20px 0 0;padding-top:20px; }
