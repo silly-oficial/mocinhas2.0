@@ -24,3 +24,9 @@ Validar build, testar interação do seletor de tema e percorrer rotas, modais, 
 - `src/App.tsx`: a barra com o título da página (por exemplo, “Início”) e as hashtags agora acompanha a direção da rolagem. Ao rolar para baixo, ela desliza para fora da área visível e deixa os vídeos mais livres; ao rolar para cima, reaparece para permitir trocar os filtros. No topo da página, permanece visível.
 - A alteração é apenas de apresentação e não modifica o filtro das hashtags nem o conteúdo das publicações.
 - Validação: inspeção estática do trecho alterado. `npm run build` foi tentado, mas não pôde ser concluído porque o executável `vite` não está disponível (`vite: not found`). Teste visual em navegador não realizado.
+
+## Ajuste adicional da barra do feed
+- Removido o título “Início” da barra do feed principal; a área mostra somente as hashtags/filtros.
+- Mantida a ocultação da barra ao rolar para baixo e sua reaparição ao rolar para cima, sem título “Início”.
+- Os títulos das páginas “Vídeos” e “Publicações salvas” continuam presentes.
+- Validação visual em navegador/build: não executada neste ambiente.
