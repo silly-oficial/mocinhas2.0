@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { Check, CloudSun, Moon, Palette, X } from 'lucide-react';
+import { Check, CloudSun, Moon, Palette, X, Sparkles } from 'lucide-react';
 import { useTheme, AppTheme } from '../context/ThemeContext';
 import { useUi } from '../i18n/ui';
 
@@ -18,6 +18,7 @@ export function ThemeModal({ onClose }: { onClose: () => void }) {
   const options: { id: AppTheme; label: string; description: string; icon: typeof Moon }[] = [
     { id: 'original', label: 'Original', description: 'Escuro com detalhes verdes.', icon: Moon },
     { id: 'skyglass', label: 'Skyglass', description: 'Céu azul, vidro e superfícies claras.', icon: CloudSun },
+    { id: 'orely', label: 'Orelly Pop', description: 'Lavanda, limão vibrante e cartões suaves.', icon: Sparkles },
   ];
   return <dialog ref={dialog} className="theme-dialog" aria-labelledby="theme-title" aria-describedby="theme-description"
     onCancel={event => { event.preventDefault(); onClose(); }}

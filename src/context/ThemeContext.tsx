@@ -1,8 +1,8 @@
 import React, { createContext, useContext, useEffect, useLayoutEffect, useState } from 'react';
 
-export type AppTheme = 'original' | 'skyglass';
+export type AppTheme = 'original' | 'skyglass' | 'orely';
 export const THEME_KEY = 'mocinhas_visual_theme';
-const normalize = (value: unknown): AppTheme => value === 'skyglass' ? 'skyglass' : 'original';
+const normalize = (value: unknown): AppTheme => value === 'skyglass' || value === 'orely' ? value : 'original';
 function readTheme(): AppTheme {
   try { return normalize(localStorage.getItem(THEME_KEY)); } catch { return 'original'; }
 }
@@ -14,7 +14,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     document.documentElement.dataset.theme = theme;
     document.documentElement.classList.toggle('dark', theme === 'original');
     document.body.classList.toggle('dark', theme === 'original');
-    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', theme === 'skyglass' ? '#EAF3FD' : '#09090E');
+    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', theme === 'skyglass' ? '#EAF3FD' : theme === 'orely' ? '#E8DDFB' : '#09090E');
   }, [theme]);
   useEffect(() => {
     const sync = (event: StorageEvent) => {

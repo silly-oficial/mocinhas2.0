@@ -244,3 +244,165 @@ html[data-theme=skyglass] body { background-image:var(--sky-wash); background-re
 .translation-toggle { min-width:44px; min-height:44px; justify-content:center; }
 .translation-toggle>div { position:relative; }
 [data-theme=skyglass] .admin-tabs>button { flex-shrink:0; white-space:nowrap; }
+
+
+/* ORELLY POP — pastel editorial theme inspired by the supplied reference.
+   Visual-only overrides: app logic, routes, data, and interactions are untouched. */
+:root[data-theme="orely"] {
+  color-scheme: light;
+  --canvas-bg:#F7F3FF;
+  --surface-card:#FFFEFC;
+  --surface-elevated:#F0E7FF;
+  --theme-text:#201832;
+  --theme-muted:#746A86;
+  --theme-border:#D9C9F4;
+  --theme-choice:#F3ECFF;
+  --theme-selected:#9B6AF4;
+  --ink-100:#F0E7FF;
+  --ink-200:#E4D8F7;
+  --ink-900:#211832;
+  --sg-muted:#746A86;
+  --blue-50:#F0E7FF;
+  --blue-200:#D9C9F4;
+  --blue-600:#8B5BE7;
+  --blue-700:#7042C4;
+  --app-header-height:72px;
+  --orely-lavender:#B88BFA;
+  --orely-lime:#D7FF38;
+  --orely-paper:#FFFEFC;
+  --orely-ink:#201832;
+  --orely-muted:#746A86;
+  --orely-line:#E6DDF2;
+}
+html[data-theme="orely"], html[data-theme="orely"] body {
+  background:#F7F3FF !important;
+  color:var(--orely-ink);
+}
+html[data-theme="orely"] body {
+  background-image:
+    linear-gradient(rgba(183,151,231,.12) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(183,151,231,.12) 1px,transparent 1px);
+  background-size:42px 42px;
+  font-family:'Plus Jakarta Sans',-apple-system,BlinkMacSystemFont,sans-serif;
+}
+[data-theme="orely"] h1,[data-theme="orely"] h2,[data-theme="orely"] h3,
+[data-theme="orely"] h4,[data-theme="orely"] h5,[data-theme="orely"] h6 {
+  color:var(--orely-ink); font-weight:800; letter-spacing:-.045em;
+}
+[data-theme="orely"] .niuniu-card,
+[data-theme="orely"] .niuniu-card-elevated,
+[data-theme="orely"] .glass-card,
+[data-theme="orely"] .glass-card-dark {
+  background:var(--orely-paper) !important;
+  color:var(--orely-ink);
+  border:1.5px solid var(--orely-line) !important;
+  border-radius:24px !important;
+  box-shadow:0 5px 0 rgba(73,45,105,.07),0 14px 36px rgba(100,72,145,.09) !important;
+  transition:transform .2s ease,box-shadow .2s ease,border-color .2s ease;
+}
+[data-theme="orely"] .niuniu-card:hover {
+  border-color:#C7A9F5 !important;
+  box-shadow:0 7px 0 rgba(73,45,105,.06),0 18px 40px rgba(100,72,145,.13) !important;
+}
+[data-theme="orely"] .app-topbar {
+  background:rgba(255,254,252,.92) !important;
+  border-bottom:1px solid #E6DDF2 !important;
+  box-shadow:0 5px 22px rgba(100,72,145,.07);
+  backdrop-filter:blur(18px);
+  -webkit-backdrop-filter:blur(18px);
+}
+[data-theme="orely"] .feed-toolbar {
+  background:rgba(247,243,255,.92) !important;
+  border-color:var(--orely-line) !important;
+  backdrop-filter:blur(14px);
+}
+[data-theme="orely"] button,
+[data-theme="orely"] [role="button"] { transition:background-color .18s ease,color .18s ease,transform .18s ease,box-shadow .18s ease; }
+[data-theme="orely"] button:active,
+[data-theme="orely"] [role="button"]:active { transform:scale(.975); }
+[data-theme="orely"] button:focus-visible,
+[data-theme="orely"] a:focus-visible,
+[data-theme="orely"] input:focus-visible,
+[data-theme="orely"] textarea:focus-visible,
+[data-theme="orely"] select:focus-visible {
+  outline:3px solid #B88BFA !important; outline-offset:3px;
+}
+[data-theme="orely"] button[class*="bg-emerald"],
+[data-theme="orely"] button[class*="bg-green"],
+[data-theme="orely"] .theme-done {
+  background:#D7FF38 !important; color:#201832 !important;
+  border:1.5px solid #201832 !important; border-radius:15px !important;
+  font-weight:800; box-shadow:0 3px 0 #201832;
+}
+[data-theme="orely"] button[class*="bg-emerald"]:hover,
+[data-theme="orely"] button[class*="bg-green"]:hover,
+[data-theme="orely"] .theme-done:hover { filter:brightness(.97); box-shadow:0 5px 0 #201832; }
+[data-theme="orely"] input:not([type="checkbox"]):not([type="radio"]),
+[data-theme="orely"] textarea,
+[data-theme="orely"] select {
+  color:var(--orely-ink) !important; background:#FFFEFC !important;
+  border:1.5px solid #D9C9F4 !important; border-radius:15px !important;
+}
+[data-theme="orely"] input::placeholder,
+[data-theme="orely"] textarea::placeholder { color:#968AA8 !important; }
+[data-theme="orely"] .theme-dialog {
+  background:#FFFEFC; color:var(--orely-ink); border:1.5px solid #D9C9F4;
+  border-radius:28px; box-shadow:0 24px 70px rgba(49,30,79,.22);
+}
+[data-theme="orely"] .theme-dialog::backdrop { background:rgba(47,31,71,.32); backdrop-filter:blur(5px); }
+[data-theme="orely"] .theme-dialog-header { border-color:#E6DDF2; }
+[data-theme="orely"] .theme-heading-icon { background:#F0E7FF; color:#7042C4; }
+[data-theme="orely"] .theme-preview-orely { background:linear-gradient(160deg,#E8DDFB,#CBAAFB 58%,#D7FF38); color:#302044; }
+[data-theme="orely"] .theme-preview-orely .theme-preview-scene { background:#FFFEFCB8; }
+[data-theme="orely"] .theme-option[data-selected="true"] { border-color:#9B6AF4; box-shadow:0 0 0 3px #9B6AF426; }
+[data-theme="orely"] .theme-done { min-height:48px; }
+[data-theme="orely"] .publication-actions { border-color:#EEE7F5 !important; }
+[data-theme="orely"] .publication-media { background:#EEE7F5 !important; }
+[data-theme="orely"] .text-zinc-400,[data-theme="orely"] .text-zinc-500,
+[data-theme="orely"] .text-zinc-300 { color:#746A86 !important; }
+[data-theme="orely"] .text-white,[data-theme="orely"] .text-zinc-100,
+[data-theme="orely"] .text-zinc-200 { color:#201832 !important; }
+[data-theme="orely"] [class*="border-white/"] { border-color:#E6DDF2 !important; }
+[data-theme="orely"] [class*="bg-black/"],
+[data-theme="orely"] [class*="bg-zinc-950"] { background-color:#F0E7FF !important; }
+[data-theme="orely"] .text-emerald-400,[data-theme="orely"] .text-emerald-300 { color:#7042C4 !important; }
+[data-theme="orely"] .bg-emerald-500,[data-theme="orely"] .bg-emerald-600 { background:#D7FF38 !important; color:#201832 !important; }
+[data-theme="orely"] .rounded-full[class*="bg-"] { border:1px solid #D9C9F4; }
+[data-theme="orely"] ::-webkit-scrollbar-thumb { background:rgba(112,66,196,.28); }
+[data-theme="orely"] .theme-option-copy strong { color:#201832; }
+[data-theme="orely"] .theme-option-copy>span { color:#746A86; }
+[data-theme="orely"] .theme-check { background:#9B6AF4; }
+@media (max-width:640px) {
+  [data-theme="orely"] .app-topbar { padding-top:max(8px,env(safe-area-inset-top)); }
+  [data-theme="orely"] .niuniu-card,[data-theme="orely"] .niuniu-card-elevated,
+  [data-theme="orely"] .glass-card,[data-theme="orely"] .glass-card-dark {
+    border-radius:20px !important;
+  }
+  [data-theme="orely"] .publication { margin-inline:0; }
+  [data-theme="orely"] .publication-actions { gap:18px; }
+  [data-theme="orely"] .theme-dialog { width:calc(100% - 20px); max-height:calc(100dvh - 20px); border-radius:24px; }
+  [data-theme="orely"] .theme-dialog-body { padding:18px; }
+  [data-theme="orely"] .theme-options { gap:9px; }
+}
+@media (prefers-reduced-motion:reduce) {
+  [data-theme="orely"] *,[data-theme="orely"] *::before,[data-theme="orely"] *::after {
+    animation-duration:.01ms !important; animation-iteration-count:1 !important;
+    transition-duration:.01ms !important; scroll-behavior:auto !important;
+  }
+}
+
+[data-theme="orely"] [class~="bg-[#12121B]"],[data-theme="orely"] [class~="bg-[#13131D]"],
+[data-theme="orely"] [class~="bg-[#171724]"],[data-theme="orely"] [class~="bg-[#181824]"],
+[data-theme="orely"] [class~="bg-[#161622]"],[data-theme="orely"] [class~="bg-[#0D0D14]"],
+[data-theme="orely"] [class~="bg-[#0E0E15]"],[data-theme="orely"] [class~="bg-[#111118]"],
+[data-theme="orely"] [class~="bg-[#1F1F2E]"],[data-theme="orely"] [class~="bg-[#242436]"],
+[data-theme="orely"] [class~="bg-[#252538]"],[data-theme="orely"] [class~="bg-[#2B2B3E]"] {
+  background-color:#FFFEFC !important;
+}
+[data-theme="orely"] [class~="bg-white/5"],[data-theme="orely"] [class~="bg-white/10"],
+[data-theme="orely"] [class~="bg-white/15"],[data-theme="orely"] [class~="bg-white/20"],
+[data-theme="orely"] [class~="bg-white/[0.03]"] { background-color:#F0E7FF !important; }
+[data-theme="orely"] [class~="text-emerald-200"],[data-theme="orely"] [class~="text-emerald-300"],
+[data-theme="orely"] [class~="text-emerald-400"] { color:#7042C4 !important; }
+[data-theme="orely"] [class~="border-emerald-500"],[data-theme="orely"] [class~="border-emerald-500/20"],
+[data-theme="orely"] [class~="border-emerald-500/30"] { border-color:#D9C9F4 !important; }

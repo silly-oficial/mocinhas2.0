@@ -7,9 +7,10 @@
     <script>
       try {
         var theme = localStorage.getItem("mocinhas_visual_theme") === "skyglass" ? "skyglass" : "original";
+        if (localStorage.getItem('mocinhas_visual_theme') === 'orely') theme = 'orely';
         document.documentElement.dataset.theme = theme;
         document.documentElement.classList.toggle("dark", theme === "original");
-        document.querySelector('meta[name="theme-color"]').content = theme === "skyglass" ? "#EAF3FD" : "#09090E";
+        document.querySelector('meta[name="theme-color"]').content = theme === "skyglass" ? "#EAF3FD" : theme === "orely" ? "#E8DDFB" : "#09090E";
       } catch (_) {}
     </script>
     <title>mocinhas</title>
@@ -21,7 +22,7 @@
     <link rel="stylesheet" href="/fonts/plus-jakarta.css">
     <style>
       html { --boot-bg:#09090e; --boot-text:#fff; --boot-muted:#94a3b8; }
-      html[data-theme="skyglass"] { --boot-bg:#eef5fe; --boot-text:#12172a; --boot-muted:#6b7280; color-scheme:light; }
+      html[data-theme="skyglass"] { --boot-bg:#eef5fe; --boot-text:#12172a; --boot-muted:#6b7280; color-scheme:light; }\n      html[data-theme="orely"] { --boot-bg:#f8f5ff; --boot-text:#171326; --boot-muted:#756d87; color-scheme:light; }
       html,body { background:var(--boot-bg); color:var(--boot-text); margin:0; padding:0; min-height:100dvh; }
       .boot-screen { min-height:100dvh; display:grid; place-content:center; gap:12px; text-align:center; font-family:'Plus Jakarta Sans',sans-serif; }
       .boot-screen h1 { font-size:24px; margin:0; letter-spacing:-.5px; }
