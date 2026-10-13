@@ -25,6 +25,9 @@ function install() {
   }, true);
   document.addEventListener('visibilitychange', () => { if (document.hidden) pauseMedia(); else choose(); });
   window.addEventListener('pagehide', pauseMedia);
+  // Retry audible playback inside a trusted gesture when autoplay was blocked.
+  document.addEventListener('pointerup', event => { if (!(event.target instanceof Element) || !event.target.closest('button,input,a,audio,video')) choose(); }, true);
+  document.addEventListener('keydown', event => { if ((event.key === 'Enter' || event.key === ' ') && (!(event.target instanceof Element) || !event.target.closest('button,input,a,audio,video'))) choose(); }, true);
 }
 function choose() {
   if (document.hidden) return;
@@ -36,14 +39,14 @@ function choose() {
     else if (video.paused) video.play().catch(() => { /* Visible play fallback for browser restrictions. */ });
   }
 }
-export function ManagedVideo({ src, poster, className, active = true, universe = false, soundOn = false, showSeek = true, onElement, showTime = false }: {
-  src: string; poster?: string; className?: string; active?: boolean; universe?: boolean; soundOn?: boolean; showSeek?: boolean; showTime?: boolean; onElement?: (element: HTMLVideoElement | null) => void;
+export function ManagedVideo({ src, poster, className, active = true, universe = false, soundOn = true, showSeek = true, onElement, showTime = false, showSound = true, tapToToggle = false }: {
+  src: string; poster?: string; className?: string; active?: boolean; universe?: boolean; soundOn?: boolean; showSeek?: boolean; showTime?: boolean; showSound?: boolean; tapToToggle?: boolean; onElement?: (element: HTMLVideoElement | null) => void;
 }) {
   const ref = useRef<HTMLVideoElement>(null);
   const canvas=useRef<HTMLCanvasElement>(null),clarity=useVideoClarity(),intensity=useVideoIntensity();
   const intensityRef=useRef(intensity);intensityRef.current=intensity;
   const [enhanced,setEnhanced]=useState(false),[bypass,setBypass]=useState(false);
-  const [muted, setMuted] = useState(true), [playing, setPlaying] = useState(false);
+  const [muted, setMuted] = useState(!soundOn), [playing, setPlaying] = useState(false);
   const ui = useUi();
   const [duration,setDuration]=useState(0),[position,setPosition]=useState(0);
   const seeking=useRef(false);
@@ -93,7 +96,8 @@ export function ManagedVideo({ src, poster, className, active = true, universe =
       onPointerDown={()=>{seeking.current=true;}} onPointerUp={()=>{seeking.current=false;}} onPointerCancel={()=>{seeking.current=false;}} onBlur={()=>{seeking.current=false;}}
       onChange={e=>{const next=Number(e.target.value);setPosition(next);const v=ref.current;if(v&&Number.isFinite(v.duration))v.currentTime=Math.min(next,Math.max(0,v.duration-.05));}}/>}
     {!universe && showTime && <output className="media-time" aria-label={ui('Posição do vídeo')}>{format(position)} / {format(duration)}</output>}
-    {!universe && <button className="media-sound" aria-label={muted ? ui('Ativar som') : ui('Silenciar')} onClick={() => { const v = ref.current!; v.muted = !v.muted; setMuted(v.muted); v.play().catch(() => {}); }}>{muted ? <VolumeX size={17} /> : <Volume2 size={17} />}</button>}
+    {!universe && showSound && <button className="media-sound" aria-label={muted ? ui('Ativar som') : ui('Silenciar')} onClick={() => { const v = ref.current!; v.muted = !v.muted; setMuted(v.muted); v.play().catch(() => {}); }}>{muted ? <VolumeX size={17} /> : <Volume2 size={17} />}</button>}
+    {tapToToggle && !universe && <button className="media-tap-target" aria-label={ui(playing ? 'Pausar vídeo' : 'Reproduzir vídeo')} disabled={!active} onClick={() => { const v = ref.current; if (!v) return; if (v.paused) v.play().catch(() => {}); else v.pause(); }}/>}
     {!playing && active && <button className="media-play" aria-label={ui('Reproduzir vídeo')} onClick={() => ref.current?.play().catch(() => {})}><Play size={22} /></button>}
   </div>;
 }

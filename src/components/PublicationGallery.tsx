@@ -37,8 +37,8 @@ export function PublicationGallery({ orix, videos = false, children }: { orix: b
       const full = card.classList.contains('show-full-media');
       const base = Math.min(width * 5 / 3, Math.max(280, room - (isVideo ? 198 : 230)));
       const ratio = video?.videoWidth && video.videoHeight ? video.videoWidth / video.videoHeight : 9 / 16;
-      const videoHeight = Math.max(0, Math.min(width / ratio, available - 120));
-      const height = Math.max(0, Math.min(available, full ? isVideo ? videoHeight + 120 : room : base + 180 * progress));
+      const videoHeight = Math.max(0, Math.min(width / ratio, room - (headingRect?.height || 0) - 64));
+      const height = Math.max(0, isVideo ? videoHeight + 64 : Math.min(available, full ? room : base + 180 * progress));
       return { card, stage, height, scale: 1 - .14 * Math.min(1, distance / Math.max(1, width)), videoHeight, videoWidth: videoHeight * ratio };
     });
     const nearest = measurements.reduce<typeof measurements[number] | undefined>((best, item) => !best || item.scale > best.scale ? item : best, undefined);

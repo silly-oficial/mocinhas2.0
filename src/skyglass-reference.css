@@ -396,3 +396,19 @@ html[data-theme=skyglass] body { background-image:var(--sky-bg);background-size:
 [data-theme=skyglass] .sky-depth-title { top:68px; right:60px; font-size:clamp(29px,7.5vw,39px); font-weight:850; line-height:1.13; letter-spacing:.015em; text-wrap:balance; transform:rotate(-2deg); transform-origin:top left; -webkit-text-stroke:1.2px #ffffffb0; color:#f8fdff; text-shadow:0 0 5px #fff9,0 3px 10px #cdefff80; filter:url(#sky-cloud-letters); }
 
 [data-theme=skyglass] .sky-depth-title { -webkit-line-clamp:3; max-height:36%; }
+/* Original raster cloud alphabet inspired by the user's cumulus references. */
+[data-theme=skyglass] .sky-depth-title { filter:none; }
+[data-theme=skyglass] .sky-cloud-caption {
+ display:block; transform:none; font-size:clamp(44px,13vw,64px); line-height:1.08;
+ max-height:42%; -webkit-line-clamp:unset; -webkit-text-stroke:0; text-shadow:none;
+ letter-spacing:0; white-space:normal;
+}
+.sky-cloud-word { display:inline-block; max-width:100%; }
+.sky-cloud-glyph {
+ position:relative; display:inline-block; width:.7em; height:1.05em; vertical-align:middle;
+ background-image:url('/assets/skyglass/cloud-glyphs-v2.png'); background-size:600% 600%; background-repeat:no-repeat;
+}
+.sky-cloud-glyph::after { content:attr(data-accent); position:absolute; top:-.08em; left:20%; right:0; font:bold .5em/1 system-ui; color:#fff; text-shadow:0 1px 2px #c9e5fa; }
+.sky-cloud-glyph.has-cedilla::after { top:auto; bottom:-.06em; }
+.sky-cloud-space { display:inline-block; width:.3em; }
+.sky-cloud-symbol { color:#f8fdff; font-weight:900; -webkit-text-stroke:1px #fff; text-shadow:0 2px 3px #beddf0; }

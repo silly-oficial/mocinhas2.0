@@ -1,19 +1,20 @@
-# Correções do tema Ori / Orix Orange
+# Ori: vídeos fixos e controles limpos; SkyGlass: letras de nuvem
 
-- Vídeo completo respeita a proporção real, sem moldura preta adicionada pelo app, com cantos arredondados.
-- Indicador de tempo decorrido e duração e barra para avançar/recuar; controles fora da imagem no modo completo.
-- Fotos pequenas distribuem ações em uma linha e reservam espaços próprios para legenda, expansão e navegação do álbum.
-- Expansão usa transição de 220 ms; escala horizontal varia continuamente com a posição, evitando a troca brusca entre dois tamanhos.
-- Medições da galeria agrupadas antes de qualquer alteração de estilo, sem recalcular layout a cada cartão.
-- Apenas um cálculo agendado por quadro; estilos e atributos são atualizados somente quando mudam.
-- Proporção recalculada ao carregar os metadados do vídeo; preferência de movimento reduzido mantida.
+## Resultado atual
 
-## Validação
+No Ori, vídeos usam um único modo com imagem inteira, cantos arredondados, barra laranja e tempo decorrido/duração. Removidos os botões de curtir, comentar, salvar e expandir dos cartões de vídeo. O vídeo não cresce ao rolar a página. Tocar na imagem pausa/reproduz; se a reprodução estiver bloqueada, o botão de play aparece sobre a imagem. Navegação de álbuns continua disponível quando necessária.
 
-TypeScript, build de produção e todos os testes existentes passaram.
-Verificação em Chromium com os componentes reais: foto de 280 px sem sobreposição entre controles em viewport 320×640; expansão para 446 px; vídeo 16:9 preservou a proporção, os cantos de 26 px e o indicador 0:00 / 0:03 em viewport 390×844.
-Não testado em aparelho Android/iPhone físico. A fluidez final depende do aparelho e da mídia. Faixas pretas já gravadas no próprio arquivo não são removidas.
+O som dos vídeos comuns começa ligado. A seleção automática continua limitando a reprodução a um vídeo visível por vez. Navegadores que bloqueiam autoplay com som exigem um toque; o app tenta novamente dentro de uma interação válida, sem silenciar automaticamente.
 
-## Instalação
+As correções anteriores de fluidez das fotos pequenas foram mantidas.
 
-O ZIP contém o projeto na raiz, pronto para substituir os arquivos do repositório e fazer o deploy pelo fluxo atual. Nenhuma alteração no banco de dados é necessária.
+SkyGlass usa um alfabeto original de nuvens volumétricas, inspirado nas referências, para montar o texto dinâmico da legenda e da tradução. O recorte da pessoa continua acima das letras. O asset é compartilhado entre cartões e o filtro SVG anterior foi removido. Há suporte a letras latinas, números e acentos; outros caracteres usam texto normal. Se a imagem não carregar, a legenda continua legível em texto normal.
+
+## Verificação
+
+TypeScript e build de produção aprovados. Todos os testes existentes passaram.
+Chromium, viewport 390×844, vídeo com áudio: sem botões de engajamento/expansão, áudio não silenciado, altura estável antes e depois de rolar, play/pause por toque e avanço real pela barra verificados. Alfabeto: texto acessível preservado, glyphs corretos e pessoa com z-index acima da legenda. Não testado em iPhone/Android físico.
+
+## Aplicação
+
+Substituir os arquivos do repositório pelos do ZIP e fazer o deploy normalmente. Incluir public/assets/skyglass/cloud-glyphs-v2.png. Nenhuma alteração de banco de dados.
