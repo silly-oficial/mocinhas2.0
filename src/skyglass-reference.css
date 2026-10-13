@@ -367,3 +367,22 @@ html[data-theme=skyglass] body { background-image:var(--sky-bg);background-size:
 .video-cover-current { width:80px!important; height:100px!important; object-fit:cover; border-radius:12px!important; margin-top:12px; }
 .video-cover-local { margin-top:12px; }
 .video-cover-local input { display:block; max-width:100%; font-size:12px; }
+/* Photo depth: real person matte above the translated caption, UI above both. */
+[data-theme=skyglass] .sky-photo .publication-media { overflow:hidden; }
+[data-theme=skyglass] .sky-person-cutout { position:absolute; inset:0; z-index:3; pointer-events:none; animation:sky-cutout-in 240ms ease-out; }
+[data-theme=skyglass] .sky-depth-photo .sky-card-caption:not(.expanded) { inset:0; padding:0; z-index:auto; background:none; overflow:visible; }
+[data-theme=skyglass] .sky-depth-photo .sky-card-caption:not(.expanded)::before { display:none; }
+[data-theme=skyglass] .sky-depth-photo .sky-card-caption:not(.expanded)>div { display:block; overflow:visible; -webkit-line-clamp:unset; }
+[data-theme=skyglass] .sky-depth-title { position:absolute; top:64px; left:20px; right:70px; z-index:2; display:-webkit-box; -webkit-line-clamp:5; -webkit-box-orient:vertical; max-height:48%; overflow:hidden; font-size:clamp(28px,7vw,40px); font-weight:800; line-height:1.04; letter-spacing:-1px; text-transform:uppercase; text-shadow:0 2px 12px #102d4840; white-space:pre-wrap; }
+[data-theme=skyglass] .sky-depth-photo .sky-card-caption:not(.expanded) [data-translation-toggle] { position:absolute; left:20px; bottom:18px; z-index:6; min-height:44px; background:#ffffff26; border:1px solid #ffffff66; border-radius:18px; padding:6px 10px; backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); }
+[data-theme=skyglass] .sky-depth-photo .sky-card-caption:not(.expanded)>button { position:absolute; right:16px; bottom:18px; z-index:6; padding:6px 10px; border-radius:18px; background:#ffffff26; backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); }
+[data-theme=skyglass] .sky-depth-photo .sky-card-caption.expanded { z-index:6; background:#203848b8; backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); }
+[data-theme=skyglass] .sky-photo :is(.sky-action-rail,.sky-card-top,.sky-media-pager) { z-index:5; }
+[data-theme=skyglass] .sky-photo :is(.sky-action-rail button,.sky-card-top button,.sky-media-pager button),
+[data-theme=skyglass] .sky-photo .sky-action-rail button[aria-pressed=true] { color:#fff; background:rgb(255 255 255 / 24%); border:1px solid #ffffff70; backdrop-filter:blur(18px) saturate(115%); -webkit-backdrop-filter:blur(18px) saturate(115%); box-shadow:inset 0 1px 0 #ffffff40,0 3px 14px #10233818; }
+[data-theme=skyglass] .sky-photo .sky-action-rail button[aria-pressed=true] { background:rgb(255 255 255 / 40%); }
+[data-theme=skyglass] .sky-photo :is(.sky-action-rail button span,.sky-card-top time,.sky-card-top>span) { background:#ffffff30; color:white; border:1px solid #ffffff50; backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px); text-shadow:0 1px 3px #0009; }
+@keyframes sky-cutout-in { from { opacity:0; } to { opacity:1; } }
+@media(prefers-reduced-motion:reduce) { [data-theme=skyglass] .sky-person-cutout { animation:none; } }
+[data-theme=skyglass] .sky-depth-photo .sky-card-caption:not(.expanded) .group\/translate { position:static; }
+[data-theme=skyglass] .sky-depth-photo .sky-card-caption.expanded { right:72px; padding-right:16px; }

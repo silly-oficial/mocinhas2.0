@@ -474,3 +474,21 @@ html[data-theme=orix], [data-theme=orix] body { background:#fff; color:var(--the
 [data-theme=orix] .app-bottom-nav>button { flex:0 0 44px; }
 [data-theme=orix] .app-bottom-nav>button[aria-current] { order:-1; flex:0 0 auto; margin-inline-end:auto; justify-content:flex-start; }
 @media (max-width:360px) { [data-theme=orix] .app-bottom-nav { gap:6px; } }
+/* Gentle motion on controls and surfaces, without changing scroll geometry. */
+[data-theme=orix] { --orix-ease:cubic-bezier(.2,.7,.2,1); }
+[data-theme=orix] :is(button,a,summary,.tag-chip) { transition:background-color 180ms var(--orix-ease),color 180ms var(--orix-ease),border-color 180ms var(--orix-ease),box-shadow 180ms var(--orix-ease),opacity 180ms var(--orix-ease); }
+[data-theme=orix] :is(.nav-icon,.orix-video-toggle,.orix-profile,.orix-expand) { transition:transform 180ms var(--orix-ease),background-color 180ms var(--orix-ease),box-shadow 180ms var(--orix-ease); }
+[data-theme=orix] :is(.orix-video-toggle,.orix-profile,.orix-expand):active { transform:scale(.96); }
+[data-theme=orix] .app-bottom-nav [aria-current] .nav-label { animation:orix-label-in 180ms var(--orix-ease); }
+[data-theme=orix] .orix-gallery-frame { animation:orix-surface-in 260ms var(--orix-ease); }
+[data-theme=orix] :is(.modal-frame,.theme-dialog)[open] { animation:orix-surface-in 240ms var(--orix-ease); }
+[data-theme=orix] :is(.modal-frame,.theme-dialog)[open]::backdrop { animation:orix-backdrop-in 240ms ease-out; }
+[data-theme=orix] .orix-head-menu[open]>div { animation:orix-surface-in 180ms var(--orix-ease); transform-origin:top right; }
+[data-theme=orix] [role=status][aria-live=polite] { animation:orix-surface-in 220ms var(--orix-ease); }
+@keyframes orix-surface-in { from { opacity:0; translate:0 6px; } to { opacity:1; translate:0 0; } }
+@keyframes orix-label-in { from { opacity:0; translate:-3px 0; } to { opacity:1; translate:0 0; } }
+@keyframes orix-backdrop-in { from { opacity:0; } to { opacity:1; } }
+@media(hover:hover) and (pointer:fine) { [data-theme=orix] :is(.orix-video-toggle,.orix-profile,.orix-expand):hover { transform:translateY(-1px); } }
+@media(prefers-reduced-motion:reduce) {
+ [data-theme=orix] *, [data-theme=orix] *::before, [data-theme=orix] *::after, [data-theme=orix] *::backdrop { animation:none!important; transition:none!important; scroll-behavior:auto!important; }
+}
