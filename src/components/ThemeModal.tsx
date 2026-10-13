@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { containDialogFocus } from './ModalFrame';
-import { Check, CloudSun, Moon, Palette, X, Sparkles } from 'lucide-react';
+import { Check, CloudSun, Moon, Palette, X, Sparkles, Box } from 'lucide-react';
 import { useTheme, AppTheme } from '../context/ThemeContext';
 import { useUi } from '../i18n/ui';
 
@@ -17,6 +17,7 @@ export function ThemeModal({ onClose }: { onClose: () => void }) {
     return () => { el.close(); document.body.style.overflow = oldOverflow; opener?.focus(); };
   }, []);
   const options: { id: AppTheme; label: string; description: string; icon: typeof Moon }[] = [
+    { id: 'orix', label: 'Orix Orange', description: 'Branco, laranja e cartões de mídia arredondados.', icon: Box },
     { id: 'original', label: 'Original', description: 'Escuro com detalhes verdes.', icon: Moon },
     { id: 'skyglass', label: 'Skyglass', description: 'Céu azul, vidro e superfícies claras.', icon: CloudSun },
     { id: 'lilac', label: 'Lilac Studio', description: 'Lavanda, cartões coloridos e navegação escura.', icon: Sparkles },

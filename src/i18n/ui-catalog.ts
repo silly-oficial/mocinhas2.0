@@ -1,6 +1,7 @@
 // Core navigation is bundled: switching languages never depends on a remote service.
 export const UI_TRANSLATIONS: Record<string, Record<string, string>> = {};
 const rows: Record<string, string[]> = {
+"Branco, laranja e cartões de mídia arredondados.": ["White, orange and rounded media cards.", "Blanco, naranja y tarjetas multimedia redondeadas.", "Blanc, orange et cartes multimédias arrondies.", "Weiß, Orange und abgerundete Medienkarten.", "Bianco, arancione e schede multimediali arrotondate.", "白とオレンジ、角の丸いメディアカード。", "흰색, 주황색과 둥근 미디어 카드.", "白色、橙色和圆角媒体卡片。", "Белый, оранжевый и закруглённые медиакарточки.", "أبيض وبرتقالي وبطاقات وسائط مستديرة."],
 "Aparência": ["Appearance", "Apariencia", "Apparence", "Darstellung", "Aspetto", "外観", "모양", "外观", "Оформление", "المظهر"],
 "Tema do aplicativo": ["App theme", "Tema de la aplicación", "Thème de l’application", "App-Design", "Tema dell’app", "アプリのテーマ", "앱 테마", "应用主题", "Тема приложения", "سمة التطبيق"],
 "Escolha o visual do aplicativo.": ["Choose the look of the app.", "Elige el aspecto de la aplicación.", "Choisissez l’apparence de l’application.", "Wähle das Aussehen der App.", "Scegli l’aspetto dell’app.", "アプリの外観を選んでください。", "앱의 모양을 선택하세요.", "选择应用的外观。", "Выберите оформление приложения.", "اختر مظهر التطبيق."],
