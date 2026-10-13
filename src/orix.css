@@ -497,3 +497,75 @@ html[data-theme=orix], [data-theme=orix] body { background:#fff; color:var(--the
 
 [data-theme=orix] .orix-gallery .orix-photo .sky-action-rail>button:last-child { position:static; width:44px; height:44px; min-height:44px; margin:0; border-radius:16px; background:#12121ba6; }
 [data-theme=orix] .orix-gallery .orix-photo .sky-action-rail>button[aria-pressed=true] { background:var(--orix-orange); }
+
+/* Ori: bounded, smooth resizing and controls sized by the actual media height. */
+[data-theme=orix] .orix-gallery>.publication,
+[data-theme=orix] .orix-gallery>.publication[data-centered=true] {
+ transform:scale(var(--orix-card-scale, 1));
+ transition:transform 100ms linear;
+}
+[data-theme=orix] .orix-gallery .has-visual:not(.document-publication) .sky-media-stage {
+ max-height:none;
+ transition:height 220ms var(--orix-ease);
+ overflow:hidden;
+ border-radius:34px;
+ isolation:isolate;
+}
+[data-theme=orix] .orix-gallery .sky-media { transition:transform 220ms var(--orix-ease); }
+[data-theme=orix] .orix-gallery .publication-media { overflow:hidden; }
+/* Compact photos: actions occupy the bottom row, caption and album have their own space. */
+[data-theme=orix] .orix-gallery .orix-photo[data-short=true]:not(.show-full-media) .sky-action-rail {
+ top:auto; bottom:12px; left:12px; right:76px; flex-direction:row; gap:8px;
+}
+[data-theme=orix] .orix-gallery .orix-photo[data-short=true]:not(.show-full-media) .orix-expand-float {
+ width:44px; height:44px; right:12px; bottom:12px; border-radius:16px;
+}
+[data-theme=orix] .orix-gallery .orix-photo[data-short=true]:not(.show-full-media) .sky-card-caption {
+ inset:auto 0 68px; padding:24px 18px 8px; font-size:18px;
+ max-height:calc(100% - 180px);
+}
+[data-theme=orix] .orix-gallery .orix-photo[data-short=true]:not(.show-full-media) .sky-media-pager { top:64px; left:12px; }
+[data-theme=orix] .orix-gallery .orix-photo[data-short=true] .sky-card-top { top:12px; left:12px; right:12px; }
+/* Full video uses the decoded aspect ratio; controls sit outside the image. */
+[data-theme=orix] .orix-gallery .orix-video.show-full-media { background:transparent; box-shadow:none; }
+[data-theme=orix] .orix-gallery .orix-video.show-full-media .sky-media-stage { background:transparent; }
+[data-theme=orix] .orix-gallery .orix-video.show-full-media .publication-media {
+ position:absolute; inset:0; height:100%; border-radius:0; background:transparent; overflow:visible;
+}
+[data-theme=orix] .orix-gallery .orix-video.show-full-media .video-shell {
+ min-height:0; height:100%; background:transparent;
+}
+[data-theme=orix] .orix-gallery .orix-video.show-full-media .video-shell :is(video,canvas) {
+ position:absolute; top:0; left:50%; transform:translateX(-50%);
+ width:var(--orix-full-video-width,100%); height:var(--orix-full-video-height,calc(100% - 120px));
+ border-radius:26px; object-fit:contain; object-position:center; background:transparent;
+}
+[data-theme=orix] .orix-gallery .orix-video.show-full-media .sky-card-top { display:none; }
+[data-theme=orix] .orix-gallery .orix-video.show-full-media .sky-action-rail {
+ top:auto; bottom:70px; left:12px; right:auto; flex-direction:row; gap:8px;
+}
+[data-theme=orix] .orix-gallery .orix-video.show-full-media .orix-video-expand {
+ top:auto; bottom:70px; right:12px;
+}
+[data-theme=orix] .orix-gallery .orix-video.show-full-media .sky-media-pager { top:12px; left:12px; }
+[data-theme=orix] .orix-gallery .orix-video.show-full-media .media-seek {
+ top:auto; bottom:40px; left:12px; width:calc(100% - 24px);
+}
+[data-theme=orix] .orix-gallery .orix-video.show-full-media .media-time {
+ position:absolute; left:12px; bottom:10px; color:var(--ink-900); z-index:5;
+ font-size:12px; line-height:24px; font-variant-numeric:tabular-nums;
+}
+[data-theme=orix] .orix-gallery .orix-video.show-full-media .media-sound {
+ top:auto; bottom:2px; right:58px; width:36px; height:36px;
+}
+[data-theme=orix] .orix-gallery .orix-video.show-full-media .orix-video-toggle {
+ bottom:2px; right:12px; width:36px; height:36px; min-height:36px;
+}
+[data-theme=orix] .orix-gallery .orix-video.show-full-media .media-play { display:none; }
+@media(prefers-reduced-motion:reduce) {
+ [data-theme=orix] .orix-gallery>.publication,
+ [data-theme=orix] .orix-gallery .has-visual .sky-media-stage { transition:none; }
+}
+[data-theme=orix] .orix-video.show-full-media .media-seek::-webkit-slider-runnable-track { background:linear-gradient(to right,var(--orix-orange) var(--seek-progress),#c7c7cc var(--seek-progress)); }
+[data-theme=orix] .orix-video.show-full-media .media-seek::-moz-range-track { background:#c7c7cc; }
+[data-theme=orix] .orix-video.show-full-media .media-seek::-moz-range-progress { background:var(--orix-orange); }

@@ -36,8 +36,8 @@ function choose() {
     else if (video.paused) video.play().catch(() => { /* Visible play fallback for browser restrictions. */ });
   }
 }
-export function ManagedVideo({ src, poster, className, active = true, universe = false, soundOn = false, showSeek = true, onElement }: {
-  src: string; poster?: string; className?: string; active?: boolean; universe?: boolean; soundOn?: boolean; showSeek?: boolean; onElement?: (element: HTMLVideoElement | null) => void;
+export function ManagedVideo({ src, poster, className, active = true, universe = false, soundOn = false, showSeek = true, onElement, showTime = false }: {
+  src: string; poster?: string; className?: string; active?: boolean; universe?: boolean; soundOn?: boolean; showSeek?: boolean; showTime?: boolean; onElement?: (element: HTMLVideoElement | null) => void;
 }) {
   const ref = useRef<HTMLVideoElement>(null);
   const canvas=useRef<HTMLCanvasElement>(null),clarity=useVideoClarity(),intensity=useVideoIntensity();
@@ -92,6 +92,7 @@ export function ManagedVideo({ src, poster, className, active = true, universe =
       style={{'--seek-progress':`${duration?position/duration*100:0}%`} as React.CSSProperties}
       onPointerDown={()=>{seeking.current=true;}} onPointerUp={()=>{seeking.current=false;}} onPointerCancel={()=>{seeking.current=false;}} onBlur={()=>{seeking.current=false;}}
       onChange={e=>{const next=Number(e.target.value);setPosition(next);const v=ref.current;if(v&&Number.isFinite(v.duration))v.currentTime=Math.min(next,Math.max(0,v.duration-.05));}}/>}
+    {!universe && showTime && <output className="media-time" aria-label={ui('Posição do vídeo')}>{format(position)} / {format(duration)}</output>}
     {!universe && <button className="media-sound" aria-label={muted ? ui('Ativar som') : ui('Silenciar')} onClick={() => { const v = ref.current!; v.muted = !v.muted; setMuted(v.muted); v.play().catch(() => {}); }}>{muted ? <VolumeX size={17} /> : <Volume2 size={17} />}</button>}
     {!playing && active && <button className="media-play" aria-label={ui('Reproduzir vídeo')} onClick={() => ref.current?.play().catch(() => {})}><Play size={22} /></button>}
   </div>;
