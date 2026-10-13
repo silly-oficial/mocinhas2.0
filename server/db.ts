@@ -1,3 +1,4 @@
+import type { WelcomeConfig } from '../shared/welcome';
 import { CLOUD } from './cloud-store';
 import fs from 'fs';
 import path from 'path';
@@ -195,6 +196,7 @@ export interface DBPaymentCharge {
 }
 export interface DatabaseSchema {
   engagementRestored?: boolean;
+  welcomeCarousel?: WelcomeConfig;
   paymentCharges?: DBPaymentCharge[];
   usageSettings?: { dailyMinutes: number; bindNetwork: boolean };
   usageBuckets?: Record<string, { startedAt: number; usedMs: number; leaseUntil: number }>;

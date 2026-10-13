@@ -809,6 +809,7 @@ export const UniverseFeed: React.FC<UniverseFeedProps> = ({
 
   return (
     <div
+      onContextMenu={e=>e.preventDefault()}
       className="universe-frame relative w-full rounded-[28px] overflow-hidden border border-white/10 bg-[#05050b] select-none"
       style={{ height: 'calc(100dvh - 10.5rem)', minHeight: 420 }}
     >

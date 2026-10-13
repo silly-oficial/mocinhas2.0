@@ -1,3 +1,4 @@
+import { installWelcome } from './server/welcome';
 import { Readable } from 'node:stream';
 import { CLOUD, flushCloud, assertCloudHealthy, uploadCloud, signedMedia } from './server/cloud-store';
 import { hydrateCloudDatabase } from './server/storage';
@@ -106,6 +107,7 @@ function requireAuth(req: express.Request, res: express.Response, next: express.
   next();
 }
 
+installWelcome(app, DB, requireAdmin);
 installConsumptionPolicy(app, DB, JWT_SECRET, getAuthUserId, requireAdmin);
 app.use('/uploads', async (req, res, next) => {
   if (!CLOUD) return next();

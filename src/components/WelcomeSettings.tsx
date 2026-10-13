@@ -1,0 +1,20 @@
+import React,{useEffect,useRef,useState} from 'react';
+import {Plus,Trash2,ArrowUp,ArrowDown,LoaderCircle} from 'lucide-react';
+import {useUi} from '../i18n/ui';
+import {api} from '../services/api';
+import {welcomeRequest} from '../services/welcome';
+import type {WelcomeConfig} from '../../shared/welcome';
+export function WelcomeSettings(){
+ const ui=useUi(),[config,setConfig]=useState<WelcomeConfig>({intervalSeconds:5,slides:[]}),[ready,setReady]=useState(false),[busy,setBusy]=useState(false),[message,setMessage]=useState('');const input=useRef<HTMLInputElement>(null);
+ useEffect(()=>{let stopped=false;welcomeRequest(true).then(c=>{if(!stopped){setConfig(c);setReady(true);}}).catch(e=>{if(!stopped)setMessage(e.message);});return()=>{stopped=true;};},[]);
+ async function add(files:File[]){setBusy(true);setMessage('');try{if(files.length+config.slides.length>20)throw Error(ui('Use até 20 mídias na apresentação.'));for(const file of files){if(!/\.(jpe?g|png|webp|avif|gif|mp4|webm|mov|m4v)$/i.test(file.name))throw Error(ui('Escolha fotos ou vídeos compatíveis.'));if(file.size>50*1024*1024)throw Error(ui('Cada arquivo pode ter até 50 MB.'));const r=await api.uploadFile(file);setConfig(c=>({...c,slides:[...c.slides,{id:crypto.randomUUID(),url:r.url,type:/\.(mp4|webm|mov|m4v)$/i.test(file.name)?'video':'image',name:file.name}]}));}setMessage(ui('Mídias adicionadas. Salve para exibir na entrada.'));}catch(e:any){setMessage(e.message);}finally{setBusy(false);}}
+ function reorder(i:number,delta:number){setConfig(c=>{const slides=[...c.slides];[slides[i],slides[i+delta]]=[slides[i+delta],slides[i]];return {...c,slides};});}
+ return <section className="admin-publisher"><div className="admin-section-heading"><h3>{ui('Apresentação da entrada')}</h3><p>{ui('Altere somente a área azul da tela inicial. As mídias escolhidas aqui ficam públicas, visíveis antes do login. Não adicione conteúdo que deva ficar restrito aos usuários.')}</p></div>
+ <fieldset className="admin-fields" disabled={!ready||busy}><label>{ui('Segundos por mídia')}<input type="number" min={2} max={30} step={1} value={config.intervalSeconds} onChange={e=>setConfig(c=>({...c,intervalSeconds:Number(e.target.value)}))}/></label>
+ <input className="sr-only" ref={input} type="file" multiple accept="image/jpeg,image/png,image/webp,image/avif,image/gif,video/mp4,video/webm,video/quicktime,.m4v" aria-label={ui('Mídias da apresentação')} onChange={e=>{add(Array.from(e.target.files||[]));e.target.value='';}}/>
+ <button className="admin-upload" type="button" onClick={()=>input.current?.click()}><Plus size={24}/><strong>{ui('Adicionar fotos ou vídeos')}</strong></button>
+ <ul className="admin-upload-list welcome-admin-list">{config.slides.map((s,i)=><li key={s.id}>{s.type==='video'?<video src={s.url} muted playsInline preload="metadata" controls={false}/>:<img src={s.url} alt="" draggable={false}/>}<span><strong>{s.name||ui('Mídia da apresentação')}</strong><small>{i+1} · {ui(s.type==='video'?'Vídeo':'Imagem')}</small></span><button type="button" disabled={i===0} aria-label={ui('Mover para cima')} onClick={()=>reorder(i,-1)}><ArrowUp size={17}/></button><button type="button" disabled={i===config.slides.length-1} aria-label={ui('Mover para baixo')} onClick={()=>reorder(i,1)}><ArrowDown size={17}/></button><button type="button" aria-label={ui('Remover mídia da apresentação')} onClick={()=>setConfig(c=>({...c,slides:c.slides.filter(v=>v.id!==s.id)}))}><Trash2 size={17}/></button></li>)}</ul>
+ {!config.slides.length&&<p className="admin-muted">{ui('Sem mídias, a arte azul original continua aparecendo.')}</p>}
+ <button className="admin-primary" type="button" onClick={async()=>{setBusy(true);try{setConfig(await welcomeRequest(true,config));setMessage(ui('Apresentação salva. As novas visitas verão as alterações.'));}catch(e:any){setMessage(e.message);}finally{setBusy(false);}}}>{busy&&<LoaderCircle size={18} className="animate-spin"/>}{ui('Salvar apresentação')}</button></fieldset>{message&&<p role="status" className="admin-status">{message}</p>}
+ </section>;
+}

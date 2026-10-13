@@ -40,6 +40,9 @@ export function ManagedVideo({ src, poster, className, active = true, universe =
   const ref = useRef<HTMLVideoElement>(null);
   const [muted, setMuted] = useState(true), [playing, setPlaying] = useState(false);
   const ui = useUi();
+  const [duration,setDuration]=useState(0),[position,setPosition]=useState(0);
+  const seeking=useRef(false);
+  const format=(n:number)=>`${Math.floor(n/60)}:${String(Math.floor(n%60)).padStart(2,'0')}`;
   useEffect(() => {
     install();
     const video = ref.current!;
@@ -53,6 +56,7 @@ export function ManagedVideo({ src, poster, className, active = true, universe =
       choose();
     }, { threshold: [0, .25, .55, .75, 1] });
     candidates.set(video, { ratio: universe ? 1 : 0, active });
+    setDuration(0);setPosition(0);
     video.src = src;
     video.load();
     observer.observe(video);
@@ -70,11 +74,17 @@ export function ManagedVideo({ src, poster, className, active = true, universe =
     choose();
   }, [active]);
   return <div className={universe ? 'absolute inset-0' : 'relative video-shell'}>
-    <video ref={ref} poster={poster} muted={universe ? !soundOn : muted} loop playsInline preload="metadata" controls={!universe} disablePictureInPicture
+    <video ref={ref} poster={poster} muted={universe ? !soundOn : muted} loop playsInline preload="metadata" controls={false} controlsList="nodownload noremoteplayback" disablePictureInPicture disableRemotePlayback onContextMenu={e=>e.preventDefault()}
       className={className || 'w-full max-h-[75vh] object-contain'}
-      onLoadedMetadata={event => { const v = event.currentTarget; if (!poster && v.paused && v.duration > .1) v.currentTime = .05; }}
+      onDurationChange={e=>setDuration(Number.isFinite(e.currentTarget.duration)?e.currentTarget.duration:0)}
+      onTimeUpdate={e=>{if(!seeking.current)setPosition(e.currentTarget.currentTime);}}
+      onLoadedMetadata={event => { const v = event.currentTarget; setDuration(Number.isFinite(v.duration)?v.duration:0); if (!poster && v.paused && v.duration > .1) v.currentTime = .05; }}
       onPlay={event => { if (!active) event.currentTarget.pause(); else setPlaying(true); }} onPause={() => setPlaying(false)}
       onVolumeChange={event => setMuted(event.currentTarget.muted)} />
+    {!universe && <input className="media-seek" type="range" aria-label={ui('Posição do vídeo')} aria-valuetext={`${format(position)} / ${format(duration)}`} min="0" max={duration||1} step="0.1" value={Math.min(position,duration||1)} disabled={!active||duration<=0}
+      style={{'--seek-progress':`${duration?position/duration*100:0}%`} as React.CSSProperties}
+      onPointerDown={()=>{seeking.current=true;}} onPointerUp={()=>{seeking.current=false;}} onPointerCancel={()=>{seeking.current=false;}} onBlur={()=>{seeking.current=false;}}
+      onChange={e=>{const next=Number(e.target.value);setPosition(next);const v=ref.current;if(v&&Number.isFinite(v.duration))v.currentTime=Math.min(next,Math.max(0,v.duration-.05));}}/>}
     {!universe && <button className="media-sound" aria-label={muted ? ui('Ativar som') : ui('Silenciar')} onClick={() => { const v = ref.current!; v.muted = !v.muted; setMuted(v.muted); v.play().catch(() => {}); }}>{muted ? <VolumeX size={17} /> : <Volume2 size={17} />}</button>}
     {!playing && active && <button className="media-play" aria-label={ui('Reproduzir vídeo')} onClick={() => ref.current?.play().catch(() => {})}><Play size={22} /></button>}
   </div>;

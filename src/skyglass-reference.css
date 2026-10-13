@@ -287,3 +287,28 @@ html[data-theme=skyglass] body { background-image:var(--sky-bg);background-size:
 [data-theme=skyglass] .app-sidebar [data-destination=universe] .nav-icon svg { display:none; }
 [data-theme=skyglass] .document-publication .sky-media-stage { padding-top:64px; }
 [data-theme=skyglass] .document-publication .sky-document-link { margin-top:0; }
+/* The entrance artwork keeps its original dimensions; only its contents cycle. */
+[data-theme=skyglass] .welcome-carousel { position:relative;isolation:isolate; }
+.welcome-slide { position:absolute;inset:0;z-index:-1;animation:welcome-dissolve 400ms ease; }
+.welcome-slide :is(img,video) { width:100%;height:100%;object-fit:cover;object-position:center; }
+[data-theme=skyglass] .welcome-carousel:has(.welcome-slide)::after { content:'';position:absolute;inset:0;background:linear-gradient(transparent 50%,#08143c77);z-index:-1;pointer-events:none; }
+[data-theme=skyglass] .welcome-carousel .welcome-wordmark { pointer-events:none; }
+[data-theme=skyglass] .welcome-carousel-controls { position:absolute;bottom:16px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:8px;color:#fff; }
+[data-theme=skyglass] .welcome-carousel-controls button { width:44px;height:44px;border-radius:50%;background:#08143ca6;display:grid;place-items:center;border:1px solid #ffffff59; }
+[data-theme=skyglass] .welcome-carousel-controls>span { position:static;font-size:12px;font-weight:600;letter-spacing:normal;background:#08143ca6;padding:6px 10px;border-radius:999px;color:white; }
+.welcome-admin-list video { width:48px;height:48px;border-radius:12px;object-fit:cover;flex-shrink:0; }
+.welcome-admin-list li { flex-wrap:wrap; }
+.welcome-admin-list li>span:not(.admin-file-icon) { min-width:100px; }
+@keyframes welcome-dissolve { from {opacity:0;} to {opacity:1;} }
+/* One custom control: a seek bar with a generous touch area and no native menu. */
+.media-seek { position:absolute;bottom:0;left:16px;width:calc(100% - 32px);height:44px;padding:0;border:0;z-index:5;appearance:none;-webkit-appearance:none;background:transparent;cursor:pointer;touch-action:pan-x; }
+.media-seek::-webkit-slider-runnable-track { height:4px;border-radius:999px;background:linear-gradient(to right,#fff var(--seek-progress),#ffffff59 var(--seek-progress)); }
+.media-seek::-moz-range-track { height:4px;border-radius:999px;background:#ffffff59; }
+.media-seek::-moz-range-progress { height:4px;background:#fff;border-radius:999px; }
+.media-seek::-webkit-slider-thumb { appearance:none;-webkit-appearance:none;width:12px;height:12px;border-radius:50%;background:#fff;margin-top:-4px;box-shadow:0 0 0 3px #2f80ed45; }
+.media-seek::-moz-range-thumb { width:12px;height:12px;border:0;border-radius:50%;background:#fff; }
+.media-seek:focus-visible { outline:2px solid #fff;outline-offset:-4px;border-radius:10px; }
+.media-seek:disabled { opacity:.4;cursor:default; }
+[data-theme=skyglass] .modal-frame .media-seek { font-size:inherit;min-height:44px; }
+.publication :is(img,video),.welcome-carousel :is(img,video),.universe-frame img { -webkit-touch-callout:none;-webkit-user-select:none;user-select:none;-webkit-user-drag:none; }
+@media(prefers-reduced-motion:reduce) { .welcome-slide { animation:none; } }

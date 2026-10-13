@@ -1,3 +1,4 @@
+import { WelcomeSettings } from './WelcomeSettings';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { BarChart3, Plus, Users, FileText, Clock, CreditCard, Database, X, Trash2, Image as ImageIcon, Video, Tag, Shield, Crown, RefreshCw, CheckCircle2, AlertTriangle, Key, ExternalLink, Copy, LoaderCircle } from 'lucide-react';
 import { ui, useUi } from '../i18n/ui';
@@ -10,13 +11,13 @@ import { StorageStatus } from './StorageStatus';
 import { UsageSettings } from './UsageSettings';
 import { ModalFrame } from './ModalFrame';
 
-type Tab = 'stats' | 'poster' | 'moderation' | 'users' | 'usage' | 'syncpay' | 'supabase';
+type Tab = 'welcome' | 'stats' | 'poster' | 'moderation' | 'users' | 'usage' | 'syncpay' | 'supabase';
 type Media = Parameters<typeof api.createPost>[0]['media'][number];
 type UploadItem = { id: number; file: File; preview: string; uploaded?: Media };
 const tabs: { id: Tab; label: string; icon: typeof Plus }[] = [
   {id:'stats',label:'Visão geral',icon:BarChart3},{id:'poster',label:'Publicar',icon:Plus},
   {id:'moderation',label:'Publicações',icon:FileText},{id:'users',label:'Contas',icon:Users},
-  {id:'usage',label:'Limite diário',icon:Clock},{id:'syncpay',label:'Pagamentos',icon:CreditCard},{id:'supabase',label:'Armazenamento',icon:Database}
+  {id:'welcome',label:'Tela de entrada',icon:ImageIcon},{id:'usage',label:'Limite diário',icon:Clock},{id:'syncpay',label:'Pagamentos',icon:CreditCard},{id:'supabase',label:'Armazenamento',icon:Database}
 ];
 const mediaType = (file: File): Media['type'] => {
   const ext = file.name.split('.').pop()?.toLowerCase() || '';
@@ -125,6 +126,7 @@ export const AdminPanel: React.FC<{onClose:()=>void;onPostCreated?:()=>void}> = 
         </form>}
         {activeTab==='moderation'&&<section className="admin-section"><h3>{ui('Publicações')}</h3><label>{ui('Buscar publicações')}<input type="search" value={search} onChange={e=>setSearch(e.target.value)}/></label><div className="admin-content-list">{postsList.filter(p=>(p.caption||'').toLowerCase().includes(search.toLowerCase())).map(p=><article key={p.id}>{p.media[0]&&<div className="admin-content-thumb">{p.media[0].type==='video'&&(!p.media[0].thumbnail||p.media[0].thumbnail===p.media[0].url)?<Video size={26}/>:<img src={p.media[0].thumbnail||p.media[0].url} alt=""/>}</div>}<div><time>{new Date(p.createdAt).toLocaleDateString(language)}</time><p>{p.caption||ui('Sem legenda')}</p><small>{p.media.length} {ui('mídias')}</small></div><button disabled={isLoading} className="admin-danger" aria-label={ui('Excluir publicação')} onClick={()=>removePost(p)}><Trash2 size={18}/></button></article>)}</div>{!postsList.length&&!isLoading&&<p>{ui('Ainda não há publicações.')}</p>}</section>}
         {activeTab==='users'&&<section className="admin-section"><h3>{ui('Contas')}</h3><label>{ui('Buscar contas')}<input type="search" value={search} onChange={e=>setSearch(e.target.value)}/></label><div className="admin-users-list">{usersList.filter(u=>[u.displayName,u.username,u.email].join(' ').toLowerCase().includes(search.toLowerCase())).map(u=><article key={u.id}><div className="admin-user-summary"><span className="admin-monogram">{u.displayName?.slice(0,2).toUpperCase()}</span><div><strong>{u.displayName}</strong><small>{u.email}</small><small>{u.username}</small></div></div><div className="admin-user-actions"><button disabled={isLoading} aria-pressed={!!u.isPremium} onClick={()=>mutateUser(u,'isPremium')}><Crown size={16}/>{ui(u.isPremium?'Remover Premium':'Dar Premium')}</button><button disabled={isLoading||u.id===currentUser?.id} aria-pressed={!!u.isAdmin} onClick={()=>mutateUser(u,'isAdmin')}><Shield size={16}/>{ui(u.isAdmin?'Remover Admin':'Tornar Admin')}</button><details><summary>{ui('Mais opções')}</summary><button disabled={isLoading} onClick={()=>mutateUser(u,'isVerified')}>{ui(u.isVerified?'Remover verificação':'Verificar')}</button>{u.id!==currentUser?.id&&<button className="admin-danger" disabled={isLoading} onClick={()=>removeUser(u)}><Trash2 size={16}/>{ui('Excluir conta')}</button>}</details></div></article>)}</div></section>}
+        {activeTab==='welcome'&&<WelcomeSettings/>}
         {activeTab==='usage'&&<UsageSettings/>}
         {activeTab==='syncpay'&&<form onSubmit={handleSaveSyncpaySettings} className="admin-payment-form">
           <div className="admin-section-heading"><h3>{ui('Pagamentos e Premium')}</h3><p>{ui('Configure a cobrança Pix e acompanhe a conexão com a SyncPay.')}</p></div>
