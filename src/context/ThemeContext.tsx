@@ -1,11 +1,11 @@
 import React, { createContext, useContext, useEffect, useLayoutEffect, useState } from 'react';
 
-export type AppTheme = 'original' | 'skyglass' | 'orely';
+export type AppTheme = 'original' | 'skyglass' | 'orely' | 'lilac';
 export const THEME_KEY = 'mocinhas_visual_theme';
-// Orelly Pop is the reference-inspired default for fresh installations.
-const normalize = (value: unknown): AppTheme => value === 'skyglass' || value === 'original' || value === 'orely' ? value : 'orely';
+// Lilac Studio is a new theme based on the supplied mobile UI reference.
+const normalize = (value: unknown): AppTheme => value === 'skyglass' || value === 'original' || value === 'orely' || value === 'lilac' ? value : 'lilac';
 function readTheme(): AppTheme {
-  try { return normalize(localStorage.getItem(THEME_KEY)); } catch { return 'orely'; }
+  try { return normalize(localStorage.getItem(THEME_KEY)); } catch { return 'lilac'; }
 }
 const ThemeContext = createContext<{ theme: AppTheme; setTheme: (theme: AppTheme) => void; persisted: boolean } | null>(null);
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
@@ -15,7 +15,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     document.documentElement.dataset.theme = theme;
     document.documentElement.classList.toggle('dark', theme === 'original');
     document.body.classList.toggle('dark', theme === 'original');
-    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', theme === 'skyglass' ? '#EAF3FD' : theme === 'orely' ? '#E8DDFB' : '#09090E');
+    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', theme === 'skyglass' ? '#EAF3FD' : theme === 'orely' ? '#E8DDFB' : theme === 'lilac' ? '#E8DEFF' : '#09090E');
   }, [theme]);
   useEffect(() => {
     const sync = (event: StorageEvent) => {
