@@ -426,10 +426,6 @@ html[data-theme=orix], [data-theme=orix] body { background:#fff; color:var(--the
 [data-theme=orix] .orix-video .video-shell::after { border-radius:0 0 34px 34px; }
 [data-theme=orix] .orix-video.show-full-media .orix-video-toggle { bottom:58px; }
 @media (max-width:767px) {
- [data-theme=orix] .orix-gallery[data-compact=true] .orix-photo:not(.show-full-media) .sky-media-stage,
- [data-theme=orix] .orix-gallery[data-compact=true] .orix-video:not(.show-full-media) .sky-media-stage { height:var(--orix-card-height); max-height:none; aspect-ratio:auto; }
-}
-@media (max-width:767px) {
  /* Reserve vertical travel so the heading can leave even with a short feed. */
  [data-theme=orix] .app-shell:has(.orix-gallery) main { min-height:100dvh; }
 }
@@ -440,3 +436,32 @@ html[data-theme=orix], [data-theme=orix] body { background:#fff; color:var(--the
 }
 
 [data-theme=orix] .orix-video.show-full-media { scroll-margin-top:calc(var(--app-header-height) + 12px); }
+
+/* Stable scroll space keeps cards inside the header/navigation boundaries. */
+[data-theme=orix] .app-shell:has(.orix-gallery) main { min-height:0; }
+[data-theme=orix] .orix-gallery-frame { min-height:calc(var(--orix-viewport-room, 60dvh) + 160px); overflow-anchor:none; }
+[data-theme=orix] .orix-gallery { position:sticky; top:var(--orix-header-edge, calc(var(--app-header-height) + 12px)); align-items:flex-start; overflow-anchor:none; }
+[data-theme=orix] .orix-gallery .has-visual .sky-media-stage,
+[data-theme=orix] .orix-gallery[data-compact=true] .has-visual .sky-media-stage {
+ height:var(--orix-stage-height, 40dvh); min-height:0; max-height:var(--orix-available-height, 60dvh); aspect-ratio:auto;
+ transition:height 220ms cubic-bezier(.2,.7,.2,1);
+}
+[data-theme=orix] .orix-gallery .orix-photo.show-full-media .publication-media { height:100%; }
+[data-theme=orix] .orix-gallery .orix-photo.show-full-media .sky-media { width:100%; height:100%; max-height:100%; object-fit:contain; }
+@media (prefers-reduced-motion:reduce) {
+ [data-theme=orix] .orix-gallery .sky-media-stage, [data-theme=orix] .orix-gallery>.publication { transition:none; }
+}
+[data-theme=orix] .orix-gallery .has-visual .sky-media-stage { container-type:size; container-name:orix-media; }
+@container orix-media (max-height:380px) {
+ [data-theme=orix] .orix-gallery .sky-action-rail { position:absolute; top:66px; left:12px; right:12px; bottom:auto; display:flex; flex-direction:row; gap:6px; padding:0; }
+ [data-theme=orix] .orix-gallery .sky-action-rail>button { position:static; width:44px; height:44px; min-height:44px; margin:0; }
+ [data-theme=orix] .orix-gallery .sky-action-rail .orix-expand { width:44px; height:44px; border-radius:16px; }
+ [data-theme=orix] .orix-gallery .sky-media-pager { top:116px; }
+ [data-theme=orix] .orix-gallery .media-sound { top:auto; bottom:14px; left:12px; right:auto; }
+ [data-theme=orix] .orix-gallery .sky-card-caption { bottom:66px; max-height:calc(100% - 120px); padding:12px 12px 4px; font-size:18px; }
+ [data-theme=orix] .orix-gallery .orix-photo.show-full-media .sky-action-rail { display:none; }
+}
+[data-theme=orix] .orix-video.show-full-media .media-sound { top:auto; bottom:130px; right:20px; left:auto; }
+@container orix-media (max-height:380px) {
+ [data-theme=orix] .orix-gallery .orix-video.show-full-media .media-sound { bottom:74px; left:12px; right:auto; }
+}

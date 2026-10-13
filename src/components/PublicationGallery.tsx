@@ -19,13 +19,35 @@ export function PublicationGallery({ orix, videos = false, children }: { orix: b
       if (next < distance) { nearest = card; distance = next; }
     }
     for (const card of cards) card.dataset.centered = String(card === nearest);
+    const header = document.querySelector('.app-header');
+    const headerBottom = header?.getBoundingClientRect().bottom || 0;
+    const headerHeight = header?.getBoundingClientRect().height || 0;
+    const nav = document.querySelector('.app-bottom-nav');
+    const navRect = nav?.getBoundingClientRect();
+    const viewport = window.visualViewport;
+    const viewportBottom = viewport ? viewport.offsetTop + viewport.height : window.innerHeight;
+    const shell = el.closest('.app-shell');
+    const footerSpace = shell ? parseFloat(getComputedStyle(shell).paddingBottom) || 0 : 0;
+    const scrollBottom = viewportBottom - footerSpace - 8;
+    const bottom = navRect && navRect.height > 0 ? Math.min(navRect.top, scrollBottom) : scrollBottom;
+    const room = Math.max(0, bottom - headerBottom - 32);
+    const available = Math.max(0, bottom - Math.max(headerBottom + 12, frame.top) - 24);
+    const wrapper = el.parentElement!;
     const heading = document.querySelector('.orix-page-heading');
-    const headerBottom = document.querySelector('.app-topbar')?.getBoundingClientRect().bottom || 0;
     const compact = Boolean(heading && heading.getBoundingClientRect().bottom <= headerBottom);
     el.dataset.compact = String(compact);
-    const navHeight = document.querySelector('.app-bottom-nav')?.getBoundingClientRect().height || 84;
-    const available = window.innerHeight - Math.max(headerBottom + 12, frame.top) - navHeight - 24;
-    el.style.setProperty('--orix-card-height', `${Math.max(300, available)}px`);
+    const headingHeight = heading?.getBoundingClientRect().height || 1;
+    const progress = Math.max(0, Math.min(1, (headerBottom + headingHeight - (heading?.getBoundingClientRect().bottom || 0)) / headingHeight));
+    wrapper.style.setProperty('--orix-viewport-room', `${room}px`);
+    wrapper.style.setProperty('--orix-header-edge', `${headerHeight + 12}px`);
+    el.style.setProperty('--orix-available-height', `${available}px`);
+    for (const card of cards) {
+      const stage = card.querySelector<HTMLElement>('.sky-media-stage');
+      if (!stage || !card.classList.contains('has-visual')) continue;
+      const base = Math.min(card.offsetWidth * 5 / 3, Math.max(0, room - (card.classList.contains('orix-video') ? 198 : 230)));
+      const target = Math.min(available, card.classList.contains('show-full-media') ? room : base + 180 * progress);
+      stage.style.setProperty('--orix-stage-height', `${target}px`);
+    }
   }, []);
   useLayoutEffect(() => { if (orix) measure(); }, [orix, children, measure]);
   useEffect(() => {
@@ -36,8 +58,12 @@ export function PublicationGallery({ orix, videos = false, children }: { orix: b
     el.addEventListener('scroll', update, { passive: true });
     window.addEventListener('scroll', update, { passive: true });
     window.addEventListener('resize', update);
-    const resize = new ResizeObserver(update); resize.observe(el); update();
-    return () => { cancelAnimationFrame(frame); resize.disconnect(); el.removeEventListener('scroll', update); window.removeEventListener('scroll', update); window.removeEventListener('resize', update); };
+    window.visualViewport?.addEventListener('resize', update);
+    window.visualViewport?.addEventListener('scroll', update);
+    const resize = new ResizeObserver(update); resize.observe(el);
+    const state = new MutationObserver(update); state.observe(el, { subtree:true, attributes:true, attributeFilter:['class'] }); update();
+    return () => { cancelAnimationFrame(frame); resize.disconnect(); state.disconnect(); el.removeEventListener('scroll', update); window.removeEventListener('scroll', update); window.removeEventListener('resize', update); window.visualViewport?.removeEventListener('resize', update); window.visualViewport?.removeEventListener('scroll', update); };
   }, [orix, measure]);
-  return <div ref={root} className={`publication-list max-w-2xl mx-auto space-y-5 ${orix ? `orix-gallery ${videos ? 'orix-video-gallery' : ''}` : ''}`} tabIndex={orix ? 0 : undefined} role={orix ? 'region' : undefined} aria-label={orix ? ui('Publicações') : undefined}>{children}</div>;
+  const gallery = <div ref={root} className={`publication-list max-w-2xl mx-auto space-y-5 ${orix ? `orix-gallery ${videos ? 'orix-video-gallery' : ''}` : ''}`} tabIndex={orix ? 0 : undefined} role={orix ? 'region' : undefined} aria-label={orix ? ui('Publicações') : undefined}>{children}</div>;
+  return orix ? <div className="orix-gallery-frame">{gallery}</div> : gallery;
 }

@@ -48,11 +48,6 @@ function Publication({ post, admin, onDeleted, onUpdate, onComments, onNotice, d
     bindVideo(theme === 'orix' ? publicationRef.current?.querySelector('video') || null : null);
     return () => bindVideo(null);
   }, [theme, mediaIndex, post.id, bindVideo]);
-  useEffect(() => {
-    if (theme === 'orix' && fullImage && post.media[mediaIndex]?.type === 'video') {
-      publicationRef.current?.scrollIntoView({ block: 'start', behavior: 'instant' });
-    }
-  }, [fullImage, theme, mediaIndex, post.id]);
   async function interact(action: 'like' | 'save') {
     if (busy || disabled) return;
     setBusy(action);
