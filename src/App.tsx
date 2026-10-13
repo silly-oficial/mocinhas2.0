@@ -51,10 +51,31 @@ function MainApp() {
   const { user, isLoading, logout } = useAuth();
   const [view, setView] = useState('feed'), [posts, setPosts] = useState<Post[]>([]), [loading, setLoading] = useState(false);
   const [modal, setModal] = useState(''), [selected, setSelected] = useState<Post | null>(null), [tags, setTags] = useState<string[]>([]);
+  const [feedToolbarHidden, setFeedToolbarHidden] = useState(false);
   const [commentsPost, setCommentsPost] = useState<Post | null>(null), [notice, setNotice] = useState('');
   const [hasAccess, setHasAccess] = useState(false);
   const loadedFor = useRef('');
   const headerRef = useRef<HTMLElement>(null);
+  // Esconde o título e os filtros do feed ao rolar para baixo, liberando a área dos vídeos.
+  useEffect(() => {
+    let lastY = window.scrollY;
+    let ticking = false;
+    const onScroll = () => {
+      if (ticking) return;
+      ticking = true;
+      window.requestAnimationFrame(() => {
+        const y = window.scrollY;
+        if (y < 90) setFeedToolbarHidden(false);
+        else if (y > lastY + 5) setFeedToolbarHidden(true);
+        else if (y < lastY - 5) setFeedToolbarHidden(false);
+        lastY = y;
+        ticking = false;
+      });
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+  useEffect(() => { setFeedToolbarHidden(false); }, [view]);
   useEffect(() => {
     const header = headerRef.current; if (!header) return;
     const measure = () => document.documentElement.style.setProperty("--app-header-height", `${header.getBoundingClientRect().height}px`);
@@ -121,7 +142,7 @@ function MainApp() {
       <div className="niuniu-card p-2"><button className="account-row" onClick={() => setModal("theme")}><Palette size={20} /><span><strong>{ui("Aparência")}</strong><small>{theme === "lilac" ? "Lilac Studio" : theme === "skyglass" ? "Skyglass" : theme === "orely" ? "Orelly Pop" : "Original"}</small></span><span aria-hidden="true">›</span></button><button className="account-row" onClick={() => setModal('edit')}><Settings size={20} /><span><strong>{ui("Editar perfil")}</strong><small>{ui("Seu nome nos comentários")}</small></span><span aria-hidden="true">›</span></button><button className="account-row" onClick={() => setModal('language')}><Globe size={20} /><span><strong>{ui("Idioma do aplicativo")}</strong><small>{currentLanguageInfo.nativeName}</small></span><span aria-hidden="true">›</span></button><button className="account-row" onClick={() => setModal('premium')}><Crown size={20} /><span><strong>{ui("Mocinhas Premium")}</strong><small>{ui("Gerencie seu acesso Premium")}</small></span><span aria-hidden="true">›</span></button></div>
       <button className="account-row text-zinc-400 w-full rounded-2xl border border-white/10" onClick={() => { pauseMedia(); logout(); }}><LogOut size={19} /><span>{ui("Sair da conta")}</span></button>
       </section> : !allowed ? <section className="niuniu-card p-10 text-center space-y-4"><Clock className="mx-auto text-emerald-400" size={36} /><h1 className="text-xl font-bold">{quota?.blocked ? ui("Seu tempo de hoje terminou") : error ? ui("Não foi possível autorizar o acesso") : ui("Verificando seu acesso")}</h1><p className="text-zinc-400">{quota?.blocked ? `${ui('Disponível novamente em')} ${new Date(quota.resetAt).toLocaleString(language)}.` : ui(error || 'Aguarde um instante.')}</p></section> : <>
-        {(view === 'videos' || view === 'feed' || view === 'saved') && <div className="feed-toolbar sticky top-[85px] z-20 bg-[var(--canvas-bg)] py-3"><h1 className="font-bold text-xl mb-3">{view === 'videos' ? ui("Vídeos") : view === 'saved' ? ui("Publicações salvas") : ui("Início")}</h1><div className="flex gap-2 overflow-x-auto pb-2"><button className={`tag-chip ${!tags.length ? 'selected' : ''}`} onClick={() => setTags([])}>{ui("Todos")}</button>{allTags.map(t => <button aria-pressed={tags.includes(t)} key={t} className={`tag-chip ${tags.includes(t) ? 'selected' : ''}`} onClick={() => setTags(prev => prev.includes(t) ? prev.filter(v => v !== t) : [...prev, t])}>#{t}</button>)}</div></div>}
+        {(view === 'videos' || view === 'feed' || view === 'saved') && <div className={`feed-toolbar sticky top-[85px] z-20 bg-[var(--canvas-bg)] py-3 transition-[transform,opacity] duration-200 ${feedToolbarHidden ? '-translate-y-[130%] opacity-0 pointer-events-none' : 'translate-y-0 opacity-100'}`}><h1 className="font-bold text-xl mb-3">{view === 'videos' ? ui("Vídeos") : view === 'saved' ? ui("Publicações salvas") : ui("Início")}</h1><div className="flex gap-2 overflow-x-auto pb-2"><button className={`tag-chip ${!tags.length ? 'selected' : ''}`} onClick={() => setTags([])}>{ui("Todos")}</button>{allTags.map(t => <button aria-pressed={tags.includes(t)} key={t} className={`tag-chip ${tags.includes(t) ? 'selected' : ''}`} onClick={() => setTags(prev => prev.includes(t) ? prev.filter(v => v !== t) : [...prev, t])}>#{t}</button>)}</div></div>}
         {view === 'universe' ? <UniverseFeed posts={posts} isLoading={loading} paused={!!selected || !!modal || !!commentsPost || !leaseValid} onSelectPost={setSelected} onSwitchToList={() => navigate('feed')} /> : <div className="publication-list max-w-2xl mx-auto space-y-5">{loading && !posts.length ? <LoaderCircle className="animate-spin mx-auto" /> : shown.map(p => <Publication mediaActive={!modal && !selected && !commentsPost} key={p.id} post={p} admin={isAdmin} {...engagement} onDeleted={load} />)}{!loading && !shown.length && <p className="niuniu-card p-8 text-center text-zinc-400">{tags.length ? ui("Nenhuma publicação com as hashtags selecionadas.") : ui("Ainda não há publicações.")}</p>}</div>}
       </>}
     </main></div>
