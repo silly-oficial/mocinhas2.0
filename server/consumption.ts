@@ -85,7 +85,7 @@ export function installConsumptionPolicy(app: express.Express, db: typeof Databa
       if (req.method === 'GET') return res.json({ ephemeral1HourMode: false, expiresAfterMinutes: null });
       return res.status(403).json({ error: 'Exclusão automática desativada.' });
     }
-    if (route.startsWith('/api/posts') || route.startsWith('/api/comments/') || route.startsWith('/uploads/')) {
+    if (route.startsWith('/api/people') || route.startsWith('/api/posts') || route.startsWith('/api/comments/') || route.startsWith('/uploads/')) {
       res.setHeader('Cache-Control', 'private, no-store');
       if (route.startsWith('/uploads/') && !auth(req)) {
         try { const token = cookies(req).mocinhas_media; const payload = jwt.verify(token, secret) as any;

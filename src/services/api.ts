@@ -1,3 +1,4 @@
+import type { PersonProfile } from '../../shared/people';
 import { User, Post, StoryGroup, Comment, Message, Conversation, Notification, FollowRequest, AuthResponse, SearchResult } from '../types';
 
 const API_BASE = '/api';
@@ -47,6 +48,9 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
 }
 
 export const api = {
+  getPeople: (admin = false) => request<{profiles: PersonProfile[]}>(admin ? '/admin/people' : '/people'),
+  savePerson: (profile: Partial<PersonProfile>) => request<{profile:PersonProfile}>(`/admin/people${profile.id ? '/'+profile.id : ''}`, {method:profile.id ? 'PUT':'POST',body:JSON.stringify(profile)}),
+  deletePerson: (id:string) => request('/admin/people/'+id,{method:'DELETE'}),
   consumeUsage: () => request<any>('/usage/consume', { method: 'POST' }),
   getUsageSettings: () => request<{ dailyMinutes: number; bindNetwork: boolean }>('/admin/usage-settings'),
   setUsageSettings: (value: { dailyMinutes: number; bindNetwork: boolean }) => request('/admin/usage-settings', { method: 'PUT', body: JSON.stringify(value) }),

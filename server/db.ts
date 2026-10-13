@@ -1,3 +1,4 @@
+import type { PersonProfile } from '../shared/people';
 import type { WelcomeConfig } from '../shared/welcome';
 import { CLOUD } from './cloud-store';
 import fs from 'fs';
@@ -197,6 +198,7 @@ export interface DBPaymentCharge {
   status: string; createdAt: number; checkedAt?: number; grantedAt?: number;
 }
 export interface DatabaseSchema {
+  peopleProfiles?: PersonProfile[];
   engagementRestored?: boolean;
   welcomeCarousel?: WelcomeConfig;
   paymentCharges?: DBPaymentCharge[];

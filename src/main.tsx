@@ -6,6 +6,7 @@ import './index.css';
 import './skyglass.css';
 import './skyglass-reference.css';
 import './orix.css';
+import './people.css';
 
 if ('serviceWorker' in navigator) {
   if (import.meta.env.PROD) {
