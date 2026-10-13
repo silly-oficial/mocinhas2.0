@@ -27,7 +27,7 @@ export const TermsModal: React.FC<TermsModalProps> = ({
   return (
     <div
       id="terms-modal-backdrop"
-      className="fixed inset-0 z-[60] bg-black/80 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 animate-in fade-in duration-200"
+      className="legacy-modal fixed inset-0 z-[60] bg-black/80 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 animate-in fade-in duration-200"
     >
       <div
         id="terms-modal-card"

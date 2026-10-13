@@ -126,7 +126,7 @@ export const CommentsModal: React.FC<CommentsModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4">
+    <div className="legacy-modal fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4">
       <div className="w-full max-w-lg max-h-[85vh] h-[85vh] sm:h-[620px] rounded-t-3xl sm:rounded-[28px] bg-[#12121B] text-white border border-white/10 shadow-2xl flex flex-col overflow-hidden animate-bento-fade">
         {/* Header */}
         <div className="p-4 border-b border-white/10 flex items-center justify-between bg-[#12121B]">

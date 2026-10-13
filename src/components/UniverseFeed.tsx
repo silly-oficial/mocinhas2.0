@@ -210,7 +210,7 @@ interface NodeViewProps {
 const NodeView = React.memo(function NodeView({ node, tier, focused, lite, soundOn, allowVideo, videoRef }: NodeViewProps) {
   useUi();
   const { d, x, y, hue, poster } = node;
-  const planetBg = '#172823';
+  const planetBg = 'var(--uni-node-bg, #172823)';
   const ring = lite
     ? `0 0 0 2px hsl(${hue} 80% 70% / .55)`
     : `0 0 0 2px hsl(${hue} 80% 70% / .6), 0 0 34px hsl(${hue} 85% 60% / .38)`;
@@ -240,7 +240,7 @@ const NodeView = React.memo(function NodeView({ node, tier, focused, lite, sound
             overflow: 'hidden',
             background: planetBg,
             borderRadius: focused ? 28 : 40,
-            boxShadow: focused ? '0 0 0 2px #34d399, 0 16px 48px #0008' : '0 0 0 1px #ffffff30, 0 8px 24px #0008',
+            boxShadow: focused ? 'var(--uni-node-focus-shadow, 0 0 0 2px #34d399, 0 16px 48px #0008)' : 'var(--uni-node-shadow, 0 0 0 1px #ffffff30, 0 8px 24px #0008)',
             transition: 'border-radius 380ms ease',
           }}
         >
@@ -279,8 +279,8 @@ const NodeView = React.memo(function NodeView({ node, tier, focused, lite, sound
               textAlign: 'center',
               fontSize: 20,
               fontWeight: 800,
-              color: '#fff',
-              textShadow: '0 2px 8px rgba(0,0,0,.9)',
+              color: 'var(--uni-label, #fff)',
+              textShadow: 'var(--uni-label-shadow, 0 2px 8px rgba(0,0,0,.9))',
               lineHeight: 1.2,
             }}
           >
@@ -808,7 +808,7 @@ export const UniverseFeed: React.FC<UniverseFeedProps> = ({
 
   return (
     <div
-      className="relative w-full rounded-[28px] overflow-hidden border border-white/10 bg-[#05050b] select-none"
+      className="universe-frame relative w-full rounded-[28px] overflow-hidden border border-white/10 bg-[#05050b] select-none"
       style={{ height: 'calc(100dvh - 10.5rem)', minHeight: 420 }}
     >
       {/* Área de gestos + mundo */}
@@ -864,7 +864,7 @@ export const UniverseFeed: React.FC<UniverseFeedProps> = ({
       <div className="absolute top-3 left-3 right-3 flex items-center gap-2 z-10 pointer-events-none">
         <div className="relative flex-1 pointer-events-auto">
           <div
-            className={`flex items-center gap-2 px-3.5 py-2 rounded-full border border-white/15 ${
+            className={`universe-search flex items-center gap-2 px-3.5 py-2 rounded-full border border-white/15 ${
               lite ? 'bg-black/80' : 'bg-black/55 backdrop-blur-md'
             }`}
           >
@@ -883,7 +883,7 @@ export const UniverseFeed: React.FC<UniverseFeedProps> = ({
           </div>
 
           {results.length > 0 && (
-            <div className="absolute left-0 right-0 mt-2 rounded-2xl border border-white/15 bg-[#0d0d16]/98 overflow-hidden shadow-2xl">
+            <div className="universe-results absolute left-0 right-0 mt-2 rounded-2xl border border-white/15 bg-[#0d0d16]/98 overflow-hidden shadow-2xl">
               {results.map(n => (
                 <button
                   key={n.id}
@@ -908,7 +908,7 @@ export const UniverseFeed: React.FC<UniverseFeedProps> = ({
             </div>
           )}
           {query.trim() && results.length === 0 && (
-            <div className="absolute left-0 right-0 mt-2 rounded-2xl border border-white/15 bg-[#0d0d16]/98 px-4 py-3 text-xs text-zinc-400">
+            <div className="universe-results absolute left-0 right-0 mt-2 rounded-2xl border border-white/15 bg-[#0d0d16]/98 px-4 py-3 text-xs text-zinc-400">
               {ui("Nenhuma publicação encontrada.")}</div>
           )}
         </div>
@@ -918,7 +918,7 @@ export const UniverseFeed: React.FC<UniverseFeedProps> = ({
             onClick={onSwitchToList}
             aria-label={ui("Ver em lista")}
             title={ui("Ver em lista")}
-            className={`pointer-events-auto w-9 h-9 rounded-full border border-white/15 flex items-center justify-center text-zinc-200 hover:text-white cursor-pointer shrink-0 ${
+            className={`universe-control pointer-events-auto w-9 h-9 rounded-full border border-white/15 flex items-center justify-center text-zinc-200 hover:text-white cursor-pointer shrink-0 ${
               lite ? 'bg-black/80' : 'bg-black/55 backdrop-blur-md'
             }`}
           >
@@ -939,7 +939,7 @@ export const UniverseFeed: React.FC<UniverseFeedProps> = ({
             onClick={b.onClick}
             aria-label={b.label}
             title={b.label}
-            className={`w-9 h-9 rounded-full border border-white/15 flex items-center justify-center text-zinc-200 hover:text-white cursor-pointer ${
+            className={`universe-control w-9 h-9 rounded-full border border-white/15 flex items-center justify-center text-zinc-200 hover:text-white cursor-pointer ${
               lite ? 'bg-black/80' : 'bg-black/55 backdrop-blur-md'
             }`}
           >
@@ -951,7 +951,7 @@ export const UniverseFeed: React.FC<UniverseFeedProps> = ({
       {/* Dica inicial */}
       {showHint && nodes.length > 0 && !focusNode && (
         <div className="absolute bottom-4 left-0 right-0 flex justify-center pointer-events-none z-10">
-          <div className="px-4 py-2 rounded-full bg-black/70 border border-white/10 text-[11px] font-bold text-zinc-200">
+          <div className="universe-hint px-4 py-2 rounded-full bg-black/70 border border-white/10 text-[11px] font-bold text-zinc-200">
             {ui("Arraste para explorar. Toque para aproximar.")}</div>
         </div>
       )}
@@ -959,7 +959,7 @@ export const UniverseFeed: React.FC<UniverseFeedProps> = ({
       {/* Cartão do vídeo em foco (fora do mundo → botões clicáveis) */}
       {focusNode && (
         <div
-          className={`absolute left-3 right-3 bottom-3 z-10 rounded-2xl border border-white/15 p-3 flex items-center gap-3 ${
+          className={`universe-detail absolute left-3 right-3 bottom-3 z-10 rounded-2xl border border-white/15 p-3 flex items-center gap-3 ${
             lite ? 'bg-black/85' : 'bg-black/60 backdrop-blur-md'
           }`}
         >

@@ -3,6 +3,7 @@ import { User, Notification, Message, UserGender } from '../types';
 import { api } from '../services/api';
 import { sounds } from '../utils/sound';
 import { supabase, isSupabaseClientConfigured } from '../services/supabase';
+import { useTheme } from './ThemeContext';
 
 interface AuthContextType {
   user: User | null;
@@ -30,16 +31,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(() => localStorage.getItem('mocinhas_token') || localStorage.getItem('yume_token'));
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const darkMode = true; // Exclusively Dark Mode
+  const { theme, setTheme } = useTheme();
+  const darkMode = theme === 'original';
   const [soundEnabled, setSoundEnabled] = useState<boolean>(() => localStorage.getItem('mocinhas_sound') !== 'false');
   const [unreadNotifsCount, setUnreadNotifsCount] = useState<number>(0);
   const [unreadMessagesCount, setUnreadMessagesCount] = useState<number>(0);
-
-  // Enforce dark mode permanently
-  useEffect(() => {
-    document.documentElement.classList.add('dark');
-    localStorage.setItem('mocinhas_theme', 'dark');
-  }, []);
 
   // Sync sound setting
   useEffect(() => {
@@ -48,7 +44,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [soundEnabled]);
 
   const toggleDarkMode = () => {
-    document.documentElement.classList.add('dark');
+    setTheme(darkMode ? 'skyglass' : 'original');
   };
 
   const toggleSound = () => {

@@ -1,6 +1,16 @@
 // Core navigation is bundled: switching languages never depends on a remote service.
 export const UI_TRANSLATIONS: Record<string, Record<string, string>> = {};
 const rows: Record<string, string[]> = {
+"Aparência": ["Appearance", "Apariencia", "Apparence", "Darstellung", "Aspetto", "外観", "모양", "外观", "Оформление", "المظهر"],
+"Tema do aplicativo": ["App theme", "Tema de la aplicación", "Thème de l’application", "App-Design", "Tema dell’app", "アプリのテーマ", "앱 테마", "应用主题", "Тема приложения", "سمة التطبيق"],
+"Escolha o visual do aplicativo.": ["Choose the look of the app.", "Elige el aspecto de la aplicación.", "Choisissez l’apparence de l’application.", "Wähle das Aussehen der App.", "Scegli l’aspetto dell’app.", "アプリの外観を選んでください。", "앱의 모양을 선택하세요.", "选择应用的外观。", "Выберите оформление приложения.", "اختر مظهر التطبيق."],
+"Escuro com detalhes verdes.": ["Dark with green accents.", "Oscuro con detalles verdes.", "Sombre avec des touches vertes.", "Dunkel mit grünen Akzenten.", "Scuro con dettagli verdi.", "グリーンが映えるダークテーマ。", "초록색 포인트의 어두운 테마.", "深色搭配绿色点缀。", "Тёмный с зелёными акцентами.", "داكن بلمسات خضراء."],
+"Céu azul, vidro e superfícies claras.": ["Blue skies, glass and light surfaces.", "Cielo azul, cristal y superficies claras.", "Ciel bleu, verre et surfaces claires.", "Blauer Himmel, Glas und helle Flächen.", "Cielo azzurro, vetro e superfici chiare.", "青空、ガラス、明るい背景。", "푸른 하늘, 유리와 밝은 배경.", "蓝天、玻璃与明亮界面。", "Голубое небо, стекло и светлые поверхности.", "سماء زرقاء وزجاج وأسطح فاتحة."],
+"Aplicado na hora e salvo neste navegador.": ["Applied instantly and saved in this browser.", "Se aplica al instante y se guarda en este navegador.", "Appliqué immédiatement et enregistré dans ce navigateur.", "Sofort angewendet und in diesem Browser gespeichert.", "Applicato subito e salvato in questo browser.", "すぐに適用され、このブラウザに保存されます。", "즉시 적용되고 이 브라우저에 저장됩니다.", "立即应用并保存在此浏览器中。", "Применяется сразу и сохраняется в этом браузере.", "يُطبق فورًا ويُحفظ في هذا المتصفح."],
+"Tema aplicado. O navegador não permitiu salvar a preferência.": ["Theme applied. The browser could not save your preference.", "Tema aplicado. El navegador no permitió guardar la preferencia.", "Thème appliqué. Le navigateur n’a pas autorisé l’enregistrement.", "Design angewendet. Der Browser konnte die Einstellung nicht speichern.", "Tema applicato. Il browser non ha consentito il salvataggio.", "テーマを適用しました。ブラウザに設定を保存できませんでした。", "테마가 적용되었습니다. 브라우저에서 설정을 저장할 수 없습니다.", "主题已应用。浏览器无法保存偏好。", "Тема применена. Браузер не разрешил сохранить настройку.", "تم تطبيق السمة. تعذر حفظ التفضيل في المتصفح."],
+"Concluir": ["Done", "Listo", "Terminer", "Fertig", "Fine", "完了", "완료", "完成", "Готово", "تم"],
+"Navegação principal": ["Main navigation", "Navegación principal", "Navigation principale", "Hauptnavigation", "Navigazione principale", "メインナビゲーション", "주 탐색", "主导航", "Основная навигация", "التنقل الرئيسي"],
+
 'Início': ['Home','Inicio','Accueil','Startseite','Home','ホーム','홈','首页','Главная','الرئيسية'],
 'Vídeos': ['Videos','Vídeos','Vidéos','Videos','Video','動画','동영상','视频','Видео','الفيديوهات'],
 'Universo': ['Universe','Universo','Univers','Universum','Universo','ユニバース','유니버스','宇宙','Вселенная','الكون'],

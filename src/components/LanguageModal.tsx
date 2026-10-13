@@ -23,7 +23,7 @@ export const LanguageModal: React.FC<LanguageModalProps> = ({ isOpen = true, onC
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm animate-fadeIn"
+      className="legacy-modal fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm animate-fadeIn"
       onClick={onClose}
     >
       <div
@@ -48,6 +48,7 @@ export const LanguageModal: React.FC<LanguageModalProps> = ({ isOpen = true, onC
           </div>
           <button
             onClick={onClose}
+            aria-label={ui("Fechar idioma")}
             className="w-8 h-8 rounded-full flex items-center justify-center text-zinc-400 hover:text-white hover:bg-white/5 transition-colors cursor-pointer"
           >
             <X className="w-4 h-4" />
@@ -73,7 +74,7 @@ export const LanguageModal: React.FC<LanguageModalProps> = ({ isOpen = true, onC
                 </p>
               </div>
             </div>
-            <label className="relative inline-flex items-center cursor-pointer shrink-0 mt-1">
+            <label className="translation-toggle relative inline-flex items-center cursor-pointer shrink-0 mt-1">
               <input
                 id="auto-translate-toggle"
                 type="checkbox"

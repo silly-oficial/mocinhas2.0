@@ -513,7 +513,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose, onPostCreated }
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 animate-fadeIn">
+    <div className="legacy-modal fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 animate-fadeIn">
       <div className="w-full max-w-4xl bg-[#111118] border-2 border-white/20 rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh]">
         
         {/* Header */}
@@ -531,6 +531,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose, onPostCreated }
           </div>
           <button
             onClick={() => { sounds.playPop(); onClose(); }}
+            aria-label={ui("Fechar painel administrativo")}
             className="w-9 h-9 rounded-full bg-[#1F1F2E] hover:bg-[#2B2B3E] text-zinc-300 hover:text-white flex items-center justify-center transition-colors cursor-pointer border border-white/10"
           >
             <X className="w-5 h-5" />
@@ -538,7 +539,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ onClose, onPostCreated }
         </div>
 
         {/* Navigation Tabs */}
-        <div className="flex items-center gap-2 px-6 py-3 bg-[#0D0D14] border-b border-white/10 overflow-x-auto scrollbar-none">
+        <div className="admin-tabs flex items-center gap-2 px-6 py-3 bg-[#0D0D14] border-b border-white/10 overflow-x-auto scrollbar-none">
           <button
             onClick={() => { sounds.playPop(); setActiveTab('stats'); }}
             className={`px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${
