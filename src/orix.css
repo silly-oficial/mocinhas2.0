@@ -465,3 +465,12 @@ html[data-theme=orix], [data-theme=orix] body { background:#fff; color:var(--the
 @container orix-media (max-height:380px) {
  [data-theme=orix] .orix-gallery .orix-video.show-full-media .media-sound { bottom:74px; left:12px; right:auto; }
 }
+/* Center media in the bounded viewing area; lift navigation off the edge. */
+[data-theme=orix] .app-bottom-nav { bottom:24px; }
+[data-theme=orix] .app-bottom-nav::before { bottom:-24px; }
+[data-theme=orix] .orix-gallery { height:calc(var(--orix-available-height, 60dvh) + 24px); padding-block:12px; align-items:center; }
+/* Active destination stays together; remaining icons form a compact group. */
+[data-theme=orix] .app-bottom-nav { justify-content:flex-end; gap:10px; }
+[data-theme=orix] .app-bottom-nav>button { flex:0 0 44px; }
+[data-theme=orix] .app-bottom-nav>button[aria-current] { order:-1; flex:0 0 auto; margin-inline-end:auto; justify-content:flex-start; }
+@media (max-width:360px) { [data-theme=orix] .app-bottom-nav { gap:6px; } }
