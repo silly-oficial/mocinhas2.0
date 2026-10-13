@@ -410,3 +410,33 @@ html[data-theme=orix], [data-theme=orix] body { background:#fff; color:var(--the
 [data-theme=orix] .sky-card-caption .orix-caption-text::first-line { font-weight:750; }
 [data-theme=orix] .sky-card-caption.expanded .group\/translate>div:first-child { font-weight:350; }
 [data-theme=orix] .sky-card-caption.expanded .group\/translate>div:first-child::first-line { font-weight:750; }
+
+/* Shared portrait carousel: videos use the same full-bleed composition as photos. */
+[data-theme=orix] .orix-video-gallery { padding-inline:7%; scroll-padding-inline:7%; }
+[data-theme=orix] .orix-video-gallery>.publication { max-width:400px; }
+[data-theme=orix] .orix-video { border-radius:34px; }
+[data-theme=orix] .orix-video:not(.show-full-media) .sky-media-stage { aspect-ratio:3/5; min-height:0; max-height:max(372px,calc(100dvh - var(--app-header-height) - 298px)); }
+[data-theme=orix] .orix-video .sky-card-top { top:18px; left:18px; right:18px; }
+[data-theme=orix] .orix-video .sky-card-caption { bottom:12px; padding:38px 94px 14px 22px; font-size:23px; line-height:1.18; }
+[data-theme=orix] .orix-video .sky-action-rail { top:78px; right:16px; gap:8px; }
+[data-theme=orix] .orix-video .sky-action-rail .orix-expand { border-radius:16px; }
+[data-theme=orix] .orix-video .sky-media-pager { top:78px; left:16px; }
+[data-theme=orix] .orix-video .media-sound { top:286px; right:16px; left:auto; }
+[data-theme=orix] .orix-video-toggle { right:20px; bottom:20px; }
+[data-theme=orix] .orix-video .video-shell::after { border-radius:0 0 34px 34px; }
+[data-theme=orix] .orix-video.show-full-media .orix-video-toggle { bottom:58px; }
+@media (max-width:767px) {
+ [data-theme=orix] .orix-gallery[data-compact=true] .orix-photo:not(.show-full-media) .sky-media-stage,
+ [data-theme=orix] .orix-gallery[data-compact=true] .orix-video:not(.show-full-media) .sky-media-stage { height:var(--orix-card-height); max-height:none; aspect-ratio:auto; }
+}
+@media (max-width:767px) {
+ /* Reserve vertical travel so the heading can leave even with a short feed. */
+ [data-theme=orix] .app-shell:has(.orix-gallery) main { min-height:100dvh; }
+}
+@media (min-width:768px) {
+ [data-theme=orix] .orix-video-gallery { padding-inline:20px; scroll-padding-inline:20px; }
+ [data-theme=orix] .orix-video-gallery>.publication { flex-basis:350px; }
+ [data-theme=orix] .orix-video:not(.show-full-media) .sky-media-stage { max-height:none; }
+}
+
+[data-theme=orix] .orix-video.show-full-media { scroll-margin-top:calc(var(--app-header-height) + 12px); }

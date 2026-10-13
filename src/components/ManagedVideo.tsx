@@ -36,8 +36,8 @@ function choose() {
     else if (video.paused) video.play().catch(() => { /* Visible play fallback for browser restrictions. */ });
   }
 }
-export function ManagedVideo({ src, poster, className, active = true, universe = false, soundOn = false, onElement }: {
-  src: string; poster?: string; className?: string; active?: boolean; universe?: boolean; soundOn?: boolean; onElement?: (element: HTMLVideoElement | null) => void;
+export function ManagedVideo({ src, poster, className, active = true, universe = false, soundOn = false, showSeek = true, onElement }: {
+  src: string; poster?: string; className?: string; active?: boolean; universe?: boolean; soundOn?: boolean; showSeek?: boolean; onElement?: (element: HTMLVideoElement | null) => void;
 }) {
   const ref = useRef<HTMLVideoElement>(null);
   const canvas=useRef<HTMLCanvasElement>(null),clarity=useVideoClarity(),intensity=useVideoIntensity();
@@ -88,7 +88,7 @@ export function ManagedVideo({ src, poster, className, active = true, universe =
       onPlay={event => { if (!active) event.currentTarget.pause(); else setPlaying(true); }} onPause={() => setPlaying(false)}
       onVolumeChange={event => setMuted(event.currentTarget.muted)} />
     {clarity&&!bypass&&playing&&active&&<canvas key={src} ref={canvas} aria-hidden="true" className={`${className || 'w-full max-h-[75vh] object-contain'} media-enhanced`} style={{visibility:enhanced?'visible':'hidden'}}/>}
-    {!universe && <input className="media-seek" type="range" aria-label={ui('Posição do vídeo')} aria-valuetext={`${format(position)} / ${format(duration)}`} min="0" max={duration||1} step="0.1" value={Math.min(position,duration||1)} disabled={!active||duration<=0}
+    {!universe && showSeek && <input className="media-seek" type="range" aria-label={ui('Posição do vídeo')} aria-valuetext={`${format(position)} / ${format(duration)}`} min="0" max={duration||1} step="0.1" value={Math.min(position,duration||1)} disabled={!active||duration<=0}
       style={{'--seek-progress':`${duration?position/duration*100:0}%`} as React.CSSProperties}
       onPointerDown={()=>{seeking.current=true;}} onPointerUp={()=>{seeking.current=false;}} onPointerCancel={()=>{seeking.current=false;}} onBlur={()=>{seeking.current=false;}}
       onChange={e=>{const next=Number(e.target.value);setPosition(next);const v=ref.current;if(v&&Number.isFinite(v.duration))v.currentTime=Math.min(next,Math.max(0,v.duration-.05));}}/>}
