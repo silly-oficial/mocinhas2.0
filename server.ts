@@ -1,3 +1,4 @@
+import { validateVideoCover } from './shared/video-cover';
 import { validatePhotoFocus } from './shared/photo-focus';
 import { installWelcome } from './server/welcome';
 import { Readable } from 'node:stream';
@@ -698,6 +699,8 @@ app.post('/api/posts', requireAdmin, (req, res) => {
 
   try { for (const m of media) if (m.focus !== undefined) { if (!['image','gif'].includes(m.type || 'image')) throw new Error('Destaque disponível apenas para fotos.'); validatePhotoFocus(m.focus); } }
   catch (error: any) { return res.status(400).json({ error: error.message }); }
+  try { for (const m of media) if (m.coverTime !== undefined) { if (m.type !== 'video') throw new Error('Capa disponível apenas para vídeos.'); validateVideoCover(m); } }
+  catch (error: any) { return res.status(400).json({error:error.message}); }
   let expiresAt: string | undefined = undefined;
   if (isTemporary) {
     const hours = Number(durationHours) || 24;
@@ -723,6 +726,7 @@ app.post('/api/posts', requireAdmin, (req, res) => {
       aspectRatio: m.aspectRatio,
       ...(m.focus !== undefined ? { focus: validatePhotoFocus(m.focus) } : {}),
       thumbnail: m.thumbnail || m.url,
+      ...(m.coverTime !== undefined ? {coverTime:validateVideoCover(m).coverTime} : {}),
       fileName: m.fileName || (m.type === 'audio' ? 'Mensagem de Áudio.mp3' : m.type === 'pdf' ? 'Documento.pdf' : undefined),
     })),
     caption: textCaption,
@@ -2202,6 +2206,17 @@ app.delete('/api/admin/users/:id', requireAdmin, (req, res) => {
   rawDb.stories = rawDb.stories.filter(s => s.userId !== id);
   DB.save();
   res.json({ success: true });
+});
+
+app.patch('/api/admin/posts/:id/cover', requireAdmin, (req, res) => {
+  const post=DB.get().posts.find(p=>p.id===req.params.id);
+  if(!post)return res.status(404).json({error:'Publicação não encontrada.'});
+  const media=post.media.find(m=>m.id===req.body?.mediaId);
+  if(!media)return res.status(404).json({error:'Mídia não encontrada.'});
+  if(media.type!=='video')return res.status(400).json({error:'Capa disponível apenas para vídeos.'});
+  try{const cover=validateVideoCover(req.body);media.thumbnail=cover.thumbnail;media.coverTime=cover.coverTime;}
+  catch(error:any){return res.status(400).json({error:error.message});}
+  DB.save();res.json({post:DB.toPublicPost(post,(req as any).userId)});
 });
 
 app.patch('/api/admin/posts/:id/focus', requireAdmin, (req, res) => {

@@ -41,7 +41,8 @@ export interface DBPost {
     filter?: string;
     aspectRatio?: string;
     thumbnail?: string;
-    focus?: { x: number; y: number };
+    coverTime?: number;
+    focus?: { x: number; y: number; zoom?: number };
   }[];
   caption: string;
   hashtags: string[];

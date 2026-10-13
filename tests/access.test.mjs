@@ -33,10 +33,10 @@ try {
  assert.equal((await call('/api/admin/posts/'+id+'/focus','viewer','PATCH',{mediaId,focus:{x:80,y:20}},cookie)).status,403);
  assert.equal((await call('/api/admin/posts/'+id+'/focus','owner','PATCH',{mediaId,focus:{x:101,y:20}})).status,400);
  assert.equal((await call('/api/admin/posts/'+id+'/focus','owner','PATCH',{mediaId,focus:{x:'20',y:20}})).status,400);
- const focused=await call('/api/admin/posts/'+id+'/focus','owner','PATCH',{mediaId,focus:{x:80,y:20,editedBy:'admin'}});
- assert.equal(focused.status,200);assert.deepEqual(focused.body.post.media[0].focus,{x:80,y:20});assert.equal(focused.body.post.media[0].url,'/test.jpg');
+ const focused=await call('/api/admin/posts/'+id+'/focus','owner','PATCH',{mediaId,focus:{x:80,y:20,zoom:2,editedBy:'admin'}});
+ assert.equal(focused.status,200);assert.deepEqual(focused.body.post.media[0].focus,{x:80,y:20,zoom:2});assert.equal(focused.body.post.media[0].url,'/test.jpg');
  assert.equal(focused.body.post.userId,'');assert.ok(!JSON.stringify(focused.body.post).includes('editedBy'));
- assert.deepEqual((await call('/api/posts/'+id,'viewer','GET',undefined,cookie)).body.post.media[0].focus,{x:80,y:20});
+ assert.deepEqual((await call('/api/posts/'+id,'viewer','GET',undefined,cookie)).body.post.media[0].focus,{x:80,y:20,zoom:2});
  assert.equal((await call('/api/posts/'+id+'/like','viewer','POST',{},cookie)).body.isLiked,true);
  assert.equal((await call('/api/posts/'+id+'/save','viewer','POST',{},cookie)).body.isSaved,true);
  assert.equal((await call('/api/posts/saved/all','viewer','GET',undefined,cookie)).body.posts[0].id,id);
@@ -52,14 +52,23 @@ try {
  assert.equal((await call('/api/posts/'+id,'viewer','DELETE',undefined,cookie)).status,403);
  assert.equal((await call('/api/admin/usage-settings','viewer','PUT',{dailyMinutes:0,bindNetwork:false})).status,403);
  assert.equal((await call('/api/admin/usage-settings','owner','PUT',{dailyMinutes:-1,bindNetwork:false})).status,400);
+ const movie=await call('/api/posts','owner','POST',{media:[{url:'/test.mp4',type:'video',thumbnail:'/uploads/frame_initial.jpg',coverTime:0.4}]});assert.equal(movie.status,200);
+ const movieId=movie.body.post.id,movieMedia=movie.body.post.media[0].id;
+ assert.equal((await call('/api/admin/posts/'+movieId+'/cover','viewer','PATCH',{mediaId:movieMedia,thumbnail:'/uploads/frame_selected.jpg',coverTime:1},cookie)).status,403);
+ assert.equal((await call('/api/admin/posts/'+movieId+'/cover','owner','PATCH',{mediaId:movieMedia,thumbnail:'javascript:alert(1)',coverTime:1})).status,400);
+ assert.equal((await call('/api/admin/posts/'+movieId+'/cover','owner','PATCH',{mediaId:movieMedia,thumbnail:'/uploads/frame_selected.jpg',coverTime:-1})).status,400);
+ assert.equal((await call('/api/admin/posts/'+id+'/cover','owner','PATCH',{mediaId,thumbnail:'/uploads/frame_selected.jpg',coverTime:1})).status,400);
+ assert.equal((await call('/api/admin/posts/'+id+'/focus','owner','PATCH',{mediaId,focus:{x:50,y:50,zoom:4}})).status,400);
+ const cover=await call('/api/admin/posts/'+movieId+'/cover','owner','PATCH',{mediaId:movieMedia,thumbnail:'/uploads/frame_selected.jpg',coverTime:1.2});assert.equal(cover.status,200);assert.equal(cover.body.post.media[0].url,'/test.mp4');assert.equal(cover.body.post.media[0].thumbnail,'/uploads/frame_selected.jpg');assert.equal(cover.body.post.media[0].coverTime,1.2);assert.equal(cover.body.post.userId,'');
  const signup=await call('/api/auth/register','viewer','POST',{username:'admin',displayName:'test',email:'fresh@example.test',password:'test-password-123',acceptedTerms:true});assert.equal(signup.body.user.isAdmin,false,'admin name grants no privileges');
  await stop();
- const persisted=JSON.parse(fs.readFileSync(path.join(root,'db.json')));assert.deepEqual(persisted.posts.find(p=>p.id===id).media[0].focus,{x:80,y:20});for(const b of Object.values(persisted.usageBuckets)){b.usedMs=60000;b.leaseUntil=0;}
+ const persisted=JSON.parse(fs.readFileSync(path.join(root,'db.json')));assert.deepEqual(persisted.posts.find(p=>p.id===id).media[0].focus,{x:80,y:20,zoom:2});for(const b of Object.values(persisted.usageBuckets)){b.usedMs=60000;b.leaseUntil=0;}
  fs.writeFileSync(path.join(root,'db.json'),JSON.stringify(persisted));await start();
  const exhausted=await call('/api/usage/consume','viewer2','POST',{},cookie);assert.equal(exhausted.body.blocked,true,'quota survives restart');
  assert.equal((await call('/api/posts','viewer2','GET',undefined,cookie)).status,429);
  assert.equal((await call('/api/usage/consume','owner','POST',{})).body.unlimited,true);
- assert.deepEqual((await call('/api/posts/'+id,'owner')).body.post.media[0].focus,{x:80,y:20},'photo focus survives restart');
+ assert.equal((await call('/api/posts/'+movieId,'owner')).body.post.media[0].coverTime,1.2,'cover survives restart');
+ assert.deepEqual((await call('/api/posts/'+id,'owner')).body.post.media[0].focus,{x:80,y:20,zoom:2},'photo focus survives restart');
  assert.equal((await call('/api/posts/'+id,'owner','DELETE')).status,200);
  console.log('Integration passed: authorization, admin-only publication, hidden identity, disabled routes, permanent posts, quotas, multiple accounts and restart persistence.');
 } finally {if(child && child.exitCode===null)await stop();fs.rmSync(root,{recursive:true,force:true});}

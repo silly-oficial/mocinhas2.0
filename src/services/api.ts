@@ -176,7 +176,7 @@ export const api = {
   },
 
   async createPost(data: {
-    media: { url: string; type: 'image' | 'video' | 'audio' | 'pdf' | 'gif'; filter?: string; fileName?: string; aspectRatio?: string; thumbnail?: string; focus?: { x: number; y: number } }[];
+    media: { url: string; type: 'image' | 'video' | 'audio' | 'pdf' | 'gif'; filter?: string; fileName?: string; aspectRatio?: string; thumbnail?: string; coverTime?: number; focus?: { x: number; y: number; zoom?: number } }[];
     caption: string;
     location?: string;
     allowComments?: boolean;
