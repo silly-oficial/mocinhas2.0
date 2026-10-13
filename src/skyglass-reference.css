@@ -386,3 +386,13 @@ html[data-theme=skyglass] body { background-image:var(--sky-bg);background-size:
 @media(prefers-reduced-motion:reduce) { [data-theme=skyglass] .sky-person-cutout { animation:none; } }
 [data-theme=skyglass] .sky-depth-photo .sky-card-caption:not(.expanded) .group\/translate { position:static; }
 [data-theme=skyglass] .sky-depth-photo .sky-card-caption.expanded { right:72px; padding-right:16px; }
+
+/* Keep actual engagement counts inside the frosted control, away from the next icon. */
+[data-theme=skyglass] .sky-action-rail { align-items:center; gap:10px; }
+[data-theme=skyglass] .sky-action-rail button:has(span) { flex-direction:column; gap:2px; height:52px; min-height:52px; }
+[data-theme=skyglass] .sky-action-rail button span, [data-theme=skyglass] .sky-photo .sky-action-rail button span { position:static; background:transparent; border:0; padding:0; min-width:0; font-size:12px; font-weight:700; line-height:14px; backdrop-filter:none; -webkit-backdrop-filter:none; text-shadow:0 1px 3px #0009; }
+/* Soft, irregular, luminous letters extend the reference's cloud lettering. */
+.sky-cloud-filter-defs { position:absolute; pointer-events:none; overflow:hidden; }
+[data-theme=skyglass] .sky-depth-title { top:68px; right:60px; font-size:clamp(29px,7.5vw,39px); font-weight:850; line-height:1.13; letter-spacing:.015em; text-wrap:balance; transform:rotate(-2deg); transform-origin:top left; -webkit-text-stroke:1.2px #ffffffb0; color:#f8fdff; text-shadow:0 0 5px #fff9,0 3px 10px #cdefff80; filter:url(#sky-cloud-letters); }
+
+[data-theme=skyglass] .sky-depth-title { -webkit-line-clamp:3; max-height:36%; }

@@ -31,8 +31,9 @@ export function PublicationGallery({ orix, videos = false, children }: { orix: b
     const scrollBottom = viewportBottom - footerSpace - 8;
     const bottom = navRect && navRect.height > 0 ? Math.min(navRect.top, scrollBottom) : scrollBottom;
     const room = Math.max(0, bottom - headerBottom - 32);
-    const available = Math.max(0, bottom - Math.max(headerBottom + 12, frame.top) - 24);
     const wrapper = el.parentElement!;
+    const stableTop = Math.max(headerBottom + 12, wrapper.getBoundingClientRect().top);
+    const available = Math.max(0, bottom - stableTop - 24);
     const heading = document.querySelector('.orix-page-heading');
     const compact = Boolean(heading && heading.getBoundingClientRect().bottom <= headerBottom);
     el.dataset.compact = String(compact);
@@ -44,7 +45,7 @@ export function PublicationGallery({ orix, videos = false, children }: { orix: b
     for (const card of cards) {
       const stage = card.querySelector<HTMLElement>('.sky-media-stage');
       if (!stage || !card.classList.contains('has-visual')) continue;
-      const base = Math.min(card.offsetWidth * 5 / 3, Math.max(0, room - (card.classList.contains('orix-video') ? 198 : 230)));
+      const base = Math.min(card.offsetWidth * 5 / 3, Math.max(280, room - (card.classList.contains('orix-video') ? 198 : 230)));
       const target = Math.min(available, card.classList.contains('show-full-media') ? room : base + 180 * progress);
       stage.style.setProperty('--orix-stage-height', `${target}px`);
     }
@@ -60,7 +61,9 @@ export function PublicationGallery({ orix, videos = false, children }: { orix: b
     window.addEventListener('resize', update);
     window.visualViewport?.addEventListener('resize', update);
     window.visualViewport?.addEventListener('scroll', update);
-    const resize = new ResizeObserver(update); resize.observe(el);
+    const resize = new ResizeObserver(update);
+    const header=document.querySelector('.app-header'), nav=document.querySelector('.app-bottom-nav');
+    if(header)resize.observe(header);if(nav)resize.observe(nav);
     const state = new MutationObserver(update); state.observe(el, { subtree:true, attributes:true, attributeFilter:['class'] }); update();
     return () => { cancelAnimationFrame(frame); resize.disconnect(); state.disconnect(); el.removeEventListener('scroll', update); window.removeEventListener('scroll', update); window.removeEventListener('resize', update); window.visualViewport?.removeEventListener('resize', update); window.visualViewport?.removeEventListener('scroll', update); };
   }, [orix, measure]);
