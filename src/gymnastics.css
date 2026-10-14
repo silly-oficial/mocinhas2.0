@@ -1,0 +1,98 @@
+/* Orix Orange: independent optional theme, never styles another selection. */
+/* Compatibility mapping for existing dialogs/admin utility classes. */
+[data-theme=gymnastics] [class~="bg-[#12121B]"], [data-theme=gymnastics] [class~="bg-[#13131D]"], [data-theme=gymnastics] [class~="bg-[#171724]"], [data-theme=gymnastics] [class~="bg-[#181824]"], [data-theme=gymnastics] [class~="bg-[#161622]"], [data-theme=gymnastics] [class~="bg-[#1E0B1B]"], [data-theme=gymnastics] [class~="bg-[#0d0d16]/98"] { background-color:var(--surface-card); }
+[data-theme=gymnastics] [class~="bg-[#0D0D14]"], [data-theme=gymnastics] [class~="bg-[#0E0E15]"], [data-theme=gymnastics] [class~="bg-[#111118]"], [data-theme=gymnastics] [class~="bg-[#111118]/60"], [data-theme=gymnastics] [class~="bg-[#1F1F2E]"], [data-theme=gymnastics] [class~="bg-[#242436]"], [data-theme=gymnastics] [class~="bg-[#252538]"], [data-theme=gymnastics] [class~="bg-[#2B2B3E]"], [data-theme=gymnastics] [class~="bg-[#123328]"], [data-theme=gymnastics] [class~="bg-zinc-950"], [data-theme=gymnastics] [class~="bg-white/5"], [data-theme=gymnastics] [class~="bg-white/10"], [data-theme=gymnastics] [class~="bg-white/15"], [data-theme=gymnastics] [class~="bg-white/20"], [data-theme=gymnastics] [class~="bg-white/[0.03]"], [data-theme=gymnastics] [class~="bg-black/20"], [data-theme=gymnastics] [class~="bg-black/30"], [data-theme=gymnastics] [class~="bg-black/40"], [data-theme=gymnastics] [class~="bg-black/50"] { background-color:var(--ink-100); }
+[data-theme=gymnastics] [class~="text-white"], [data-theme=gymnastics] [class~="text-zinc-100"], [data-theme=gymnastics] [class~="text-zinc-200"], [data-theme=gymnastics] [class~="text-zinc-200/80"], [data-theme=gymnastics] [class~="text-zinc-200/90"] { color:var(--ink-900); }
+[data-theme=gymnastics] [class~="text-zinc-300"], [data-theme=gymnastics] [class~="text-zinc-300/60"], [data-theme=gymnastics] [class~="text-zinc-300/70"], [data-theme=gymnastics] [class~="text-zinc-300/75"], [data-theme=gymnastics] [class~="text-zinc-300/80"], [data-theme=gymnastics] [class~="text-zinc-400"], [data-theme=gymnastics] [class~="text-zinc-500"], [data-theme=gymnastics] [class~="text-stone-400"], [data-theme=gymnastics] [class~="text-stone-500"] { color:var(--sg-muted); }
+[data-theme=gymnastics] [class~="text-emerald-200"], [data-theme=gymnastics] [class~="text-emerald-300"], [data-theme=gymnastics] [class~="text-emerald-300/90"], [data-theme=gymnastics] [class~="text-emerald-400"] { color:var(--blue-700); }
+[data-theme=gymnastics] [class~="border-white/5"], [data-theme=gymnastics] [class~="border-white/10"], [data-theme=gymnastics] [class~="border-white/15"], [data-theme=gymnastics] [class~="border-white/20"], [data-theme=gymnastics] [class~="border-white/25"], [data-theme=gymnastics] [class~="border-white/30"], [data-theme=gymnastics] [class~="border-white/60"] { border-color:var(--ink-200); }
+[data-theme=gymnastics] [class~="border-emerald-500"], [data-theme=gymnastics] [class~="border-emerald-500/20"], [data-theme=gymnastics] [class~="border-emerald-500/30"], [data-theme=gymnastics] [class~="border-emerald-500/40"] { border-color:var(--blue-200); }
+[data-theme=gymnastics] [class~="bg-emerald-500/10"], [data-theme=gymnastics] [class~="bg-emerald-500/15"], [data-theme=gymnastics] [class~="bg-emerald-500/20"], [data-theme=gymnastics] [class~="bg-emerald-500/30"], [data-theme=gymnastics] [class~="bg-emerald-950/60"] { background-color:var(--blue-50); }
+[data-theme=gymnastics] [class~="bg-emerald-400"], [data-theme=gymnastics] [class~="bg-emerald-500"], [data-theme=gymnastics] [class~="bg-emerald-600"] { background-color:var(--blue-600); color:#fff; }
+[data-theme=gymnastics] [class~="text-red-300"], [data-theme=gymnastics] [class~="text-red-400"], [data-theme=gymnastics] [class~="text-red-500"] { color:#b42318; }
+[data-theme=gymnastics] [class~="text-amber-200"], [data-theme=gymnastics] [class~="text-amber-300"], [data-theme=gymnastics] [class~="text-amber-400"] { color:#854d0e; }
+[data-theme=gymnastics] [class~="text-[8px]"], [data-theme=gymnastics] [class~="text-[9px]"], [data-theme=gymnastics] [class~="text-[10px]"] { font-size:11px; line-height:1.4; }
+[data-theme=gymnastics] [class~="fill-emerald-400"] { fill:var(--blue-600); }
+[data-theme=gymnastics] [class~="from-emerald-950"], [data-theme=gymnastics] [class~="from-emerald-950/40"], [data-theme=gymnastics] [class~="from-[#123328]"], [data-theme=gymnastics] [class~="from-[#171724]"], [data-theme=gymnastics] [class~="from-[#181824]"] { background-image:var(--sky-wash); }
+[data-theme=gymnastics] button.bg-emerald-500 { background:var(--ink-950); color:#fff; box-shadow:0 4px 12px #0b0e1420; }
+[data-theme=gymnastics] button.bg-emerald-500 * { color:inherit; }
+[data-theme=gymnastics] button.bg-emerald-500:hover { background:var(--ink-700); }
+[data-theme=gymnastics] [class~="hover:bg-white/5"]:hover, [data-theme=gymnastics] [class~="hover:bg-white/10"]:hover { background-color:var(--blue-50); }
+[data-theme=gymnastics] [class~="hover:text-white"]:hover { color:var(--ink-900); }
+[data-theme=gymnastics] :is([role=dialog],.legacy-modal) :is(button,input:not([type=checkbox]):not([type=radio]),select) { min-height:44px; }
+[data-theme=gymnastics] :is([role=dialog],.legacy-modal) button { min-width:44px; }
+[data-theme=gymnastics] :is([role=dialog],.legacy-modal) :is(input,textarea,select) { min-width:0; }
+[data-theme=gymnastics] .peer:checked + [class~="peer-checked:bg-emerald-500"] { background:var(--blue-600); }
+[data-theme=gymnastics] .peer:focus-visible + div { outline:3px solid var(--blue-600); outline-offset:3px; }
+[data-theme=gymnastics] .translation-status { color:var(--sg-muted); }
+
+
+
+/* Movimento — adapted sporting identity. Tokens apply only to this theme. */
+:root[data-theme=gymnastics] {
+ color-scheme:light; --gym-paper:#faf7f4; --gym-rose:#b72c59; --gym-ink:#292429; --gym-muted:#70646a; --gym-border:#e4dadc;
+ --canvas-bg:var(--gym-paper); --surface-card:#fff; --surface-elevated:#fff;
+ --ink-950:var(--gym-ink); --ink-900:var(--gym-ink); --ink-700:#54424b; --ink-100:#f6ecef; --ink-200:var(--gym-border);
+ --sg-muted:var(--gym-muted); --blue-50:#f8e9ef; --blue-200:#dfb1c0; --blue-600:var(--gym-rose); --blue-700:#962047;
+ --accent-lime:var(--gym-rose); --accent-emerald:var(--gym-rose); --theme-text:var(--gym-ink); --theme-muted:var(--gym-muted); --theme-border:var(--gym-border); --theme-choice:#fff; --theme-selected:var(--gym-rose);
+ --sky-wash:linear-gradient(135deg,#f8e9ef,#faf7f4); --uni-node-bg:var(--gym-ink); --uni-label:var(--gym-ink);
+}
+html[data-theme=gymnastics], [data-theme=gymnastics] body {background:var(--gym-paper);color:var(--gym-ink)}
+[data-theme=gymnastics] :is(.niuniu-card,.niuniu-card-elevated,.glass-card,.glass-card-dark) {background:var(--surface-card);border:1px solid var(--gym-border);border-radius:26px;color:var(--gym-ink);box-shadow:0 8px 24px #61243c08}
+[data-theme=gymnastics] .app-topbar {background:transparent;box-shadow:none;border:0;padding:8px 0}
+[data-theme=gymnastics] .app-header {background:var(--gym-paper);border-bottom:1px solid var(--gym-border)}
+[data-theme=gymnastics] .brand-wordmark {font-weight:800;color:var(--gym-rose);font-size:27px;letter-spacing:-1.4px}
+[data-theme=gymnastics] .icon-button {height:44px;min-width:44px;color:var(--gym-ink)}
+[data-theme=gymnastics] .header-appearance {background:var(--blue-50);color:var(--gym-rose)}
+[data-theme=gymnastics] .app-sidebar nav {top:100px;background:transparent;box-shadow:none;border:0;padding:16px 0}
+[data-theme=gymnastics] .app-sidebar button {min-height:48px;font-size:14px}
+[data-theme=gymnastics] .app-sidebar [aria-current=page], [data-theme=gymnastics] .app-bottom-nav [aria-current=page] {background:var(--blue-50);color:var(--gym-rose)}
+[data-theme=gymnastics] .app-bottom-nav {background:#fff;border-radius:26px;bottom:max(12px,env(safe-area-inset-bottom));gap:0}
+[data-theme=gymnastics] .app-bottom-nav button {min-width:44px;min-height:52px;padding:8px 4px;flex:1}
+[data-theme=gymnastics] .nav-label {font-size:11px}
+[data-theme=gymnastics] .app-layout main {min-width:0}
+[data-theme=gymnastics] :is(button,a,input,textarea,select):focus-visible {outline:3px solid var(--gym-rose);outline-offset:4px}
+[data-theme=gymnastics] .people-heading {align-items:flex-start;flex-wrap:wrap}
+[data-theme=gymnastics] .people-heading h2 {font-size:clamp(23px,4vw,30px);letter-spacing:-1px}
+[data-theme=gymnastics] .people-heading>div>span {font-size:11px;font-weight:650}
+[data-theme=gymnastics] .people-section {margin-top:32px}
+[data-theme=gymnastics] .people-card {box-shadow:none;border-radius:26px}
+[data-theme=gymnastics] .people-card-photo {aspect-ratio:4/5;background:var(--blue-50)}
+[data-theme=gymnastics] .people-card-photo img {object-fit:contain}
+[data-theme=gymnastics] .people-card-body .people-primary {width:100%}
+[data-theme=gymnastics] .people-filters button {min-height:44px}
+[data-theme=gymnastics] .feed-toolbar {background:var(--gym-paper);margin:32px 0 16px}
+[data-theme=gymnastics] .tag-chip {min-height:44px;background:#fff;color:var(--gym-muted);border:1px solid var(--gym-border);border-radius:999px;padding:8px 16px}
+[data-theme=gymnastics] .tag-chip.selected {background:var(--gym-rose);color:#fff}
+[data-theme=gymnastics] .welcome-card {margin:24px 0;padding:28px}
+[data-theme=gymnastics] .welcome-card>svg {display:none}
+.gym-hero {display:grid;grid-template-columns:1fr 1fr;gap:32px;align-items:center;padding:40px 0 28px;border-bottom:1px solid var(--gym-border)}
+.gym-intro {min-width:0}.gym-eyebrow {display:flex;align-items:center;gap:8px;font-size:10px;font-weight:750;letter-spacing:.12em;color:var(--gym-muted)}
+.gym-eyebrow>span {width:8px;height:8px;background:var(--gym-rose);border-radius:50%;flex-shrink:0}
+.gym-intro h1 {font-size:clamp(32px,3.5vw,48px);line-height:1.12;letter-spacing:-2px;font-weight:750;margin:20px 0}
+.gym-intro em {font-style:normal;color:var(--gym-rose)}
+.gym-intro p {font-size:14px;line-height:1.8;color:var(--gym-muted);max-width:340px}
+.gym-explore {display:flex;align-items:center;justify-content:space-between;gap:28px;min-height:56px;border-radius:999px;background:var(--gym-ink);color:#fff;font-size:14px;font-weight:650;padding:12px 24px;margin-top:24px;transition:transform 160ms cubic-bezier(.2,.8,.2,1)}
+.gym-explore:hover {transform:translateY(-2px)}.gym-explore:active {transform:scale(.98)}
+.gym-footnote {display:flex;align-items:center;gap:8px;margin-top:20px;font-size:11px;color:var(--gym-muted);line-height:1.6}
+.gym-editorial {min-width:0;position:relative}.gym-photo-stage {position:relative;background:#dfdfce;border-radius:100px 26px 26px 26px;overflow:hidden}
+.gym-photo-stage>img {display:block;width:100%;height:auto;aspect-ratio:4/5;object-fit:contain}
+.gym-photo-caption {position:absolute;bottom:16px;left:16px;padding:8px 12px;border-radius:999px;background:#292429e8;color:#fff;font-size:11px;font-weight:650}
+.gym-photo-strip {display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-top:12px}
+.gym-photo-strip img {width:100%;height:auto;aspect-ratio:4/5;object-fit:contain;background:#f0e7e5;border-radius:14px}
+.gym-editorial-label {display:block;font-size:9px;letter-spacing:.13em;color:var(--gym-muted);margin-top:12px;text-align:right}
+.theme-preview-gymnastics {background:#faf7f4!important}.theme-preview-gymnastics .theme-preview-scene {background:url('/themes/movimento/9073.webp') center 40%/cover;color:transparent}.theme-preview-gymnastics .theme-preview-nav {background:#b72c59}
+@media(max-width:767px) {.gym-hero{grid-template-columns:1fr;gap:24px;padding:24px 0}.gym-intro h1{font-size:clamp(34px,8vw,52px);letter-spacing:-1.8px}.gym-intro p{max-width:440px}.gym-editorial{width:100%;max-width:430px;justify-self:center}.gym-photo-stage>img{aspect-ratio:4/5;max-height:480px}.gym-eyebrow{font-size:10px}.gym-editorial-label{font-size:9px}.gym-footnote{margin-top:16px}}
+@media(max-width:359px){.gym-intro h1{font-size:32px}.gym-hero{gap:20px}[data-theme=gymnastics] .brand-wordmark{font-size:23px}[data-theme=gymnastics] .header-actions{gap:0}[data-theme=gymnastics] .header-actions .header-saved{display:none}}
+@media(prefers-reduced-motion:reduce){[data-theme=gymnastics] *{animation:none!important;transition:none!important}.gym-explore:hover{transform:none}}
+/* Keep discovery cards fully visible; no competing horizontal tracks. */
+[data-theme=gymnastics] .people-cards {display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));overflow:visible;gap:16px;scroll-snap-type:none}
+[data-theme=gymnastics] .people-card {min-width:0;display:flex;flex-direction:column}
+[data-theme=gymnastics] .people-card-body {display:flex;flex-direction:column;flex:1}
+[data-theme=gymnastics] .people-card-body .people-primary {margin-top:auto;transform:translateY(0)}
+[data-theme=gymnastics] .people-card-body small {margin-bottom:16px}
+[data-theme=gymnastics] .premium-button {background:var(--blue-50);color:var(--gym-rose);border-color:var(--blue-200)}
+.gym-eyebrow,.gym-editorial-label {font-size:11px}
+@media(min-width:768px){.gym-photo-stage>img{max-height:470px}.gym-photo-strip img{max-height:104px}.gym-intro h1{font-size:clamp(32px,3.3vw,44px)}}
+@media(max-width:600px){[data-theme=gymnastics] .people-cards {grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}[data-theme=gymnastics] .people-card .people-primary{font-size:12px;padding:10px 8px;gap:4px}.gym-photo-stage>img{max-height:380px}.gym-eyebrow{font-size:11px}}
+@media(max-width:359px){[data-theme=gymnastics] .people-cards{grid-template-columns:1fr}}

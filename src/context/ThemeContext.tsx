@@ -1,9 +1,9 @@
 import React, { createContext, useContext, useEffect, useLayoutEffect, useState } from 'react';
 
-export type AppTheme = 'original' | 'skyglass' | 'orely' | 'lilac' | 'orix';
+export type AppTheme = 'original' | 'skyglass' | 'orely' | 'lilac' | 'orix' | 'gymnastics';
 export const THEME_KEY = 'mocinhas_visual_theme';
 // Skyglass is the default for new browsers; saved theme selections remain valid.
-const normalize = (value: unknown): AppTheme => value === 'skyglass' || value === 'original' || value === 'orely' || value === 'lilac' || value === 'orix' ? value : 'skyglass';
+const normalize = (value: unknown): AppTheme => value === 'gymnastics' || value === 'skyglass' || value === 'original' || value === 'orely' || value === 'lilac' || value === 'orix' ? value : 'skyglass';
 function readTheme(): AppTheme {
   try { return normalize(localStorage.getItem(THEME_KEY)); } catch { return 'skyglass'; }
 }
@@ -15,7 +15,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     document.documentElement.dataset.theme = theme;
     document.documentElement.classList.toggle('dark', theme === 'original');
     document.body.classList.toggle('dark', theme === 'original');
-    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', theme === 'orix' ? '#FFFFFF' : theme === 'skyglass' ? '#EAF3FD' : theme === 'orely' ? '#E8DDFB' : theme === 'lilac' ? '#E8DEFF' : '#09090E');
+    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', theme === 'gymnastics' ? '#FAF7F4' : theme === 'orix' ? '#FFFFFF' : theme === 'skyglass' ? '#EAF3FD' : theme === 'orely' ? '#E8DDFB' : theme === 'lilac' ? '#E8DEFF' : '#09090E');
   }, [theme]);
   useEffect(() => {
     const sync = (event: StorageEvent) => {
