@@ -17,6 +17,9 @@ try{
  assert.equal((await call('/api/admin/people/'+id,'PUT',{...person,published:true,avatar:'javascript:alert(1)'})).status,400);
  assert.equal((await call('/api/admin/people/'+id,'PUT',{...person,published:true,socials:{...person.socials,instagram:'https://evil.test'}})).status,400);
  assert.equal((await call('/api/admin/people/'+id,'PUT',{...person,published:true,photos:Array(41).fill('https://example.com/a.jpg')})).status,400);
+ const native=await call('/api/admin/people/'+id,'PUT',{...person,published:true,videos:[{url:'/uploads/test_video.mp4',title:'Enviado',kind:'upload'}],tags:['Música',' música ','Moda','  moda  ']});assert.equal(native.status,200);assert.equal(native.body.profile.videos[0].kind,'upload');assert.deepEqual(native.body.profile.tags,['Música','Moda']);
+ assert.equal((await call('/api/admin/people/'+id,'PUT',{...person,published:true,videos:[{url:'javascript:alert(1)',title:'',kind:'upload'}]})).status,400);
+ assert.equal((await call('/api/admin/people/'+id,'PUT',{...person,published:true,videos:[{url:'/uploads/file.html',title:'',kind:'upload'}]})).status,400);
  const second=await call('/api/admin/people','POST',{...person,name:'Destaque',username:'destaque',published:true,featured:true,order:999});assert.equal(second.status,201);
  assert.equal((await call('/api/people','GET',undefined,'viewer')).body.profiles[0].username,'destaque');
  await stop();await start();assert.equal((await call('/api/people','GET',undefined,'viewer')).body.profiles.length,2,'persist across restart');

@@ -1,6 +1,6 @@
 export interface PersonProfile {
  id: string; name: string; username: string; bio: string; avatar: string; cover: string;
- photos: string[]; videos: {url: string; title: string}[];
+ photos: string[]; videos: {url: string; title: string; kind?: 'upload'|'social'}[];
  socials: {tiktok: string; instagram: string; pinterest: string};
  tags: string[]; published: boolean; featured: boolean; order: number; createdAt: string; updatedAt: string;
 }
@@ -13,6 +13,8 @@ export function socialVideo(url: string): {platform: 'TikTok'|'Instagram'; canon
  if(host==='instagram.com'&&ig)return {platform:'Instagram',canonical:`https://www.instagram.com/${ig[1]}/${ig[2]}/`,embed:`https://www.instagram.com/${ig[1]}/${ig[2]}/embed/`};
  throw Error('Use o link completo do vídeo: tiktok.com/@usuario/video/… ou instagram.com/reel/… (não o link encurtado).');
 }
+export const categoryKey = (value:string) => value.normalize('NFKC').trim().replace(/\s+/g,' ').toLocaleLowerCase('pt-BR');
 export function socialUrl(platform: keyof PersonProfile['socials'], handle: string) {
- return platform==='tiktok'?`https://www.tiktok.com/@${encodeURIComponent(handle)}`:platform==='instagram'?`https://www.instagram.com/${encodeURIComponent(handle)}/`:`https://www.pinterest.com/${encodeURIComponent(handle)}/`;
+ const username=handle.trim().replace(/^@/,'');
+ return platform==='tiktok'?`https://www.tiktok.com/@${encodeURIComponent(username)}`:platform==='instagram'?`https://www.instagram.com/${encodeURIComponent(username)}/`:`https://www.pinterest.com/${encodeURIComponent(username)}/`;
 }

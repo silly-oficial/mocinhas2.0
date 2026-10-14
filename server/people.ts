@@ -1,7 +1,7 @@
 import type express from 'express';
 import {randomUUID} from 'node:crypto';
 import type {DB} from './db';
-import {socialVideo, type PersonProfile} from '../shared/people';
+import {categoryKey,socialVideo, type PersonProfile} from '../shared/people';
 function text(value:unknown,max:number) { if(typeof value!=='string'||value.length>max)throw Error(`Texto inválido (máximo ${max} caracteres).`);return value.trim(); }
 function image(value:unknown) {
  const s=text(value,2048);if(!s)return '';
@@ -17,7 +17,8 @@ export function validatePerson(input:any, existing?:PersonProfile):PersonProfile
  if(!Array.isArray(input.photos)||input.photos.length>40||!Array.isArray(input.videos)||input.videos.length>30||!Array.isArray(input.tags)||input.tags.length>8)throw Error('Limite: 40 fotos, 30 vídeos e 8 categorias.');
  if(typeof input.published!=='boolean'||typeof input.featured!=='boolean'||!Number.isInteger(input.order)||input.order<0||input.order>9999)throw Error('Configuração de publicação ou ordem inválida.');
  const socials={} as PersonProfile['socials'];for(const platform of ['tiktok','instagram','pinterest'] as const){const handle=text(input.socials?.[platform]??'',60).replace(/^@/,'');if(handle&&!/^[a-zA-Z0-9_.]{1,60}$/.test(handle))throw Error(`Informe somente o @ de ${platform}, sem o link.`);socials[platform]=handle;}
- const now=new Date().toISOString();return {id:existing?.id||randomUUID(),name,username,avatar,cover:image(input.cover??''),bio:text(input.bio??'',1500),photos:input.photos.map(image).filter(Boolean),videos:input.videos.map((v:any)=>({url:socialVideo(text(v.url,2048)).canonical,title:text(v.title??'',100)})),tags:[...new Set<string>(input.tags.map((t:unknown)=>text(t,30)).filter(Boolean))],socials,published:input.published,featured:input.featured,order:input.order,createdAt:existing?.createdAt||now,updatedAt:now};
+ const cleanTags = new Map<string,string>();for(const raw of input.tags){const label=text(raw,30).replace(/\s+/g,' ');if(label&&!cleanTags.has(categoryKey(label)))cleanTags.set(categoryKey(label),label);}
+ const now=new Date().toISOString();return {id:existing?.id||randomUUID(),name,username,avatar,cover:image(input.cover??''),bio:text(input.bio??'',1500),photos:input.photos.map(image).filter(Boolean),videos:input.videos.map((v:any)=>{const url=text(v?.url,2048),title=text(v?.title??'',100);if(/^\/uploads\/[a-zA-Z0-9_.%-]+\.(mp4|webm|mov|m4v)$/i.test(url))return {url,title,kind:'upload' as const};if(v?.kind==='upload')throw Error('Envie o arquivo de vídeo pelo painel.');return {url:socialVideo(url).canonical,title,kind:'social' as const};}),tags:[...cleanTags.values()],socials,published:input.published,featured:input.featured,order:input.order,createdAt:existing?.createdAt||now,updatedAt:now};
 }
 export function installPeople(app:express.Express,db:typeof DB,admin:express.RequestHandler){
  const all=()=>db.get().peopleProfiles||[];
