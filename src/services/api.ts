@@ -48,6 +48,8 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
 }
 
 export const api = {
+  getBlueLab: (admin=false) => request<{links:Record<string,string[]>}>(admin?'/admin/blue-lab':'/blue-lab'),
+  saveBlueLab: (links:Record<string,string[]>) => request<{links:Record<string,string[]>}>('/admin/blue-lab',{method:'PUT',body:JSON.stringify({links})}),
   getPeople: (admin = false) => request<{profiles: PersonProfile[]}>(admin ? '/admin/people' : '/people'),
   savePerson: (profile: Partial<PersonProfile>) => request<{profile:PersonProfile}>(`/admin/people${profile.id ? '/'+profile.id : ''}`, {method:profile.id ? 'PUT':'POST',body:JSON.stringify(profile)}),
   deletePerson: (id:string) => request('/admin/people/'+id,{method:'DELETE'}),

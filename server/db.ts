@@ -198,6 +198,7 @@ export interface DBPaymentCharge {
   status: string; createdAt: number; checkedAt?: number; grantedAt?: number;
 }
 export interface DatabaseSchema {
+  blueLabLinks?: Record<string,string[]>;
   peopleProfiles?: PersonProfile[];
   engagementRestored?: boolean;
   welcomeCarousel?: WelcomeConfig;
