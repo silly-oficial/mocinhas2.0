@@ -33,3 +33,5 @@ createRoot(document.getElementById('root')!).render(
 );
 
 import './gymnastics.css';
+
+import './worlds.css';

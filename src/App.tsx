@@ -1,4 +1,5 @@
-import { GymnasticsHero } from './components/GymnasticsHero';
+import { WorldHub, WorldGallery } from './components/Worlds';
+import { getWorld, type WorldId } from '../shared/worlds';
 import { PeopleProfiles } from './components/PeopleProfiles';
 import { PeopleAdmin } from './components/PeopleAdmin';
 import { FullPhotoViewer } from './components/FullPhotoViewer';
@@ -29,7 +30,7 @@ import { UniverseFeed } from './components/UniverseFeed';
 import { api } from './services/api';
 import { Post } from './types';
 
-const cleanText = (value: string) => value.replace(/[\p{Extended_Pictographic}\p{Regional_Indicator}\uFE0F\u200D\u20E3]/gu, '').replace(/@[\w.]+/g, '').trim();
+const cleanText = (value: string) => value.replace(/#mundo_(?:silly|barbie|powerpuff|cn)\b/gi, '').replace(/[\p{Extended_Pictographic}\p{Regional_Indicator}\uFE0F\u200D\u20E3]/gu, '').replace(/@[\w.]+/g, '').trim();
 function Publication({ post, admin, onDeleted, onUpdate, onComments, onNotice, disabled, mediaActive = true, sequenceIndex = 0 }: { post: Post; admin: boolean; onDeleted: () => void; onUpdate: (value: Partial<Post> & { id: string }) => void; onComments: (post: Post) => void; onNotice: (message: string) => void; disabled: boolean; mediaActive?: boolean; sequenceIndex?: number }) {
   useUi();
   const { language } = useLanguage();
@@ -112,6 +113,13 @@ function MainApp() {
   const { language, currentLanguageInfo } = useLanguage();
   const { theme } = useTheme();
   const { user, isLoading, logout } = useAuth();
+  const [worldId, setWorldId] = useState<WorldId | null>(null);
+  const world = getWorld(worldId);
+  const worldReturn = useRef({y:0,opener:null as HTMLElement|null});
+  const openWorld = (id: WorldId) => { if (!user) { setModal('auth'); return; } if (!worldId) worldReturn.current={y:window.scrollY,opener:document.activeElement as HTMLElement}; pauseMedia(); setWorldId(id); window.scrollTo(0,0); };
+  const closeWorld = () => { setWorldId(null); requestAnimationFrame(()=>{window.scrollTo(0,worldReturn.current.y);worldReturn.current.opener?.focus({preventScroll:true});}); };
+  useEffect(()=>{if(worldId)document.documentElement.dataset.world=worldId;else delete document.documentElement.dataset.world;return()=>{delete document.documentElement.dataset.world;};},[worldId]);
+  useEffect(()=>{if(!user)setWorldId(null);},[user?.id]);
   const [personReset, setPersonReset] = useState(0);
   const [personOpen, setPersonOpen] = useState(false);
   const [view, setView] = useState('feed'), [posts, setPosts] = useState<Post[]>([]), [loading, setLoading] = useState(false);
@@ -154,7 +162,7 @@ function MainApp() {
   const homePosts=useMemo(()=>mediaFeed(posts,'feed'),[posts]);
   const videos=useMemo(()=>mediaFeed(posts,'videos'),[posts]);
   const tagSource = view === 'videos' ? videos : view === 'feed' ? homePosts : posts;
-  const allTags = useMemo(() => [...new Set(tagSource.flatMap(p => (p.hashtags || []).map(t => t.toLowerCase())))].sort(), [tagSource]);
+  const allTags = useMemo(() => [...new Set(tagSource.flatMap(p => (p.hashtags || []).map(t => t.toLowerCase()).filter(t=>!/^mundo_(silly|barbie|powerpuff|cn)$/.test(t))))].sort(), [tagSource]);
   const source = view === 'videos' ? videos : view === 'saved' ? posts.filter(p => p.isSaved) : homePosts;
   const shown = source.filter(p => !tags.length || tags.some(t => (p.hashtags || []).map(h => h.toLowerCase()).includes(t)));
   const updatePost = (value: Partial<Post> & { id: string }) => {
@@ -166,7 +174,7 @@ function MainApp() {
   const nav = (theme === 'skyglass' || theme === 'orix')
     ? [{id:'feed',label:ui('Início'),icon:Home},{id:'videos',label:ui('Vídeos'),icon:Film},{id:'universe',label:ui('Universo'),icon:Orbit},{id:'saved',label:ui('Salvos'),icon:Heart},{id:'people',label:ui('Perfis'),icon:Users},{id:'profile',label:ui('Conta'),icon:UserRound}]
     : [{ id: 'feed', label: ui("Início"), icon: Home }, { id: 'videos', label: ui("Vídeos"), icon: Film }, { id: isAdmin ? 'create' : 'universe', label: isAdmin ? ui("Publicar") : ui("Universo"), icon: isAdmin ? Plus : Orbit }, { id:'people',label:ui(theme === 'gymnastics' ? 'Ginastas' : 'Perfis'),icon:Users }, { id: 'profile', label: ui("Conta"), icon: UserRound }];
-  function navigate(id: string) { setPersonReset(value=>value+1);pauseMedia(); if (id === 'create') setModal('admin'); else { setView(id); setTags([]); setSelected(null); window.scrollTo(0, 0); } }
+  function navigate(id: string) { setWorldId(null); setPersonReset(value=>value+1);pauseMedia(); if (id === 'create') setModal('admin'); else { setView(id); setTags([]); setSelected(null); window.scrollTo(0, 0); } }
   if (isLoading) return <div className="min-h-screen grid place-items-center"><LoaderCircle className="animate-spin" /></div>;
   return <><div className="app-shell min-h-screen max-w-7xl mx-auto px-3 sm:px-6 pb-28">
     <header ref={headerRef} className="app-header sticky top-0 z-30 py-3 bg-[var(--canvas-bg)]"><div className="app-topbar">
@@ -183,8 +191,10 @@ function MainApp() {
       </div></div><TranslationStatus /></header>
     <div className="app-layout flex gap-6"><aside className="app-sidebar hidden lg:block w-52 shrink-0"><nav className="niuniu-card p-3 sticky top-24 space-y-2">{nav.map(n => <button aria-label={n.label} key={n.id} data-destination={n.id} aria-current={view === n.id ? "page" : undefined} onClick={() => navigate(n.id)} className={`w-full flex items-center gap-3 p-3 rounded-2xl ${view === n.id ? 'bg-emerald-500/15 text-emerald-300' : 'text-zinc-400 hover:bg-white/5'}`}><span className="nav-icon"><n.icon size={20} /></span>{n.label}</button>)}{isAdmin && theme !== "skyglass" && theme !== "orix" && <button className="w-full flex gap-3 p-3 text-zinc-400" onClick={() => navigate('universe')}><Orbit size={20} />{ui("Universo")}</button>}</nav></aside>
     <main className="min-w-0 flex-1">
+      <div hidden={!!world && allowed}>
       {theme === 'orix' && user && view !== 'profile' && !personOpen && <div className="orix-page-heading"><div><span>mocinhas</span><h1>{ui(view === 'people' ? 'Perfis' : view === 'videos' ? 'Vídeos' : view === 'saved' ? 'Publicações salvas' : view === 'universe' ? 'Universo' : 'Encontre os melhores perfis')}</h1></div></div>}
-      {theme === 'gymnastics' && !personOpen && (!user || view === 'feed') && <GymnasticsHero onExplore={() => user ? navigate('people') : setModal('auth')} />}
+      {!personOpen && (!user || (view === 'feed' && allowed)) && <WorldHub onChoose={openWorld}/>}
+      
       {!user ? <section className="welcome-card niuniu-card p-10 text-center space-y-4">{theme !== 'gymnastics' && <WelcomeCarousel inactive={!!modal}/>}<Orbit className="mx-auto text-emerald-400" size={40} /><h1 className="text-2xl font-bold">{ui(theme === 'gymnastics' ? "Sua próxima inspiração começa aqui" : "Encontre os melhores perfis")}</h1><p className="text-zinc-400">{ui("Entre para ver as publicações e os vídeos.")}</p><button aria-label={ui('Entrar ou criar conta')} className="rounded-full bg-emerald-500 text-black font-bold px-6 py-3" onClick={() => setModal('auth')}>{ui("Entrar ou criar conta")}</button></section> : view === 'profile' ? <section className="account-page max-w-2xl mx-auto space-y-5">
       <div className="niuniu-card overflow-hidden"><div className="account-cover"><span className="text-xs uppercase tracking-[.2em] text-emerald-200">{ui("Seu espaço")}</span><Orbit size={100} className="account-orbit" /></div>
       <div className="px-6 pb-6"><div className="account-monogram -mt-8 relative">{user.displayName.slice(0, 2).toUpperCase()}</div><div className="mt-4 flex items-center justify-between gap-3"><div className="min-w-0"><h1 className="text-2xl font-bold truncate">{user.displayName}</h1><p className="text-sm text-zinc-400 mt-1">{ui("Minha conta")}</p></div><span className="account-badge">{isAdmin ? ui("Administrador") : user.isPremium ? ui("Premium") : ui("Membro")}</span></div>
@@ -195,8 +205,10 @@ function MainApp() {
 
         {view === 'feed' && <PeopleProfiles compact admin={isAdmin} onManage={() => setModal('people-admin')} onSeeAll={() => navigate('people')} onActiveChange={setPersonOpen} resetKey={personReset}/>}
         {(view === 'videos' || view === 'feed' || view === 'saved') && <div hidden={personOpen} className={`feed-toolbar relative z-10 bg-[var(--canvas-bg)] py-3 transition-[transform,opacity] duration-200 `}>{<h1 className="font-bold text-xl mb-3">{view === 'videos' ? ui("Vídeos") : view === 'saved' ? ui("Publicações salvas") : ui("As melhores fotos")}</h1>}<div className="tag-scroll flex gap-2 overflow-x-auto pb-2"><button aria-pressed={!tags.length} className={`tag-chip ${!tags.length ? 'selected' : ''}`} onClick={() => setTags([])}>{theme === "skyglass" && <span className="sky-filter-icon"><Layers size={18}/></span>}<span>{ui("Todos")}</span></button>{allTags.map((t,index) => <button aria-pressed={tags.includes(t)} title={"#"+t} key={t} className={`tag-chip ${tags.includes(t) ? 'selected' : ''}`} onClick={() => setTags(prev => prev.includes(t) ? prev.filter(v => v !== t) : [...prev, t])}>{theme === "skyglass" && <span className="sky-filter-icon" data-color={index % 5}><Tag size={18}/></span>}<span>#{t}</span></button>)}</div></div>}
-        {view === 'people' ? <PeopleProfiles admin={isAdmin} onManage={() => setModal('people-admin')} onSeeAll={() => navigate('people')} onActiveChange={setPersonOpen} resetKey={personReset}/> : view === 'universe' ? <UniverseFeed posts={posts} isLoading={loading} paused={!!selected || !!modal || !!commentsPost || personOpen || !leaseValid} onSelectPost={setSelected} onSwitchToList={() => navigate('feed')} /> : <div hidden={personOpen}><PublicationGallery key={view} orix={theme === 'orix'} videos={view === 'videos'}>{loading && !posts.length ? <LoaderCircle className="animate-spin mx-auto" /> : shown.map((p, index) => <Publication sequenceIndex={index} mediaActive={!modal && !selected && !commentsPost && !personOpen} key={p.id} post={p} admin={isAdmin} {...engagement} onDeleted={load} />)}{!loading && !shown.length && <p className="niuniu-card p-8 text-center text-zinc-400">{tags.length ? ui("Nenhuma publicação com as hashtags selecionadas.") : ui("Ainda não há publicações.")}</p>}</PublicationGallery></div>}
+        {view === 'people' ? <PeopleProfiles admin={isAdmin} onManage={() => setModal('people-admin')} onSeeAll={() => navigate('people')} onActiveChange={setPersonOpen} resetKey={personReset}/> : view === 'universe' ? <UniverseFeed posts={posts} isLoading={loading} paused={!!selected || !!modal || !!commentsPost || personOpen || !!world || !leaseValid} onSelectPost={setSelected} onSwitchToList={() => navigate('feed')} /> : <div hidden={personOpen}><PublicationGallery key={view} orix={theme === 'orix'} videos={view === 'videos'}>{loading && !posts.length ? <LoaderCircle className="animate-spin mx-auto" /> : shown.map((p, index) => <Publication sequenceIndex={index} mediaActive={!world && !modal && !selected && !commentsPost && !personOpen} key={p.id} post={p} admin={isAdmin} {...engagement} onDeleted={load} />)}{!loading && !shown.length && <p className="niuniu-card p-8 text-center text-zinc-400">{tags.length ? ui("Nenhuma publicação com as hashtags selecionadas.") : ui("Ainda não há publicações.")}</p>}</PublicationGallery></div>}
       </>}
+      </div>
+      {world && allowed && <WorldGallery world={world} posts={posts} loading={loading} admin={isAdmin} onBack={closeWorld} onSwitch={openWorld} onAdd={()=>setModal('admin')}/>}
     </main></div>
     <nav aria-label={ui("Navegação principal")} className="app-bottom-nav lg:hidden fixed bottom-3 left-3 right-3 max-w-lg mx-auto z-40 niuniu-card flex justify-around p-2 pb-safe">{nav.filter(n => theme !== 'orix' || n.id !== 'saved').map(n => <button aria-label={n.label} key={n.id} data-destination={n.id} aria-current={view === n.id ? "page" : undefined} onClick={() => navigate(n.id)} className={`flex flex-col items-center gap-1 px-3 py-2 rounded-2xl ${view === n.id ? 'text-emerald-300 bg-emerald-500/10' : 'text-zinc-400'}`}><span className="nav-icon"><n.icon size={21} /></span><span className="nav-label text-[10px]">{n.label}</span></button>)}</nav>
     {selected && allowed && <ModalFrame label={ui("Publicação")} onClose={() => setSelected(null)} className="publication-dialog grid place-items-center overflow-y-auto p-4"><div className="max-w-2xl mx-auto"><button className="p-3 bg-[var(--surface-card)] rounded-full mb-3" aria-label={ui("Fechar")} onClick={() => setSelected(null)}><X /></button><Publication mediaActive={!modal && !commentsPost} post={selected} admin={isAdmin} {...engagement} onDeleted={() => { setSelected(null); load(); }} /></div></ModalFrame>}
@@ -205,7 +217,7 @@ function MainApp() {
     {modal === 'theme' && <ThemeModal onClose={() => setModal('')} />}
     {modal === 'auth'  && <AuthModal onClose={() => setModal('')} />}
     {modal === 'people-admin' && isAdmin && <PeopleAdmin onClose={() => setModal('')}/>}
-    {modal === 'admin' && isAdmin && <AdminPanel onClose={() => setModal('')} onPostCreated={load} />}
+    {modal === 'admin' && isAdmin && <AdminPanel initialWorld={worldId||undefined} onClose={() => setModal('')} onPostCreated={load} />}
     {modal === 'edit' && user && <EditProfileModal onClose={() => setModal('')} onProfileUpdated={() => setModal('')} />}
     <LanguageModal isOpen={modal === 'language'} onClose={() => setModal('')} />
     {modal === 'premium' && user && <SyncpayModal onClose={() => setModal('')} />}
