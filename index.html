@@ -1,16 +1,14 @@
 <!doctype html>
-<html lang="pt-BR" data-theme="skyglass">
+<html lang="pt-BR" data-theme="orix">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <meta name="theme-color" content="#EAF3FD" />
+    <meta name="theme-color" content="#FFFFFF" />
     <script>
       try {
-        var savedTheme = localStorage.getItem("mocinhas_visual_theme");
-        var theme = ["original","skyglass","orely","lilac"].includes(savedTheme) ? savedTheme : "skyglass";
-        document.documentElement.dataset.theme = theme;
-        document.documentElement.classList.toggle("dark", theme === "original");
-        document.querySelector('meta[name="theme-color"]').content = ({skyglass:"#EAF3FD",orely:"#E8DDFB",lilac:"#E8DEFF",original:"#09090E"})[theme];
+        document.documentElement.dataset.theme = "orix";
+        document.documentElement.classList.remove("dark");
+        document.querySelector('meta[name="theme-color"]').content = "#FFFFFF";
       } catch (_) {}
     </script>
     <title>mocinhas</title>
@@ -22,7 +20,7 @@
     <link rel="stylesheet" href="/fonts/plus-jakarta.css">
     <style>
       html { --boot-bg:#09090e; --boot-text:#fff; --boot-muted:#94a3b8; }
-      html[data-theme="skyglass"] { --boot-bg:#eef5fe; --boot-text:#12172a; --boot-muted:#6b7280; color-scheme:light; }
+      html[data-theme="orix"] { --boot-bg:#fff; --boot-text:#12172a; --boot-muted:#6b7280; color-scheme:light; }
       html[data-theme="lilac"] { --boot-bg:#e8deff; --boot-text:#201832; --boot-muted:#756d87; color-scheme:light; }
       html[data-theme="orely"] { --boot-bg:#f8f5ff; --boot-text:#171326; --boot-muted:#756d87; color-scheme:light; }
       html,body { background:var(--boot-bg); color:var(--boot-text); margin:0; padding:0; min-height:100dvh; }

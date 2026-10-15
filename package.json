@@ -10,9 +10,10 @@
     "preview": "vite preview",
     "clean": "rm -rf dist server.js",
     "lint": "tsc --noEmit",
-    "test": "node --import tsx tests/usage.test.ts && node tests/access.test.mjs && node --import tsx tests/payments.test.ts && node --import tsx tests/i18n.test.ts && node tests/storage.test.mjs && node tests/cloud.test.mjs && node --import tsx tests/cloud-diagnostics.test.ts && node tests/welcome.test.mjs && node --import tsx tests/media-feed.test.ts && node tests/people.test.mjs && node --import tsx tests/worlds.test.ts"
+    "test": "node --import tsx tests/usage.test.ts && node tests/access.test.mjs && node --import tsx tests/payments.test.ts && node --import tsx tests/i18n.test.ts && node tests/storage.test.mjs && node tests/cloud.test.mjs && node --import tsx tests/cloud-diagnostics.test.ts && node tests/welcome.test.mjs && node --import tsx tests/media-feed.test.ts && node tests/people.test.mjs && node tests/profile-video.test.mjs"
   },
   "dependencies": {
+    "@ffmpeg-installer/ffmpeg": "^1.1.0",
     "@google/genai": "^2.4.0",
     "@mediapipe/tasks-vision": "1.1.0",
     "@supabase/supabase-js": "^2.112.4",

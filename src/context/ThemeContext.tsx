@@ -2,11 +2,9 @@ import React, { createContext, useContext, useEffect, useLayoutEffect, useState 
 
 export type AppTheme = 'original' | 'skyglass' | 'orely' | 'lilac' | 'orix' | 'gymnastics';
 export const THEME_KEY = 'mocinhas_visual_theme';
-// Skyglass is the default for new browsers; saved theme selections remain valid.
-const normalize = (value: unknown): AppTheme => value === 'gymnastics' || value === 'skyglass' || value === 'original' || value === 'orely' || value === 'lilac' || value === 'orix' ? value : 'skyglass';
-function readTheme(): AppTheme {
-  try { return normalize(localStorage.getItem(THEME_KEY)); } catch { return 'skyglass'; }
-}
+// Public appearance is fixed to Ori. Other themes and their saved preference are retained for future use.
+const normalize = (value: unknown): AppTheme => value === 'gymnastics' || value === 'skyglass' || value === 'original' || value === 'orely' || value === 'lilac' || value === 'orix' ? value : 'orix';
+function readTheme(): AppTheme { return 'orix'; }
 const ThemeContext = createContext<{ theme: AppTheme; setTheme: (theme: AppTheme) => void; persisted: boolean } | null>(null);
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, changeTheme] = useState<AppTheme>(readTheme);
@@ -20,7 +18,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const sync = (event: StorageEvent) => {
       if (event.storageArea === localStorage && (event.key === THEME_KEY || event.key === null)) {
-        changeTheme(normalize(event.key === null ? null : event.newValue));
+        changeTheme('orix');
         setPersisted(true);
       }
     };
@@ -28,7 +26,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     return () => window.removeEventListener('storage', sync);
   }, []);
   function setTheme(value: AppTheme) {
-    const next = normalize(value);
+    const next: AppTheme = 'orix';
     changeTheme(next);
     try { localStorage.setItem(THEME_KEY, next); setPersisted(true); } catch { setPersisted(false); }
   }

@@ -1,6 +1,6 @@
 export interface PersonProfile {
  id: string; name: string; username: string; bio: string; avatar: string; cover: string;
- photos: string[]; videos: {url: string; title: string; kind?: 'upload'|'social'}[];
+ photos: string[]; videos: {url: string; title: string; kind?: 'upload'|'social'; thumbnail?:string; duration?:number}[];
  socials: {tiktok: string; instagram: string; pinterest: string};
  tags: string[]; published: boolean; featured: boolean; order: number; createdAt: string; updatedAt: string;
 }

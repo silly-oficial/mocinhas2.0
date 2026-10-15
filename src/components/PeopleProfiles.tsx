@@ -1,3 +1,4 @@
+import {ProfileVideoGrid} from './ProfileVideos';
 import {useTheme} from '../context/ThemeContext';
 import React, {useEffect,useState,useLayoutEffect,useRef,useCallback} from 'react';
 import {Search,Users,X,ArrowUpRight,Share2,Image as ImageIcon,Play,ChevronLeft} from 'lucide-react';
@@ -5,12 +6,11 @@ import {api} from '../services/api';
 import {useUi,ui} from '../i18n/ui';
 import {ModalFrame} from './ModalFrame';
 import {FullPhotoViewer} from './FullPhotoViewer';
-import {FullVideoViewer} from './FullVideoViewer';
 import {pauseMedia} from './ManagedVideo';
-import {categoryKey,socialUrl,socialVideo,type PersonProfile} from '../../shared/people';
+import {categoryKey,socialUrl,type PersonProfile} from '../../shared/people';
 
 export function PersonModal({person,onClose,asPage=false}:{person:PersonProfile;onClose:()=>void;asPage?:boolean}){
- useUi();const [tab,setTab]=useState('photos'),[photo,setPhoto]=useState<string|null>(null),[video,setVideo]=useState(-1),[notice,setNotice]=useState(''),[fullVideo,setFullVideo]=useState<{url:string;title:string;time:number}|null>(null);
+ useUi();const [tab,setTab]=useState('photos'),[photo,setPhoto]=useState<string|null>(null),[notice,setNotice]=useState('');
  useEffect(()=>{pauseMedia();},[]);
  async function share(){const url=window.location.origin+'/#person='+encodeURIComponent(person.username);try{if(navigator.share)await navigator.share({title:person.name,url});else{await navigator.clipboard.writeText(url);setNotice(ui('Link do perfil copiado.'));}}catch{setNotice(ui('Não foi possível compartilhar agora.'));}}
  const detail=<><article className="people-detail">
@@ -18,10 +18,11 @@ export function PersonModal({person,onClose,asPage=false}:{person:PersonProfile;
   <div className="people-detail-body"><img className="people-avatar" src={person.avatar} alt={person.name} onError={e=>{e.currentTarget.src='/profile-placeholder.svg';}}/><div className="people-title"><div><h2>{person.name}</h2><p>@{person.username}</p></div><button className="people-icon" aria-label={ui('Compartilhar perfil')} onClick={share}><Share2 size={19}/></button></div>
    <div className="people-tags">{person.tags.map(tag=><span key={tag}>{tag}</span>)}</div>{person.bio&&<p className="people-bio">{person.bio}</p>}
    <section className="people-socials"><h3>{ui('Redes sociais dessa pessoa')}</h3><div>{(['tiktok','instagram','pinterest'] as const).filter(s=>person.socials[s]).map(s=><a key={s} href={socialUrl(s,person.socials[s])} target="_blank" rel="noopener noreferrer"><span>{s==='tiktok'?'TikTok':s==='instagram'?'Instagram':'Pinterest'}<strong>@{person.socials[s]}</strong></span><ArrowUpRight size={18}/></a>)}</div>{!Object.values(person.socials).some(Boolean)&&<p>{ui('Redes sociais ainda não informadas.')}</p>}</section>
-   <div className="people-tabs" role="tablist" aria-label={ui('Mídias do perfil')}><button role="tab" aria-selected={tab==='photos'} onClick={()=>{setTab('photos');setVideo(-1);}}><ImageIcon size={17}/>{ui('Fotos')} <span>{person.photos.length}</span></button><button role="tab" aria-selected={tab==='videos'} onClick={()=>{setTab('videos');setVideo(-1);}}><Play size={17}/>{ui('Vídeos')} <span>{person.videos.length}</span></button></div>
-   {tab==='photos'?<div className="people-photos">{person.photos.map((src,index)=><button key={src+index} onClick={()=>setPhoto(src)} aria-label={ui('Ver foto completa')+' '+(index+1)}><img src={src} alt={person.name+' — '+(index+1)} loading="lazy"/></button>)}{!person.photos.length&&<p>{ui('Nenhuma foto adicionada ainda.')}</p>}</div>:<div className="people-videos">{person.videos.map((v,index)=>{const uploaded=v.kind==='upload'||v.url.startsWith('/uploads/');const source=uploaded?null:socialVideo(v.url);return <section key={v.url+index} className="people-video-card"><div><span>{source?.platform||ui('Vídeo do perfil')}</span><h4>{v.title||ui('Vídeo')+' '+(index+1)}</h4></div>{video===index?uploaded?<><video className="people-uploaded-video" src={v.url} controls playsInline autoPlay preload="metadata" onPlay={e=>{document.querySelectorAll<HTMLMediaElement>('video,audio').forEach(media=>{if(media!==e.currentTarget)media.pause();});}}/><button className="people-secondary" onClick={e=>{const source=e.currentTarget.parentElement?.querySelector('video');setFullVideo({url:v.url,title:v.title||person.name,time:source?.currentTime||0});}}>{ui('Ver vídeo completo')}</button></>:<iframe title={v.title||source!.platform+' '+person.name} src={source!.embed} allow="fullscreen; encrypted-media; picture-in-picture" allowFullScreen loading="lazy" referrerPolicy="strict-origin-when-cross-origin"/>:<button className="people-watch" onClick={()=>{pauseMedia();setVideo(index);}}><Play size={22}/>{ui('Assistir vídeo')}</button>}{source&&<a target="_blank" rel="noopener noreferrer" href={source.canonical}>{ui('Abrir em')} {source.platform}<ArrowUpRight size={16}/></a>}</section>;})}{!person.videos.length&&<p>{ui('Nenhum vídeo adicionado ainda.')}</p>}<p className="people-help">{ui('A reprodução depende da disponibilidade e das permissões do vídeo na rede social.')}</p></div>}
+   <div className="people-tabs" role="tablist" aria-label={ui('Mídias do perfil')}><button role="tab" aria-selected={tab==='photos'} onClick={()=>{setTab('photos');}}><ImageIcon size={17}/>{ui('Fotos')} <span>{person.photos.length}</span></button><button role="tab" aria-selected={tab==='videos'} onClick={()=>{setTab('videos');}}><Play size={17}/>{ui('Vídeos')} <span>{person.videos.length}</span></button></div>
+   {tab==='photos'?<div className="people-photos">{person.photos.map((src,index)=><button key={src+index} onClick={()=>setPhoto(src)} aria-label={ui('Ver foto completa')+' '+(index+1)}><img src={src} alt={person.name+' — '+(index+1)} loading="lazy"/></button>)}{!person.photos.length&&<p>{ui('Nenhuma foto adicionada ainda.')}</p>}</div>:<ProfileVideoGrid items={person.videos.map((video,index)=>({person,video,index}))} onProfile={()=>{}}/>}
+
    {notice&&<p role="status">{notice}</p>}
-  </div></article>{photo&&<FullPhotoViewer src={photo} alt={person.name} onClose={()=>setPhoto(null)}/>} {fullVideo&&<FullVideoViewer src={fullVideo.url} title={fullVideo.title} startTime={fullVideo.time} onClose={()=>setFullVideo(null)}/>}</>;
+  </div></article>{photo&&<FullPhotoViewer src={photo} alt={person.name} onClose={()=>setPhoto(null)}/>}</>;
  return asPage?<section className="people-section people-profile-page" aria-label={ui('Perfil')+' '+person.name}>{detail}</section>:<ModalFrame onClose={onClose} label={ui('Perfil')+' '+person.name} className="people-dialog">{detail}</ModalFrame>;
 }
 

@@ -1,3 +1,4 @@
+import { installProfileVideo } from './server/profile-video';
 import { installPeople } from './server/people';
 import { validateVideoCover } from './shared/video-cover';
 import { validatePhotoFocus } from './shared/photo-focus';
@@ -113,6 +114,7 @@ function requireAuth(req: express.Request, res: express.Response, next: express.
 installWelcome(app, DB, requireAdmin);
 installConsumptionPolicy(app, DB, JWT_SECRET, getAuthUserId, requireAdmin);
 installPeople(app, DB, requireAdmin);
+installProfileVideo(app, requireAdmin);
 app.use('/uploads', async (req, res, next) => {
   if (!CLOUD) return next();
   const controller = new AbortController();

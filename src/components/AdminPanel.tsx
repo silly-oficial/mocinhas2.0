@@ -1,4 +1,3 @@
-import {WORLDS,captionForWorld,type WorldId} from '../../shared/worlds';
 import { VideoCoverEditor } from './VideoCoverEditor';
 import { PhotoFocusEditor } from './PhotoFocusEditor';
 import { WelcomeSettings } from './WelcomeSettings';
@@ -32,14 +31,13 @@ const mediaType = (file: File): Media['type'] => {
   return 'image';
 };
 const maxSize = (file: File) => mediaType(file)==='video' ? 50 : mediaType(file)==='audio' ? 25 : mediaType(file)==='pdf' ? 20 : 15;
-export const AdminPanel: React.FC<{onClose:()=>void;onPostCreated?:()=>void;initialWorld?:WorldId}> = ({onClose,onPostCreated,initialWorld}) => {
+export const AdminPanel: React.FC<{onClose:()=>void;onPostCreated?:()=>void}> = ({onClose,onPostCreated}) => {
   useUi(); const {user:currentUser}=useAuth(); const {language}=useLanguage();
-  const [activeTab,setActiveTab]=useState<Tab>(initialWorld?'poster':'stats');
+  const [activeTab,setActiveTab]=useState<Tab>('stats');
   const [stats,setStats]=useState<any>(null),[usersList,setUsersList]=useState<User[]>([]),[postsList,setPostsList]=useState<Post[]>([]);
   const [isLoading,setIsLoading]=useState(false),[publishing,setPublishing]=useState(false),[statusMessage,setStatusMessage]=useState<string|null>(null),[loadError,setLoadError]=useState('');
   const [items,setItems]=useState<UploadItem[]>([]),[mediaUrl,setMediaUrl]=useState(''),[postType,setPostType]=useState<'image'|'video'>('video'),[caption,setCaption]=useState(''),[separate,setSeparate]=useState(false);
   const itemsRef=useRef(items); itemsRef.current=items; const counter=useRef(0), fileInputRef=useRef<HTMLInputElement>(null), bodyRef=useRef<HTMLDivElement>(null), mounted=useRef(true), submitLock=useRef(false);
-  const [publicationWorld,setPublicationWorld]=useState<WorldId|''>(initialWorld||'');
   const [search,setSearch]=useState('');
   const [linkCovers,setLinkCovers]=useState<Record<string,{thumbnail:string;coverTime:number}>>({});
   const [linkFocus,setLinkFocus]=useState<Record<string,{x:number;y:number;zoom?:number}>>({});
@@ -88,7 +86,7 @@ export const AdminPanel: React.FC<{onClose:()=>void;onPostCreated?:()=>void;init
       media.push(...urls.map(url=>({url,type:postType,...(postType==='video'?linkCovers[url]||{}:{}),...(postType === 'image' && linkFocus[url] ? { focus: linkFocus[url] } : {})})));
       // Separate is explicitly one media per post; existing gallery contract remains unchanged.
       const groups=separate?media.map(m=>[m]):[media];
-      for(const group of groups){setStatusMessage(`${ui('Publicando')} ${completed+1} / ${groups.length}`);const result=await api.createPost({media:group,caption:captionForWorld(caption,publicationWorld),allowComments:true,isTemporary:false});
+      for(const group of groups){setStatusMessage(`${ui('Publicando')} ${completed+1} / ${groups.length}`);const result=await api.createPost({media:group,caption,allowComments:true,isTemporary:false});
         completed++;if(mounted.current)setPostsList(old=>[result.post,...old]);
         if(separate){const done=items[completed-1];if(done)removeItem(done.id);else setMediaUrl(urls.slice(completed-items.length).join('\n'));}
       }
@@ -120,7 +118,6 @@ export const AdminPanel: React.FC<{onClose:()=>void;onPostCreated?:()=>void;init
         {activeTab==='poster'&&<form className="admin-publisher" onSubmit={handleAdminPostSubmit}>
           <div className="admin-section-heading"><h3>{ui('Nova publicação')}</h3><p>{ui('Fotos e vídeos publicados sem identificação de autor.')}</p></div>
           <fieldset disabled={publishing} className="admin-fields"><legend className="sr-only">{ui('Mídias e legenda')}</legend>
-            <label className="world-admin-select">Mundo / categoria da publicação<select value={publicationWorld} onChange={event=>setPublicationWorld(event.target.value as WorldId|'')}><option value="">Geral — sem mundo específico</option>{WORLDS.map(world=><option value={world.id} key={world.id}>{world.name}</option>)}</select><small>As fotos aparecem automaticamente no mundo escolhido. Os outros tipos de mídia continuam nas abas habituais.</small></label>
             <button className="admin-upload" type="button" onClick={()=>fileInputRef.current?.click()}><span><Plus size={25}/></span><strong>{ui('Adicionar arquivos')}</strong><small>{ui('Selecione um ou vários arquivos do aparelho.')}</small></button>
             <input ref={fileInputRef} type="file" multiple accept="image/*,video/*,audio/*,.pdf,.doc,.docx,.txt" onChange={chooseFiles} className="sr-only" aria-label={ui('Arquivos da publicação')}/>
             {!!items.length&&<ul className="admin-upload-list">{items.map(i=><li key={i.id}>{['image','gif'].includes(mediaType(i.file))?<img src={i.preview} alt=""/>:<span className="admin-file-icon">{mediaType(i.file)==='video'?<Video size={23}/>:<FileText size={23}/>}</span>}<span><strong>{i.file.name}</strong><small>{(i.file.size/1024/1024).toFixed(1)} MB</small></span><button type="button" aria-label={ui('Remover arquivo')+' '+i.file.name} onClick={()=>removeItem(i.id)}><X size={18}/></button>{['image','gif'].includes(mediaType(i.file))&&<details className="admin-focus-details"><summary>{ui('Ajustar destaque')}</summary><PhotoFocusEditor disabled={publishing} url={i.preview} focus={i.focus} onChange={focus=>setItems(old=>old.map(item=>item.id===i.id?{...item,focus}:item))}/></details>}{mediaType(i.file)==='video'&&<details className="admin-focus-details"><summary>{ui('Ajustar destaque')}</summary><VideoCoverEditor disabled={publishing} url={i.preview} thumbnail={i.cover?.thumbnail} coverTime={i.cover?.coverTime} onChange={cover=>setItems(old=>old.map(item=>item.id===i.id?{...item,cover}:item))}/></details>}</li>)}</ul>}
