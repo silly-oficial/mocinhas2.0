@@ -11,6 +11,8 @@ let pending: string | null = null;
 let running: Promise<void> | null = null;
 let failed: Error | null = null;
 let client: SupabaseClient<any> | null = null;
+let lastSerialized: string | null = null;
+const staticReady = new Set<string>();
 export function cloudClient() {
   if (client) return client;
   const url = process.env.SUPABASE_URL?.trim(), key = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim();
@@ -33,23 +35,27 @@ export async function initializeCloud() {
   payload.users=[{id:'u_'+randomUUID(),username:'admin',email,displayName:'Administrador',passwordHash:bcrypt.hashSync(password,12),isAdmin:true,isPrivate:false,isVerified:true,avatar:'/profile-placeholder.svg',createdAt:new Date().toISOString()}];
   const { error } = await cloudClient().from('mocinhas_app_state').insert({id:'main',revision:0,payload});
   if (error && error.code !== '23505') throw Error('SUPABASE_INITIALIZATION_FAILED: não foi possível criar o banco. Não há fallback local.');
-  // Re-read the winning insert if two deployments initialize concurrently.
   row=await getRow();
  }
  if (!row) throw Error('SUPABASE_DATABASE_MISSING');
  validateDatabase(row.payload); revision=Number(row.revision);
  if (!Number.isSafeInteger(revision) || revision<0) throw Error('Invalid database revision');
+ lastSerialized=JSON.stringify(validateDatabase(row.payload));
  return row.payload;
 }
 async function commit(serialized: string) {
  const { data, error } = await cloudClient().rpc('mocinhas_commit_state',{expected_revision:revision,next_payload:JSON.parse(serialized)});
  if (error || !Number.isSafeInteger(Number(data)) || Number(data)!==revision+1) throw Error('SUPABASE_COMMIT_FAILED: gravação não confirmada ou outra instância alterou o banco. Reinicie esta instância para recarregar a versão remota.');
- revision=Number(data);
+ revision=Number(data); lastSerialized=serialized;
 }
 export function queueCloud(data: unknown) {
  if (!CLOUD) return;
  if (failed) throw failed;
- pending=JSON.stringify(validateDatabase(data));
+ const serialized=JSON.stringify(validateDatabase(data));
+ // DB.save() is called from several paths even when the effective state is unchanged.
+ // Avoid sending the complete JSON state to Supabase again in that case.
+ if (serialized===pending || (pending===null && serialized===lastSerialized)) return;
+ pending=serialized;
  if (!running) {
   running=(async()=>{while(pending!==null){const value=pending;pending=null;await commit(value);}})().catch(error=>{failed=error instanceof Error?error:Error('Persistence failed');pending=null;}).finally(()=>{running=null;});
  }
@@ -70,5 +76,22 @@ export async function signedMedia(name: string) {
  if(!/^[a-zA-Z0-9_.-]+$/.test(name))throw Error('Invalid media name');
  const {data,error}=await cloudClient().storage.from(bucket).createSignedUrl(name,20);
  if(error||!data?.signedUrl)throw Error('Media unavailable');
+ return data.signedUrl;
+}
+export async function signedStaticMedia(name: string, bytes: Buffer, contentType: string) {
+ if(!/^[a-zA-Z0-9_./-]+$/.test(name) || name.includes('..')) throw Error('Invalid static media name');
+ const object=`static/${name}`;
+ if(!staticReady.has(object)) {
+  const slash=object.lastIndexOf('/'), folder=object.slice(0,slash), base=object.slice(slash+1);
+  const {data,error}=await cloudClient().storage.from(bucket).list(folder,{limit:1,search:base});
+  if(error) throw Error('Static media lookup failed');
+  if(!data?.some(item=>item.name===base)) {
+   const uploaded=await cloudClient().storage.from(bucket).upload(object,bytes,{contentType,upsert:false,cacheControl:'604800'});
+   if(uploaded.error && !String(uploaded.error.message||'').toLowerCase().includes('exist')) throw Error('Static media upload failed');
+  }
+  staticReady.add(object);
+ }
+ const {data,error}=await cloudClient().storage.from(bucket).createSignedUrl(object,3600);
+ if(error||!data?.signedUrl) throw Error('Static media unavailable');
  return data.signedUrl;
 }
