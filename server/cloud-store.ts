@@ -62,7 +62,7 @@ export async function flushCloud() {
 export function assertCloudHealthy() { if (failed) throw failed; }
 export const cloudRevision = () => revision;
 export async function uploadCloud(name: string, bytes: Buffer, contentType: string) {
- const {error}=await cloudClient().storage.from(bucket).upload(name,bytes,{contentType,upsert:false,cacheControl:'0'});
+ const {error}=await cloudClient().storage.from(bucket).upload(name,bytes,{contentType,upsert:false,cacheControl:'86400'});
  if(error)throw Error('Não foi possível salvar a mídia no Supabase. Confira o bucket privado mocinhas-media e o limite de tamanho.');
  return `/uploads/${encodeURIComponent(name)}`;
 }
