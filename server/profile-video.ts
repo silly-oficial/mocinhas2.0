@@ -27,17 +27,29 @@ export function installProfileVideo(app:express.Express,admin:express.RequestHan
    const start=Number(req.body.start),end=Number(req.body.end),cover=Number(req.body.coverTime);
    if(!Number.isFinite(start)||!Number.isFinite(end)||!Number.isFinite(cover)||start<0||end-start<.1||end>7200||cover<start||cover>=end)throw Error('Escolha um trecho válido e uma capa dentro dele.');
    folder=await fs.mkdtemp(path.join(os.tmpdir(),'profile-video-'));
-   const input=path.join(folder,'input'+path.extname(req.file.originalname).toLowerCase()),output=path.join(folder,'clip.mp4'),poster=path.join(folder,'cover.jpg');
+   const ext=path.extname(req.file.originalname).toLowerCase(),input=path.join(folder,'input'+ext),output=path.join(folder,'clip.mp4'),poster=path.join(folder,'cover.jpg');
    await fs.writeFile(input,req.file.buffer);
    const info=await run(['-i',input],true),match=info.match(/Duration:\s*(\d+):(\d+):(\d+(?:\.\d+)?)/);
    const duration=match?Number(match[1])*3600+Number(match[2])*60+Number(match[3]):0;
    if(!duration||! /Video:/.test(info)||end>duration+.15)throw Error('O trecho escolhido ultrapassa a duração do vídeo ou o arquivo não contém imagem.');
-   await run(['-y','-ss',String(start),'-i',input,'-t',String(end-start),'-map','0:v:0','-map','0:a:0?','-vf',"scale='trunc(min(1080,iw)/2)*2':-2,setsar=1",'-c:v','libx264','-preset','veryfast','-crf','23','-pix_fmt','yuv420p','-threads','1','-c:a','aac','-b:a','128k','-movflags','+faststart','-fs',String(LIMIT),output]);
-   const bytes=await fs.readFile(output);if(bytes.length>=LIMIT||!bytes.length)throw Error('O vídeo resultante excedeu o limite. Escolha um trecho menor.');
-   await run(['-y','-ss',String(Math.max(0,cover-start)),'-i',output,'-frames:v','1','-vf',"scale='min(720,iw)':-2",'-q:v','3',poster]);
-   const thumbnail=await fs.readFile(poster),id=randomUUID(),videoName=`profile_${id}.mp4`,coverName=`profile_${id}.jpg`;
-   if(CLOUD){await uploadCloud(videoName,bytes,'video/mp4');await uploadCloud(coverName,thumbnail,'image/jpeg');}
-   else{await fs.writeFile(path.join(UPLOADS_DIR,videoName),bytes);try{await fs.writeFile(path.join(UPLOADS_DIR,coverName),thumbnail);}catch(error){await fs.rm(path.join(UPLOADS_DIR,videoName),{force:true});throw error;}}
+
+   // Profile clips favor fast publishing over archival compression. The old single-thread
+   // 1080p encode was the main bottleneck on small Render instances.
+   await run(['-y','-ss',String(start),'-i',input,'-t',String(end-start),'-map','0:v:0','-map','0:a:0?','-vf',"scale='trunc(min(720,iw)/2)*2':-2,setsar=1",'-c:v','libx264','-preset','ultrafast','-crf','25','-pix_fmt','yuv420p','-threads','0','-c:a','aac','-b:a','96k','-movflags','+faststart','-fs',String(LIMIT),output]);
+   const stat=await fs.stat(output);if(stat.size>=LIMIT||!stat.size)throw Error('O vídeo resultante excedeu o limite. Escolha um trecho menor.');
+
+   // Extract the cover from the already decoded-friendly final clip. Read both files only
+   // when needed for cloud upload, avoiding an unnecessary full video copy on local storage.
+   await run(['-y','-ss',String(Math.max(0,cover-start)),'-i',output,'-frames:v','1','-vf',"scale='min(720,iw)':-2",'-q:v','4',poster]);
+   const id=randomUUID(),videoName=`profile_${id}.mp4`,coverName=`profile_${id}.jpg`;
+   if(CLOUD){
+    const [bytes,thumbnail]=await Promise.all([fs.readFile(output),fs.readFile(poster)]);
+    await Promise.all([uploadCloud(videoName,bytes,'video/mp4'),uploadCloud(coverName,thumbnail,'image/jpeg')]);
+   } else {
+    const finalVideo=path.join(UPLOADS_DIR,videoName),finalCover=path.join(UPLOADS_DIR,coverName);
+    await fs.rename(output,finalVideo).catch(async()=>{await fs.copyFile(output,finalVideo);});
+    try{await fs.rename(poster,finalCover).catch(async()=>{await fs.copyFile(poster,finalCover);});}catch(error){await fs.rm(finalVideo,{force:true});throw error;}
+   }
    res.json({url:`/uploads/${videoName}`,thumbnail:`/uploads/${coverName}`,duration:Math.min(end,duration)-start,kind:'upload'});
   }catch(error:any){res.status(400).json({error:error.message||'Não foi possível preparar o vídeo.'});}
   finally{busy=false;if(folder)await fs.rm(folder,{recursive:true,force:true}).catch(()=>{});}
