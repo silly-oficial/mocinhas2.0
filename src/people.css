@@ -70,3 +70,11 @@
 [data-theme=orix] .feed-toolbar h1 { display:block; }
 .show-full-media .sky-card-top { right:72px; }
 .people-backbar { position:sticky; top:var(--app-header-height,0px); z-index:20; }
+
+
+/* Keep the close control reachable within Safari's dynamic viewport. */
+.profile-video-editor-dialog{max-height:calc(100dvh - 16px);overflow:auto;overscroll-behavior:contain}
+.profile-video-editor>header{position:sticky;top:0;z-index:3;background:var(--surface,#fff);padding-block:12px}
+.profile-video-editor>header .people-icon{flex-shrink:0;min-width:44px;min-height:44px}
+.people-admin-search{display:flex;align-items:center;gap:10px;padding:10px 12px;margin-bottom:18px;border:1px solid var(--people-border);border-radius:14px;background:var(--people-surface)}
+.people-admin-search input{width:100%;min-height:44px;min-width:0;background:transparent;color:inherit;border:0}

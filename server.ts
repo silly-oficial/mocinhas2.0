@@ -1,11 +1,9 @@
 import { installProfileVideo } from './server/profile-video';
 import { installPeople } from './server/people';
-import { installBlueLab } from './server/blue-lab';
 import { validateVideoCover } from './shared/video-cover';
 import { validatePhotoFocus } from './shared/photo-focus';
 import { installWelcome } from './server/welcome';
-import { Readable } from 'node:stream';
-import { CLOUD, flushCloud, assertCloudHealthy, uploadCloud, signedMedia } from './server/cloud-store';
+import { CLOUD, flushCloud, assertCloudHealthy, uploadCloud, signedMedia, signedStaticMedia } from './server/cloud-store';
 import { hydrateCloudDatabase } from './server/storage';
 import 'dotenv/config';
 import { UPLOADS_DIR, DB_FILE, storageDiagnostics } from './server/storage';
@@ -115,23 +113,19 @@ function requireAuth(req: express.Request, res: express.Response, next: express.
 installWelcome(app, DB, requireAdmin);
 installConsumptionPolicy(app, DB, JWT_SECRET, getAuthUserId, requireAdmin);
 installPeople(app, DB, requireAdmin);
-installBlueLab(app, DB, requireAdmin);
 installProfileVideo(app, requireAdmin);
 app.use('/uploads', async (req, res, next) => {
   if (!CLOUD) return next();
-  const controller = new AbortController();
-  res.on('close', () => controller.abort());
   try {
-    await flushCloud(); const url = await signedMedia(req.path.slice(1));
-    const upstream = await fetch(url, { method: req.method === 'HEAD' ? 'HEAD' : 'GET', headers: req.headers.range ? { Range: req.headers.range } : {}, signal: AbortSignal.any([controller.signal, AbortSignal.timeout(120000)]) });
-    res.status(upstream.status); res.setHeader('Cache-Control','private, no-store');
-    for (const header of ['content-type','content-length','content-range','accept-ranges','etag']) { const value = upstream.headers.get(header); if(value)res.setHeader(header,value); }
-    if (!upstream.body || req.method === 'HEAD') return res.end();
-    const stream = Readable.fromWeb(upstream.body as any); stream.on('error', () => res.destroy()); stream.pipe(res);
-  } catch { if (!res.headersSent && !res.destroyed) res.status(503).json({error:'Mídia temporariamente indisponível.'}); }
-
+    await flushCloud();
+    const url = await signedMedia(req.path.slice(1));
+    res.setHeader('Cache-Control', 'private, no-store');
+    return res.redirect(307, url);
+  } catch {
+    if (!res.headersSent && !res.destroyed) res.status(503).json({error:'Mídia temporariamente indisponível.'});
+  }
 });
-if (!CLOUD) app.use('/uploads', express.static(UPLOADS_DIR, { maxAge: 0, setHeaders: res => res.setHeader('Cache-Control', 'private, no-store') }));
+if (!CLOUD) app.use('/uploads', express.static(UPLOADS_DIR, { maxAge: '1h', setHeaders: res => res.setHeader('Cache-Control', 'private, max-age=3600') }));
 
 // ----------------------------------------------------
 //  SUPABASE INTEGRATION & STATUS
@@ -2351,7 +2345,26 @@ async function startServer() {
     app.use(vite.middlewares);
   } else {
     const distPath = path.join(process.cwd(), 'dist');
-    app.use(express.static(distPath));
+    app.get(/^\/assets\/person-segmentation\/(?:vision_wasm_(?:nosimd_)?internal\.(?:wasm|js)|selfie_segmenter\.tflite)$/, async (req, res, next) => {
+      if (!CLOUD) return next();
+      const relative = req.path.slice(1);
+      const local = path.join(distPath, relative);
+      if (!local.startsWith(distPath + path.sep) || !fs.existsSync(local)) return next();
+      try {
+        const ext = path.extname(local).toLowerCase();
+        const type = ext === '.js' ? 'text/javascript; charset=utf-8' : ext === '.wasm' ? 'application/wasm' : 'application/octet-stream';
+        const url = await signedStaticMedia(relative, fs.readFileSync(local), type);
+        res.setHeader('Cache-Control', 'public, max-age=3600');
+        return res.redirect(307, url);
+      } catch (error) {
+        console.warn('[static-cdn] fallback local:', relative, error instanceof Error ? error.message : error);
+        return next();
+      }
+    });
+    app.use(express.static(distPath, { maxAge: '7d', immutable: false, setHeaders: (res, filename) => {
+      if (filename.endsWith('index.html')) res.setHeader('Cache-Control', 'no-cache');
+      else res.setHeader('Cache-Control', 'public, max-age=604800');
+    } }));
     app.get('*', (_req, res) => {
       res.sendFile(path.join(distPath, 'index.html'));
     });
@@ -2370,3 +2383,4 @@ await flushCloud();
 await startServer();
 }
 bootApplication().catch(error => { console.error(error.message); process.exitCode = 1; });
+

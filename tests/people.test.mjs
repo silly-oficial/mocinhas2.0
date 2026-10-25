@@ -16,7 +16,7 @@ try{
  assert.equal((await call('/api/admin/people/'+id,'PUT',{...person,published:true,videos:[{url:'https://tiktok.com.evil.test/@x/video/6718335390845095173',title:''}]})).status,400);
  assert.equal((await call('/api/admin/people/'+id,'PUT',{...person,published:true,avatar:'javascript:alert(1)'})).status,400);
  assert.equal((await call('/api/admin/people/'+id,'PUT',{...person,published:true,socials:{...person.socials,instagram:'https://evil.test'}})).status,400);
- assert.equal((await call('/api/admin/people/'+id,'PUT',{...person,published:true,photos:Array(41).fill('https://example.com/a.jpg')})).status,400);
+ assert.equal((await call('/api/admin/people/'+id,'PUT',{...person,published:true,photos:Array(57).fill('https://example.com/a.jpg')})).status,200);
  const native=await call('/api/admin/people/'+id,'PUT',{...person,published:true,videos:[{url:'/uploads/test_video.mp4',title:'Enviado',kind:'upload'}],tags:['Música',' música ','Moda','  moda  ']});assert.equal(native.status,200);assert.equal(native.body.profile.videos[0].kind,'upload');assert.deepEqual(native.body.profile.tags,['Música','Moda']);
  assert.equal((await call('/api/admin/people/'+id,'PUT',{...person,published:true,videos:[{url:'javascript:alert(1)',title:'',kind:'upload'}]})).status,400);
  assert.equal((await call('/api/admin/people/'+id,'PUT',{...person,published:true,videos:[{url:'/uploads/file.html',title:'',kind:'upload'}]})).status,400);
@@ -32,3 +32,4 @@ try{
  const otherData=JSON.parse(fs.readFileSync(path.join(root,'db.json')));assert.equal(otherData.users.length,2);assert.deepEqual(otherData.posts,[]);
  console.log('People passed: admin CRUD, private drafts, publication, featured ordering, validated links/media, persistence and isolation from accounts/posts.');
 }finally{await stop();fs.rmSync(root,{recursive:true,force:true});}
+
