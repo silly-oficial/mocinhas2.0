@@ -1,0 +1,20 @@
+.directory-safety-page,.directory-safety-footer,.directory-requests-admin{overflow-wrap:anywhere;line-height:1.65}
+.directory-safety-page{max-width:760px;padding:32px 20px 48px;margin:auto;color:var(--text-primary,#e9e9ee)}
+.directory-safety-page h1{font-size:clamp(1.7rem,5vw,2.4rem);font-weight:750;margin:28px 0 18px;line-height:1.2}
+.directory-safety-page h2{font-size:1.2rem;font-weight:700;margin:28px 0 8px}
+.directory-safety-page p,.directory-safety-footer p,.directory-requests-admin p{margin:12px 0}
+.directory-safety-page a,.directory-safety-footer a,.directory-requests-admin a{text-decoration:underline;text-underline-offset:3px;color:inherit}
+.directory-safety-page fieldset,.directory-requests-admin fieldset{border:0;min-width:0;display:grid;gap:16px;margin:28px 0}
+.directory-safety-page legend{font-weight:700;font-size:1.2rem}
+.directory-safety-page label,.directory-requests-admin label{display:grid;gap:7px;font-weight:600}
+.directory-safety-page input,.directory-safety-page textarea,.directory-safety-page select,.directory-requests-admin textarea,.directory-requests-admin select{width:100%;max-width:100%;min-width:0;border:1px solid #7779;border-radius:10px;padding:12px;color:inherit;background:var(--surface-card,#202027);font:inherit}
+.directory-safety-page button,.directory-requests-admin button{min-height:44px;padding:10px 18px;border:1px solid #8888;border-radius:10px;color:inherit;background:var(--surface-card,#202027);font-weight:700;cursor:pointer}
+.directory-safety-page button:disabled,.directory-requests-admin button:disabled{opacity:.55;cursor:wait}
+.directory-safety-page small,.directory-requests-admin small{font-size:.85rem;font-weight:400}
+.directory-safety-page :focus-visible,.directory-requests-admin :focus-visible,.directory-safety-footer :focus-visible{outline:3px solid #a7e5df;outline-offset:3px}
+.directory-safety-footer{max-width:900px;margin:24px auto 0;padding:24px 20px 120px;font-size:.85rem;color:var(--text-secondary,#bfc0cd);position:relative}
+.directory-safety-footer nav,.directory-requests-admin nav{display:flex;gap:16px;flex-wrap:wrap;align-items:center}
+.directory-receipt,.directory-request-row{padding:20px;border:1px solid #8885;border-radius:16px;margin:20px 0}
+.directory-observations{white-space:pre-wrap}
+.directory-request-row h4{font-weight:700;font-size:1.1rem}
+.directory-request-row fieldset{margin-bottom:0}

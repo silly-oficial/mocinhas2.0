@@ -1,3 +1,4 @@
+import type { DirectoryRequest } from '../shared/directory-requests';
 import type { PersonProfile } from '../shared/people';
 import type { WelcomeConfig } from '../shared/welcome';
 import { CLOUD } from './cloud-store';
@@ -198,6 +199,7 @@ export interface DBPaymentCharge {
   status: string; createdAt: number; checkedAt?: number; grantedAt?: number;
 }
 export interface DatabaseSchema {
+  directoryRequests?: DirectoryRequest[];
   blueLabLinks?: Record<string,string[]>;
   peopleProfiles?: PersonProfile[];
   engagementRestored?: boolean;
@@ -812,3 +814,4 @@ export const DB = {
 
 // Auto load DB on module import
 if (!CLOUD) loadDB();
+

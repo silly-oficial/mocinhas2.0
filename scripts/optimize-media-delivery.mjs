@@ -43,8 +43,10 @@ const replacement = `app.use('/uploads', async (req, res, next) => {
   }
 });
 if (!CLOUD) app.use('/uploads', express.static(UPLOADS_DIR, { maxAge: '1h', setHeaders: res => res.setHeader('Cache-Control', 'private, max-age=3600') }));`;
-if (!proxyRoute.test(source)) throw new Error('MEDIA_ROUTE_PATCH_FAILED: rota /uploads mudou; build interrompido com segurança.');
-source = source.replace(proxyRoute, replacement);
+if (!source.includes(replacement)) {
+  if (!proxyRoute.test(source)) throw new Error('MEDIA_ROUTE_PATCH_FAILED: rota /uploads mudou; build interrompido com segurança.');
+  source = source.replace(proxyRoute, replacement);
+}
 source = source.replace("import { Readable } from 'node:stream';\n", '');
 source = source.replace("import { CLOUD, flushCloud, assertCloudHealthy, uploadCloud, signedMedia } from './server/cloud-store';", "import { CLOUD, flushCloud, assertCloudHealthy, uploadCloud, signedMedia, signedStaticMedia } from './server/cloud-store';");
 
@@ -72,9 +74,12 @@ const staticReplacement = `    const distPath = path.join(process.cwd(), 'dist')
       if (filename.endsWith('index.html')) res.setHeader('Cache-Control', 'no-cache');
       else res.setHeader('Cache-Control', 'public, max-age=604800');
     } }));`;
-if (!source.includes(staticMarker)) throw new Error('STATIC_ROUTE_PATCH_FAILED: bloco estático mudou; build interrompido com segurança.');
-source = source.replace(staticMarker, staticReplacement);
+if (!source.includes(staticReplacement)) {
+  if (!source.includes(staticMarker)) throw new Error('STATIC_ROUTE_PATCH_FAILED: bloco estático mudou; build interrompido com segurança.');
+  source = source.replace(staticMarker, staticReplacement);
+}
 
 if (/installBlueLab|server\/blue-lab/.test(source)) throw new Error('BLUE_LAB_SERVER_CLEANUP_FAILED: referência do Azul Infinito permaneceu em server.ts.');
 fs.writeFileSync(file, source);
 console.log('Delivery optimized; Azul Infinito removed from production build.');
+

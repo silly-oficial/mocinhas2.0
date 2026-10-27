@@ -10,7 +10,7 @@ export function validateDatabase(data) {
       if (key === 'posts' && (typeof row.userId !== 'string' || !Array.isArray(row.media))) throw Error('Banco inválido: autoria ou mídia de publicação ausente.');
     }
   }
-  for (const key of ['likes','saves','comments','commentLikes','follows','stories','storyViews','conversations','messages','notifications','reports','blocks','mutes','paymentCharges','peopleProfiles']) {
+  for (const key of ['likes','saves','comments','commentLikes','follows','stories','storyViews','conversations','messages','notifications','reports','blocks','mutes','paymentCharges','peopleProfiles','directoryRequests']) {
     if (data[key] !== undefined && !Array.isArray(data[key])) throw Error(`Banco inválido: ${key} precisa ser uma lista.`);
   }
   return data;
@@ -21,3 +21,4 @@ export function inspectDatabase(file) {
   const users = new Set(db.users.map(u => u.id));
   return { file, bytes: bytes.length, sha256: crypto.createHash('sha256').update(bytes).digest('hex'), modifiedAt: fs.statSync(file).mtime.toISOString(), users: db.users.length, administrators: admins.size, posts: db.posts.length, adminPosts: db.posts.filter(p => admins.has(p.userId)).length, orphanPosts: db.posts.filter(p => !users.has(p.userId)).length, hiddenNonAdminPosts: db.posts.filter(p => users.has(p.userId) && !admins.has(p.userId)).length, comments: db.comments?.length || 0 };
 }
+

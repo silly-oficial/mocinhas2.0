@@ -1,6 +1,7 @@
 import {StrictMode} from 'react';
 import {createRoot} from 'react-dom/client';
 import App from './App.tsx';
+import {DirectorySafetyFooter, DirectorySafetyPage} from './components/DirectorySafety';
 import { ErrorBoundary } from './components/ErrorBoundary.tsx';
 import './index.css';
 import './skyglass.css';
@@ -27,7 +28,8 @@ if ('serviceWorker' in navigator) {
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <ErrorBoundary>
-      <App />
+      {window.location.pathname.replace(/\/+$/, '') === '/pais' ? <DirectorySafetyPage/> : window.location.pathname.replace(/\/+$/, '') === '/privacidade' ? <DirectorySafetyPage privacy/> : <App />}
+      <DirectorySafetyFooter/>
     </ErrorBoundary>
   </StrictMode>,
 );
@@ -37,3 +39,4 @@ import './gymnastics.css';
 
 
 import "./profile-reels.css";
+

@@ -1,5 +1,6 @@
 import { installProfileVideo } from './server/profile-video';
 import { installPeople } from './server/people';
+import { installDirectoryRequests } from './server/directory-requests';
 import { validateVideoCover } from './shared/video-cover';
 import { validatePhotoFocus } from './shared/photo-focus';
 import { installWelcome } from './server/welcome';
@@ -52,6 +53,7 @@ const storage = multer.diskStorage({
 const upload = multer({ storage: CLOUD ? multer.memoryStorage() : storage, limits: { fileSize: 50 * 1024 * 1024 } });
 
 // Middlewares
+app.use('/api/directory-requests', express.json({ limit: '16kb' }));
 app.use(express.json({ limit: '50mb', verify: (req, _res, buf) => { if (req.url === '/api/syncpay/webhook') (req as any).rawBody = Buffer.from(buf); } }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 // No API acknowledgement is sent before its queued remote snapshot is durable.
@@ -111,6 +113,7 @@ function requireAuth(req: express.Request, res: express.Response, next: express.
 }
 
 installWelcome(app, DB, requireAdmin);
+installDirectoryRequests(app, DB, requireAdmin);
 installConsumptionPolicy(app, DB, JWT_SECRET, getAuthUserId, requireAdmin);
 installPeople(app, DB, requireAdmin);
 installProfileVideo(app, requireAdmin);
@@ -2383,4 +2386,5 @@ await flushCloud();
 await startServer();
 }
 bootApplication().catch(error => { console.error(error.message); process.exitCode = 1; });
+
 
