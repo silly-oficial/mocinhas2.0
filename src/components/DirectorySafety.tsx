@@ -2,21 +2,22 @@ import React, {useEffect, useState} from 'react';
 import {requestTypes, type DirectoryRequestType} from '../../shared/directory-requests';
 import {legalDocuments, legalNavigation, legalNotice, type LegalDocumentVersion, type LegalPageKey, type LegalVersionSummary} from '../../shared/legal-documents';
 
-function useContact() {
-  const [email,setEmail] = useState('');
+function usePublicSettings() {
+  const [settings,setSettings] = useState({contactEmail:'',dpoEmail:'',siteName:'Mocinhas',organizationName:'',websiteUrl:'',responseBusinessDays:5});
   useEffect(() => {
     const controller = new AbortController();
-    fetch('/api/directory-contact',{signal:controller.signal}).then(r => r.ok ? r.json() : null).then(data => setEmail(data?.email || '')).catch(() => {});
-    return () => controller.abort();
+    const load=()=>fetch('/api/directory-settings',{signal:controller.signal}).then(r=>r.ok?r.json():null).then(data=>{if(data)setSettings(data);}).catch(()=>{});
+    void load();window.addEventListener('mocinhas:settings-updated',load);
+    return ()=>{controller.abort();window.removeEventListener('mocinhas:settings-updated',load);};
   },[]);
-  return email;
+  return settings;
 }
 export function LegalNavigation({currentPath,versionId = ''}: {currentPath?:string;versionId?:string}) {
   return <nav className="directory-legal-nav" aria-label="Documentos e atendimento">{legalNavigation.map(link => <a key={link.path} href={link.path + (versionId && link.path !== '/versoes' ? '?versao=' + encodeURIComponent(versionId) : '')} aria-current={currentPath === link.path ? 'page' : undefined}>{link.label}</a>)}</nav>;
 }
 export function DirectorySafetyFooter() {
-  const email = useContact();
-  return <footer className="directory-safety-footer"><p>{legalNotice} <a href="/pais">clique aqui</a>.</p><LegalNavigation/>{email && <p>Contato: <a href={'mailto:' + email}>{email}</a></p>}</footer>;
+  const config = usePublicSettings();const email=config.contactEmail;
+  return <footer className="directory-safety-footer"><p>{config.siteName}{config.organizationName&&' · '+config.organizationName}</p>{config.websiteUrl&&<p><a href={config.websiteUrl}>Site oficial</a></p>}<p>{legalNotice} <a href="/pais">clique aqui</a>.</p><LegalNavigation/>{email && <p>Contato: <a href={'mailto:' + email}>{email}</a></p>}{config.dpoEmail&&<p>Privacidade: <a href={'mailto:'+config.dpoEmail}>{config.dpoEmail}</a></p>}</footer>;
 }
 function LinkedText({text}: {text:string}) {
   return <>{text.split(/(\/(?:termos|privacidade|pais|versoes))\b/g).map((part,index) => /^\/(termos|privacidade|pais|versoes)$/.test(part) ? <a key={index} href={part}>{part}</a> : part)}</>;
@@ -57,7 +58,7 @@ function ResponsibleRequestForm() {
   </form>;
 }
 export function DirectorySafetyPage({page = 'parents'}: {page?:LegalPageKey}) {
-  const email = useContact();
+  const config = usePublicSettings();const email=config.contactEmail;
   const versionId = new URLSearchParams(typeof window === 'undefined' ? '' : window.location.search).get('versao') || '';
   const [version,setVersion] = useState<LegalDocumentVersion|null>(null), [current,setCurrent] = useState<LegalVersionSummary|null>(null);
   const [loading,setLoading] = useState(true), [error,setError] = useState(''), [retry,setRetry] = useState(0);

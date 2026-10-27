@@ -1,9 +1,11 @@
 import { VideoCoverEditor } from './VideoCoverEditor';
+import {DirectoryConfiguration} from './DirectoryConfiguration';
+import {VerificationAdmin} from './VerificationAdmin';
 import { DirectoryRequestsAdmin } from './DirectoryRequestsAdmin';
 import { PhotoFocusEditor } from './PhotoFocusEditor';
 import { WelcomeSettings } from './WelcomeSettings';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { BarChart3, Plus, Users, FileText, Clock, CreditCard, Database, X, Trash2, Image as ImageIcon, Video, Tag, Shield, Crown, RefreshCw, CheckCircle2, AlertTriangle, Key, ExternalLink, Copy, LoaderCircle } from 'lucide-react';
+import { Settings as SettingsIcon, BarChart3, Plus, Users, FileText, Clock, CreditCard, Database, X, Trash2, Image as ImageIcon, Video, Tag, Shield, Crown, RefreshCw, CheckCircle2, AlertTriangle, Key, ExternalLink, Copy, LoaderCircle } from 'lucide-react';
 import { ui, useUi } from '../i18n/ui';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
@@ -14,10 +16,11 @@ import { StorageStatus } from './StorageStatus';
 import { UsageSettings } from './UsageSettings';
 import { ModalFrame } from './ModalFrame';
 
-type Tab = 'welcome' | 'stats' | 'poster' | 'moderation' | 'users' | 'usage' | 'syncpay' | 'supabase' | 'requests';
+type Tab = 'welcome' | 'stats' | 'poster' | 'moderation' | 'users' | 'usage' | 'syncpay' | 'supabase' | 'requests' | 'configuration' | 'verification';
 type Media = Parameters<typeof api.createPost>[0]['media'][number];
 type UploadItem = { id: number; file: File; preview: string; uploaded?: Media; cover?: {thumbnail:string;coverTime:number}; focus?: { x: number; y: number; zoom?: number } };
 const tabs: { id: Tab; label: string; icon: typeof Plus }[] = [
+  {id:'configuration',label:'Configurações públicas',icon:SettingsIcon},{id:'verification',label:'Verificações',icon:Shield},
   {id:'requests',label:'Responsáveis',icon:Shield},
   {id:'stats',label:'Visão geral',icon:BarChart3},{id:'poster',label:'Publicar',icon:Plus},
   {id:'moderation',label:'Publicações',icon:FileText},{id:'users',label:'Contas',icon:Users},
@@ -41,6 +44,7 @@ export const AdminPanel: React.FC<{onClose:()=>void;onPostCreated?:()=>void}> = 
   const [items,setItems]=useState<UploadItem[]>([]),[mediaUrl,setMediaUrl]=useState(''),[postType,setPostType]=useState<'image'|'video'>('video'),[caption,setCaption]=useState(''),[separate,setSeparate]=useState(false);
   const itemsRef=useRef(items); itemsRef.current=items; const counter=useRef(0), fileInputRef=useRef<HTMLInputElement>(null), bodyRef=useRef<HTMLDivElement>(null), mounted=useRef(true), submitLock=useRef(false);
   const [search,setSearch]=useState('');
+  const [sourceHandle,setSourceHandle]=useState('');
   const [linkCovers,setLinkCovers]=useState<Record<string,{thumbnail:string;coverTime:number}>>({});
   const [linkFocus,setLinkFocus]=useState<Record<string,{x:number;y:number;zoom?:number}>>({});
   const [syncpayClientId,setSyncpayClientId]=useState(''),[syncpayClientSecret,setSyncpayClientSecret]=useState(''),[syncpayWebhookUrl,setSyncpayWebhookUrl]=useState(window.location.origin+'/api/syncpay/webhook'),[syncpayWebhookToken,setSyncpayWebhookToken]=useState(''),[syncpayPixKey,setSyncpayPixKey]=useState(''),[syncpayEnabled,setSyncpayEnabled]=useState(true),[syncpayPrice,setSyncpayPrice]=useState(9.99);
@@ -88,7 +92,7 @@ export const AdminPanel: React.FC<{onClose:()=>void;onPostCreated?:()=>void}> = 
       media.push(...urls.map(url=>({url,type:postType,...(postType==='video'?linkCovers[url]||{}:{}),...(postType === 'image' && linkFocus[url] ? { focus: linkFocus[url] } : {})})));
       // Separate is explicitly one media per post; existing gallery contract remains unchanged.
       const groups=separate?media.map(m=>[m]):[media];
-      for(const group of groups){setStatusMessage(`${ui('Publicando')} ${completed+1} / ${groups.length}`);const result=await api.createPost({media:group,caption,allowComments:true,isTemporary:false});
+      for(const originalGroup of groups){const group=originalGroup.map(m=>({...m,source_handle:sourceHandle.replace(/^@/,'')}));setStatusMessage(`${ui('Publicando')} ${completed+1} / ${groups.length}`);const result=await api.createPost({media:group,caption,allowComments:true,isTemporary:false});
         completed++;if(mounted.current)setPostsList(old=>[result.post,...old]);
         if(separate){const done=items[completed-1];if(done)removeItem(done.id);else setMediaUrl(urls.slice(completed-items.length).join('\n'));}
       }
@@ -111,13 +115,14 @@ export const AdminPanel: React.FC<{onClose:()=>void;onPostCreated?:()=>void}> = 
       <header className="admin-header"><span className="admin-header-icon"><Shield size={22}/></span><div><h2>{ui('Painel Administrativo')}</h2><p>{ui('Conteúdo e configurações do app')}</p></div><button autoFocus className="icon-button" aria-label={ui('Fechar painel administrativo')} disabled={publishing} onClick={closing}><X size={20}/></button></header>
       <nav className="admin-tabs" aria-label={ui('Seções administrativas')}>{tabs.map(t=><button key={t.id} disabled={publishing} aria-current={activeTab===t.id?'page':undefined} onClick={()=>setActiveTab(t.id)}><t.icon size={18}/><span>{ui(t.label)}</span></button>)}</nav>
       <div ref={bodyRef} className="admin-body">
-        {activeTab === 'requests' && <DirectoryRequestsAdmin/>}
+        {activeTab === 'requests' && <DirectoryRequestsAdmin/>}{activeTab === 'configuration' && <DirectoryConfiguration/>}{activeTab === 'verification' && <VerificationAdmin/>}
         {loadError&&<p className="admin-message" role="alert">{loadError}</p>}
         {isLoading&&<div className="admin-loading" role="status"><LoaderCircle size={18} className="animate-spin"/>{ui('Carregando…')}</div>}
         {activeTab==='stats'&&<div className="admin-overview"><div className="admin-intro"><span className="admin-eyebrow">mocinhas</span><h3>{ui('Seu conteúdo, em um só lugar.')}</h3><p>{ui('Publique, acompanhe as contas e ajuste o acesso diário.')}</p><button className="admin-primary" onClick={()=>setActiveTab('poster')}><Plus size={19}/>{ui('Nova publicação')}</button></div>
           <div className="admin-metrics"><div><FileText size={20}/><strong>{stats?.totalPosts??'—'}</strong><span>{ui('Publicações')}</span></div><div><Users size={20}/><strong>{stats?.totalUsers??'—'}</strong><span>{ui('Contas')}</span></div><div><HeartCount posts={postsList}/></div></div>
           <section className="admin-section"><h3>{ui('Publicações nos últimos 7 dias')}</h3><div className="admin-chart">{Array.from({length:7},(_,i)=>{const d=new Date();d.setDate(d.getDate()-6+i);const key=d.toDateString(),count=postsList.filter(p=>new Date(p.createdAt).toDateString()===key).length;const max=Math.max(1,...Array.from({length:7},(_,j)=>{const x=new Date();x.setDate(x.getDate()-j);return postsList.filter(p=>new Date(p.createdAt).toDateString()===x.toDateString()).length;}));return <div key={key}><strong>{count}</strong><span className="admin-chart-track"><i style={{transform:`scaleY(${count/max})`}}/></span><small>{d.toLocaleDateString(language,{weekday:'short'})}</small></div>;})}</div></section>
           <p className="admin-muted">{ui('Exclusão automática desativada. Posts só são removidos manualmente pela administração.')}</p></div>}
+        {activeTab==='poster'&&<label className="admin-section">@ original do TikTok para as mídias desta publicação<input value={sourceHandle} onChange={event=>setSourceHandle(event.target.value)} placeholder="@criador.original" maxLength={60}/><small>Use uma publicação separada para cada criador. O crédito permanece ligado à mídia.</small></label>}
         {activeTab==='poster'&&<form className="admin-publisher" onSubmit={handleAdminPostSubmit}>
           <div className="admin-section-heading"><h3>{ui('Nova publicação')}</h3><p>{ui('Fotos e vídeos publicados sem identificação de autor.')}</p></div>
           <fieldset disabled={publishing} className="admin-fields"><legend className="sr-only">{ui('Mídias e legenda')}</legend>

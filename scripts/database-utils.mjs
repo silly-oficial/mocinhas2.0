@@ -10,7 +10,7 @@ export function validateDatabase(data) {
       if (key === 'posts' && (typeof row.userId !== 'string' || !Array.isArray(row.media))) throw Error('Banco inválido: autoria ou mídia de publicação ausente.');
     }
   }
-  for (const key of ['likes','saves','comments','commentLikes','follows','stories','storyViews','conversations','messages','notifications','reports','blocks','mutes','paymentCharges','peopleProfiles','directoryRequests','legalDocumentVersions']) {
+  for (const key of ['likes','saves','comments','commentLikes','follows','stories','storyViews','conversations','messages','notifications','reports','blocks','mutes','paymentCharges','peopleProfiles','directoryRequests','legalDocumentVersions','directoryEmailOutbox','verificationRequests','directorySettingsAudit']) {
     if (data[key] !== undefined && !Array.isArray(data[key])) throw Error(`Banco inválido: ${key} precisa ser uma lista.`);
   }
   return data;

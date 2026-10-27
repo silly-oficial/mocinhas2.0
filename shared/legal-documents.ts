@@ -28,7 +28,7 @@ export const legalDocuments: Record<LegalPageKey, LegalDocument> = {
       ]},
       {title: '4. Recebimento e análise', paragraphs: [
         'Após o envio confirmado, guarde o protocolo. A administração responderá pelo e-mail informado em até cinco dias úteis. O protocolo confirma o recebimento; ele não indica que a análise ou a remoção já foi concluída.',
-        'A análise e a resposta são manuais. Retirar um perfil de publicação oculta o perfil no diretório; pedidos relativos a arquivos, posts ou outras referências exigem tratamento específico pela administração. A equipe deve registrar o que foi feito antes de concluir o pedido.',
+        'A análise é manual; avisos de recebimento e conclusão são enviados por e-mail quando o provedor está configurado. Retirar um perfil de publicação oculta o perfil no diretório; pedidos relativos a arquivos, posts ou outras referências exigem tratamento específico pela administração. A equipe deve registrar o que foi feito antes de concluir o pedido.',
       ]},
       {title: '5. Uso adequado e contato', paragraphs: [
         'Não utilize o formulário para se passar por outra pessoa, enviar ameaças ou fazer envios abusivos. Limites técnicos protegem a disponibilidade do atendimento; não impedem o uso do contato da administração, quando informado na página.',
@@ -54,7 +54,7 @@ export const legalDocuments: Record<LegalPageKey, LegalDocument> = {
       ]},
       {title: '4. Prazo de retenção', paragraphs: [
         'Pedidos encerrados são excluídos da base ativa após 90 dias do encerramento; pedidos ainda abertos, após 180 dias do envio. A rotina é executada diariamente e no início do serviço. Cópias de segurança seguem o ciclo de retenção da infraestrutura.',
-        'O histórico público preserva somente os textos dos documentos, o aviso do rodapé, a data e os dados públicos de contato. Ele não inclui os pedidos ou os documentos enviados por responsáveis.',
+        'Registros de verificação aprovados são mantidos enquanto a autorização estiver ativa; após revogação ou recusa, por até 90 dias. Pedidos de verificação ainda abertos são mantidos por até 180 dias. Os avisos na fila de e-mail são mantidos por até 90 dias. O histórico público preserva somente os textos dos documentos, o aviso do rodapé, a data e os dados públicos de contato. Ele não inclui os pedidos ou os documentos enviados por responsáveis.',
       ]},
       {title: '5. Crianças e adolescentes', paragraphs: [
         'As solicitações relacionadas a crianças e adolescentes devem priorizar sua proteção e seu melhor interesse. A existência de um perfil público, o crédito ou um link para a origem não substituem uma autorização válida.',
@@ -82,7 +82,7 @@ export const legalDocuments: Record<LegalPageKey, LegalDocument> = {
       ]},
       {title: '3. Reivindicação e apresentação de termo', paragraphs: [
         'Você também pode solicitar a análise de uma reivindicação ou apresentar um termo por link HTTPS. Não envie documentos de identidade nas observações. Um termo não é necessário para solicitar remoção.',
-        'Esses envios são analisados pela administração. Eles não concedem automaticamente acesso de gerenciamento, autorização de publicação, selo ou destaque.',
+        'Esses envios são analisados pela administração. Eles não concedem automaticamente acesso de gerenciamento, autorização de publicação, selo ou destaque. O selo depende de análise e aprovação manual; pode ser revogado pela administração.',
       ]},
       {title: '4. Como seus dados serão tratados', paragraphs: [
         'O pedido e seus documentos não são públicos. Leia /privacidade para saber quais dados são recebidos, quem pode acessá-los e por quanto tempo são mantidos. As regras do atendimento estão em /termos.',

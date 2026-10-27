@@ -55,6 +55,7 @@ try {
   assert.deepEqual(Object.keys(created.body), ['id'], 'public response must not echo personal data');
   assert.equal(created.headers.get('cache-control'), 'no-store');
   const id = created.body.id;
+  assert.equal(state.directoryEmailOutbox.length,2);assert.deepEqual(state.directoryEmailOutbox.map(row=>row.template),['request_received','admin_new_request']);assert.ok(state.directoryRequests[0].dueAt);
   assert.equal(state.directoryRequests[0].status,'pending');
   assert.equal((await call('/api/admin/directory-requests')).status,403);
   assert.equal((await call('/api/admin/directory-requests/'+id,'PATCH',{status:'resolved'})).status,403);
@@ -73,6 +74,9 @@ try {
   assert.equal(state.peopleProfiles[1].published,true);
   assert.equal(state.directoryRequests[0].status,'resolved');
   assert.ok(state.directoryRequests[0].closedAt);
+  assert.equal(state.directoryEmailOutbox.filter(row=>row.template==='request_completed').length,1);
+  assert.equal((await call('/api/admin/directory-requests/'+id,'PATCH',{status:'rejected'},true)).status,200);
+  assert.equal(state.directoryEmailOutbox.filter(row=>row.template==='request_completed').length,2);
   assert.equal((await call('/api/admin/directory-requests?status=pending','GET',undefined,true)).body.total,0);
   assert.equal((await call('/api/directory-requests/'+id)).status,404,'no public request lookup');
   failing = true;

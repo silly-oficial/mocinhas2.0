@@ -30,7 +30,7 @@ function RequestRow({request, profiles, onUpdated}: {request: DirectoryRequest; 
   }
   return <article className="directory-request-row">
     <h4>{requestTypes[request.type]} · @{request.handle}</h4>
-    <p><strong>{statusLabels[request.status]}</strong> · {new Date(request.createdAt).toLocaleString('pt-BR')} · protocolo {request.id}</p>
+    <p>{request.dueAt&&<>Prazo: {new Date(request.dueAt).toLocaleString('pt-BR')} · </>}<strong>{statusLabels[request.status]}</strong> · {new Date(request.createdAt).toLocaleString('pt-BR')} · protocolo {request.id}</p>
     <p>Responsável: {request.responsibleName}<br/>Contato: <a href={'mailto:' + request.email}>{request.email}</a></p>
     <p className="directory-observations">{request.observations || 'Sem observações.'}</p>
     {request.documentUrl && <p><a href={request.documentUrl} target="_blank" rel="noopener noreferrer" referrerPolicy="no-referrer">Abrir termo enviado (link externo)</a></p>}
@@ -38,7 +38,7 @@ function RequestRow({request, profiles, onUpdated}: {request: DirectoryRequest; 
       <label>Status<select value={status} onChange={event => setStatus(event.target.value as DirectoryRequestStatus)}>{(['reviewing','resolved','rejected'] as const).map(value => <option key={value} value={value}>{statusLabels[value]}</option>)}</select></label>
       {request.type === 'remover_conteudo' && status === 'resolved' && <label>Retirar perfil de publicação<select value={profileId} onChange={event => setProfileId(event.target.value)}><option value="">Sem alteração automática — conteúdo tratado manualmente</option>{matching.map(profile => <option key={profile.id} value={profile.id}>{profile.name} (@{profile.username})</option>)}</select><small>Esta ação oculta o perfil no diretório. Arquivos, posts e outras referências precisam de remoção manual quando aplicável.</small></label>}
       <label>Registro interno da análise<textarea value={note} onChange={event => setNote(event.target.value)} maxLength={3000} rows={3}/></label>
-      <p>Verifique a representação quando necessário e responda ao e-mail do responsável antes de concluir. O sistema não envia e-mail automaticamente. Reivindicações e termos não concedem selo ou autorização automática.</p>
+      <p>Verifique a representação quando necessário e responda ao e-mail do responsável antes de concluir. O sistema registra os avisos em fila de e-mail; o envio depende do provedor configurado. Reivindicações e termos não concedem selo ou autorização automática.</p>
       <button type="submit">{busy ? 'Salvando…' : 'Salvar análise'}</button>
     </fieldset>{error && <p role="alert">{error}</p>}</form>
   </article>;

@@ -19,10 +19,11 @@ try{
  const info=spawnSync(ffmpeg.path,['-i',local],{encoding:'utf8'}).stderr;
  assert.match(info,/Duration: 00:00:02\.0/);assert.match(info,/Video: h264/);assert.match(info,/Audio: aac/);
  assert.deepEqual([...fs.readFileSync(path.join(root,'uploads',path.basename(clip.thumbnail))).subarray(0,2)],[255,216]);
- const profile={name:'Teste',username:'teste',bio:'',avatar:clip.thumbnail,cover:clip.thumbnail,photos:[],videos:[{...clip,title:'Treino'}],socials:{tiktok:'',instagram:'',pinterest:''},tags:[],published:true,featured:false,order:0};
+ const profile={name:'Teste',username:'teste',bio:'',avatar:clip.thumbnail,cover:clip.thumbnail,photos:[],videos:[{...clip,title:'Treino'}],socials:{tiktok:'fixture.creator',instagram:'',pinterest:''},tags:[],published:true,featured:false,order:0};
  assert.equal((await call('/api/admin/people',profile)).status,201);
  await stop();await start();
  const saved=(await call('/api/people',undefined,'viewer','GET')).data.profiles[0];
  assert.equal(saved.videos[0].duration,2);assert.equal(saved.videos[0].thumbnail,clip.thumbnail);assert.equal(saved.cover,clip.thumbnail);
  console.log('Profile video passed: real 4s→2s cut, H264/AAC, generated JPEG, invalid bounds/access rejection, covers and clip metadata survive restart.');
 }finally{await stop();fs.rmSync(root,{recursive:true,force:true});}
+

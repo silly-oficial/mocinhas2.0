@@ -1,5 +1,7 @@
 # Pedidos de responsáveis
 
+> Este relatório registra a entrega inicial. Configurações editáveis, créditos, oEmbed, origem, verificação e e-mails foram implementados posteriormente; consulte `docs/recursos-diretorio.md` para o estado atual e os requisitos de configuração. As limitações listadas abaixo como escopo inicial não representam a entrega atual desses recursos.
+
 ## Entregue
 
 - `/pais`: formulário público de remoção, correção de idade/nome, reivindicação e apresentação de autorização. Aceita link HTTPS opcional de termo nos dois últimos tipos. Não exige login ou Premium.

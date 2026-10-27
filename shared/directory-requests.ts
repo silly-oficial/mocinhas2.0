@@ -4,6 +4,7 @@ export const requestTypes = {
   corrigir_nome: 'Corrigir nome',
   reivindicar_perfil: 'Reivindicar perfil',
   autorizar_oficialmente: 'Autorizar oficialmente',
+  revogar_autorizacao: 'Revogar autorização',
 } as const;
 export type DirectoryRequestType = keyof typeof requestTypes;
 export type DirectoryRequestStatus = 'pending' | 'reviewing' | 'resolved' | 'rejected';
@@ -20,4 +21,5 @@ export interface DirectoryRequest {
   updatedAt: string;
   closedAt?: string;
   adminNote: string;
+  dueAt?: string;
 }

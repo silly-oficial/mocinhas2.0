@@ -1,3 +1,4 @@
+import {CookiePreferences} from './components/CookiePreferences';
 import {StrictMode} from 'react';
 import {createRoot} from 'react-dom/client';
 import App from './App.tsx';
@@ -31,7 +32,7 @@ createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <ErrorBoundary>
       {publicPath === '/pais' ? <DirectorySafetyPage/> : publicPath === '/privacidade' ? <DirectorySafetyPage page="privacy"/> : publicPath === '/termos' ? <DirectorySafetyPage page="terms"/> : publicPath === '/versoes' ? <LegalVersionHistory/> : <App />}
-      <DirectorySafetyFooter/>
+      <DirectorySafetyFooter/><CookiePreferences/>
     </ErrorBoundary>
   </StrictMode>,
 );

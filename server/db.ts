@@ -1,5 +1,9 @@
 import type { DirectoryRequest } from '../shared/directory-requests';
 import type { LegalDocumentVersion } from '../shared/legal-documents';
+import type {DirectorySettings} from '../shared/directory-settings';
+import type {EmailJob} from './directory-email';
+import type {VerificationRequest} from '../shared/verification';
+import type {TikTokCache} from './tiktok-oembed';
 import type { PersonProfile } from '../shared/people';
 import type { WelcomeConfig } from '../shared/welcome';
 import { CLOUD } from './cloud-store';
@@ -37,7 +41,7 @@ export interface DBUser {
 export interface DBPost {
   id: string;
   userId: string;
-  media: {
+  media: ({
     id: string;
     url: string;
     type: 'image' | 'video';
@@ -46,7 +50,7 @@ export interface DBPost {
     thumbnail?: string;
     coverTime?: number;
     focus?: { x: number; y: number; zoom?: number };
-  }[];
+  } & Partial<import('../shared/people').MediaOrigin>)[];
   caption: string;
   hashtags: string[];
   mentions: string[];
@@ -200,6 +204,11 @@ export interface DBPaymentCharge {
   status: string; createdAt: number; checkedAt?: number; grantedAt?: number;
 }
 export interface DatabaseSchema {
+  directorySettings?: Partial<DirectorySettings>;
+  directorySettingsAudit?: {by:string;at:string;settings:DirectorySettings}[];
+  directoryEmailOutbox?: EmailJob[];
+  verificationRequests?: VerificationRequest[];
+  tiktokOembedCache?: Record<string,TikTokCache>;
   legalDocumentVersions?: LegalDocumentVersion[];
   directoryRequests?: DirectoryRequest[];
   blueLabLinks?: Record<string,string[]>;

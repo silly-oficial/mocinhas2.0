@@ -1,8 +1,14 @@
 export interface PersonProfile {
+ verified?: boolean;
+ mediaSources?: MediaOrigin[];
  id: string; name: string; username: string; bio: string; avatar: string; cover: string;
- photos: string[]; videos: {url: string; title: string; kind?: 'upload'|'social'; thumbnail?:string; duration?:number}[];
+ photos: string[]; videos: ({url: string; title: string; kind?: 'upload'|'social'; thumbnail?:string; duration?:number} & Partial<MediaOrigin>)[];
  socials: {tiktok: string; instagram: string; pinterest: string};
  tags: string[]; published: boolean; featured: boolean; order: number; createdAt: string; updatedAt: string;
+}
+export interface MediaOrigin {
+ url:string;source_platform:string;source_url:string;source_handle:string;captured_at:string;
+ display_mode:'embed'|'reupload';last_check_at:string|null;is_still_available:boolean|null;
 }
 export function socialVideo(url: string): {platform: 'TikTok'|'Instagram'; canonical: string; embed: string} {
  let u: URL;try{u=new URL(url);}catch{throw Error('Cole o link completo do vídeo do TikTok ou Instagram.');}if(u.protocol !== 'https:' || u.username || u.password)throw Error('Use links https do TikTok ou Instagram.');
@@ -18,3 +24,4 @@ export function socialUrl(platform: keyof PersonProfile['socials'], handle: stri
  const username=handle.trim().replace(/^@/,'');
  return platform==='tiktok'?`https://www.tiktok.com/@${encodeURIComponent(username)}`:platform==='instagram'?`https://www.instagram.com/${encodeURIComponent(username)}/`:`https://www.pinterest.com/${encodeURIComponent(username)}/`;
 }
+

@@ -1,3 +1,4 @@
+import {MediaCredit} from './components/CreatorCredit';
 import { ProfileVideosFeed } from './components/ProfileVideos';
 import { PeopleProfiles } from './components/PeopleProfiles';
 import { PeopleAdmin } from './components/PeopleAdmin';
@@ -75,7 +76,7 @@ function Publication({ post, admin, onDeleted, onUpdate, onComments, onNotice, d
     const visual = m && !['audio','pdf'].includes(m.type);
     const cleanVideo = theme === 'orix' && m?.type === 'video' && fullImage;
     const fullPhoto = theme === 'orix' && m?.type === 'image' && fullImage;
-    return <article ref={publicationRef} tabIndex={cleanVideo ? 0 : undefined} onKeyDown={e => { if (cleanVideo && e.key === 'Escape') setFullImage(false); }} onContextMenu={e=>e.preventDefault()} className={`publication sky-publication ${visual ? 'has-visual' : 'document-publication'} ${theme === 'orix' && visual ? m.type === 'video' ? 'orix-video' : 'orix-photo' : ''} ${theme === 'skyglass' && m?.type === 'image' ? 'sky-photo' : ''} ${fullImage && !fullPhoto ? 'show-full-media' : ''}`}>
+    return <div className="publication-credit-wrap"><article ref={publicationRef} tabIndex={cleanVideo ? 0 : undefined} onKeyDown={e => { if (cleanVideo && e.key === 'Escape') setFullImage(false); }} onContextMenu={e=>e.preventDefault()} className={`publication sky-publication ${visual ? 'has-visual' : 'document-publication'} ${theme === 'orix' && visual ? m.type === 'video' ? 'orix-video' : 'orix-photo' : ''} ${theme === 'skyglass' && m?.type === 'image' ? 'sky-photo' : ''} ${fullImage && !fullPhoto ? 'show-full-media' : ''}`}>
       <div className="sky-media-stage" onDoubleClick={cleanVideo ? () => setFullImage(false) : undefined}>
         {m && <div className="publication-media" key={m.id}>
           {m.type === 'video' ? <ManagedVideo active={!disabled && mediaActive} src={m.url} poster={m.thumbnail !== m.url ? m.thumbnail : undefined} className="sky-media" showTime={cleanVideo} showSeek={theme !== 'orix' || cleanVideo} showSound={!cleanVideo} tapToToggle={cleanVideo} onElement={theme === 'orix' ? bindVideo : undefined} /> : m.type === 'audio' ? <audio controls src={m.url} onPlay={e => { document.querySelectorAll<HTMLMediaElement>('video,audio').forEach(v => { if (v !== e.currentTarget) v.pause(); }); if (disabled || !mediaActive) e.currentTarget.pause(); }} /> : m.type === 'pdf' ? <a className="sky-document-link" href={m.url} target="_blank" rel="noreferrer">{ui("Abrir documento")}<ArrowRight size={20}/></a> : <img draggable={false} loading="lazy" src={m.url} alt={cleanText(post.caption) || ui('Publicação')} className="sky-media" style={m.focus && !fullImage ? { objectPosition: `${m.focus.x}% ${m.focus.y}%`, transform: `scale(${m.focus.zoom || 1})`, transformOrigin: `${m.focus.x}% ${m.focus.y}%` } : undefined}/>}
@@ -90,9 +91,9 @@ function Publication({ post, admin, onDeleted, onUpdate, onComments, onNotice, d
 
         {displayCaption && !cleanVideo && !(fullImage && m?.type === 'video') && <div className={`sky-card-caption ${expanded ? 'expanded' : ''}`}><div><AutoTranslatedText text={displayCaption} renderTransformed={theme === 'orix' ? text => withoutTags ? text.replace(/#[a-zA-Z0-9_À-ÿ]+/g, '').replace(/[ \t]{2,}/g, ' ').trim() : text : undefined} contentClassName={theme === 'orix' && !expanded ? 'orix-caption-text' : undefined}/></div>{displayCaption.length > 95 && <button onClick={() => setExpanded(v => !v)}>{ui(expanded ? 'Ver menos' : 'Ver mais')}</button>}</div>}
       </div>
-    </article>;
+    </article><MediaCredit handle={post.media[Math.min(mediaIndex,post.media.length-1)]?.source_handle}/></div>;
   }
-  return <article onContextMenu={e=>e.preventDefault()} className="publication niuniu-card overflow-hidden">
+  return <div className="publication-credit-wrap"><article onContextMenu={e=>e.preventDefault()} className="publication niuniu-card overflow-hidden">
     <div className="flex items-center justify-between p-4 text-xs text-zinc-400"><time>{new Date(post.createdAt).toLocaleDateString(language)}</time>
     {admin && <button aria-label={ui("Excluir publicação")} className="p-2 rounded-full hover:bg-white/10" onClick={async () => { if (confirm(ui("Excluir esta publicação permanentemente?"))) { try { await api.deletePost(post.id); onDeleted(); } catch (e: any) { onNotice(e.message); } } }}><Trash2 size={17} /></button>}</div>
     {post.media.map(media => <div key={media.id} className="publication-media bg-black/30">
@@ -104,7 +105,7 @@ function Publication({ post, admin, onDeleted, onUpdate, onComments, onNotice, d
       {post.allowComments !== false && <button disabled={disabled} aria-label={ui("Comentários")} className="flex items-center gap-2 text-sm text-zinc-400 disabled:opacity-40" onClick={() => onComments(post)}><MessageCircle size={20} />{post.commentsCount || 0}</button>}
       <button disabled={disabled || !!busy} aria-label={post.isSaved ? ui("Remover dos salvos") : ui("Salvar publicação")} aria-pressed={!!post.isSaved} className={`ml-auto disabled:opacity-40 ${post.isSaved ? 'text-emerald-400' : 'text-zinc-400'}`} onClick={() => interact('save')}><Bookmark size={20} fill={post.isSaved ? 'currentColor' : 'none'} /></button>
     </div>
-  </article>;
+  </article><MediaCredit handle={post.media[0]?.source_handle}/></div>;
 
 }
 function MainApp() {
@@ -215,4 +216,5 @@ function MainApp() {
   </div></>;
 }
 export default function App() { return <LanguageProvider><ThemeProvider><AuthProvider><MainApp /></AuthProvider></ThemeProvider></LanguageProvider>; }
+
 

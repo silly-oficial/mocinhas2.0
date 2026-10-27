@@ -11,7 +11,7 @@ export function publicContactEmail() {
 type ArchiveWriter = (version: LegalDocumentVersion, content: string) => Promise<void>;
 export async function recordLegalVersion(db: typeof DB, archive: ArchiveWriter, options: {now?: Date; documents?: LegalDocumentVersion['documents']; contactEmail?: string; commit?: string} = {}) {
   const documents = options.documents || legalDocuments;
-  const contactEmail = options.contactEmail ?? publicContactEmail();
+  const contactEmail = options.contactEmail ?? db.get().directorySettings?.contactEmail ?? publicContactEmail();
   const digest = createHash('sha256').update(JSON.stringify({documents, notice: legalNotice, contactEmail})).digest('hex');
   const rows = db.get().legalDocumentVersions || [];
   const latest = rows.at(-1);

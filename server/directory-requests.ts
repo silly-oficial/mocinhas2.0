@@ -2,6 +2,9 @@ import type express from 'express';
 import {createHash, randomUUID} from 'node:crypto';
 import type {DB} from './db';
 import {requestTypes, type DirectoryRequest} from '../shared/directory-requests';
+import {directorySettings} from './directory-settings';
+import {enqueueEmail} from './directory-email';
+import {addVerificationRequest} from './verification';
 
 const DAY = 86_400_000;
 function field(value: unknown, max: number, required = false): string {
@@ -41,17 +44,21 @@ export function installDirectoryRequests(app: express.Express, db: typeof DB, ad
   const rows = () => db.get().directoryRequests || [];
   function prune() {
     const retained = retainDirectoryRequests(rows());
-    if (retained.length === rows().length) return;
-    const before = db.get().directoryRequests;
-    db.get().directoryRequests = retained;
-    try { db.save(); } catch (error) { db.get().directoryRequests = before; throw error; }
+    const before = db.get().directoryRequests, beforeMail=db.get().directoryEmailOutbox, beforeVerification=db.get().verificationRequests;
+    const verification=(beforeVerification||[]).filter(row=>row.status==='aprovado'||Date.now()-Date.parse(row.reviewedAt||row.createdAt)<(['revogado','recusado'].includes(row.status)?90:180)*DAY);
+    const live=new Set([...retained.map(row=>row.id),...verification.map(row=>row.requestId)]);
+    const mail=(beforeMail||[]).filter(row=>live.has(row.data.protocol)&&Date.now()-Date.parse(row.createdAt)<90*DAY);
+    if(retained.length===rows().length && mail.length===(beforeMail||[]).length && verification.length===(beforeVerification||[]).length)return;
+    db.get().directoryRequests=retained;db.get().directoryEmailOutbox=mail;db.get().verificationRequests=verification;
+    try { db.save(); } catch (error) { db.get().directoryRequests=before;db.get().directoryEmailOutbox=beforeMail;db.get().verificationRequests=beforeVerification;throw error; }
+
   }
   prune();
   const timer = setInterval(() => { try { prune(); } catch { console.warn('[directory-requests] Falha ao aplicar retenção.'); } }, DAY);
   timer.unref();
   const buckets = new Map<string, {count: number; until: number}>();
   function contactEmail() {
-    const value = process.env.CONTACT_EMAIL?.trim() || '';
+    const value = directorySettings(db).contactEmail;
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value) ? value : '';
   }
   app.get('/api/directory-contact', (_req, res) => res.set('Cache-Control', 'no-store').json({email: contactEmail()}));
@@ -74,10 +81,16 @@ export function installDirectoryRequests(app: express.Express, db: typeof DB, ad
       prune();
       if (rows().length >= 10000) return res.status(503).json({error: 'Fila temporariamente cheia. Utilize o contato informado na página.'});
       const date = new Date(now).toISOString();
-      const request: DirectoryRequest = {...input, id: randomUUID(), status: 'pending', createdAt: date, updatedAt: date, adminNote: ''};
+      const due = new Date(now);let days=directorySettings(db).responseBusinessDays;
+      while(days){due.setUTCDate(due.getUTCDate()+1);if(![0,6].includes(due.getUTCDay()))days--;}
+      const request: DirectoryRequest = {...input, id: randomUUID(), status: 'pending', createdAt: date, updatedAt: date, dueAt:due.toISOString(), adminNote: ''};
       const before = db.get().directoryRequests;
+      const beforeMail=db.get().directoryEmailOutbox,beforeVerification=db.get().verificationRequests;
       db.get().directoryRequests = [...rows(), request];
-      try { db.save(); } catch (error) { db.get().directoryRequests = before; throw error; }
+      addVerificationRequest(db,request);
+      enqueueEmail(db,'received-'+request.id,request.email,'request_received',request.id);
+      enqueueEmail(db,'admin-'+request.id,directorySettings(db).contactEmail,'admin_new_request',request.id);
+      try { db.save(); } catch (error) { db.get().directoryRequests = before;db.get().directoryEmailOutbox=beforeMail;db.get().verificationRequests=beforeVerification;throw error; }
       return res.status(201).json({id: request.id});
     } catch (error) {
       if (error instanceof Error && /Pedido inválido|Confira os campos|Informe|Selecione|Use um link|Termos são/.test(error.message)) return res.status(400).json({error: error.message});
@@ -98,6 +111,7 @@ export function installDirectoryRequests(app: express.Express, db: typeof DB, ad
     if (!current) return res.status(404).json({error: 'Pedido não encontrado.'});
     const {status, unpublishProfileId} = req.body || {};
     if (!['reviewing','resolved','rejected'].includes(status)) return res.status(400).json({error: 'Status inválido.'});
+    if(current.type==='revogar_autorizacao' && status==='resolved' && (db.get().verificationRequests||[]).some(row=>row.handle===current.handle&&row.status==='aprovado'))return res.status(400).json({error:'Revogue o termo e o selo na aba Verificações antes de concluir este pedido.'});
     let adminNote: string;
     try { adminNote = field(req.body.adminNote ?? '', 3000); } catch { return res.status(400).json({error: 'Observação administrativa muito longa.'}); }
     const profiles = db.get().peopleProfiles || [];
@@ -107,9 +121,12 @@ export function installDirectoryRequests(app: express.Express, db: typeof DB, ad
     const now = new Date().toISOString();
     const updated: DirectoryRequest = {...current, status, adminNote, updatedAt: now, ...(status === 'resolved' || status === 'rejected' ? {closedAt: now} : {closedAt: undefined})};
     const beforeRequests = db.get().directoryRequests, beforeProfiles = db.get().peopleProfiles;
+    const beforeMail=db.get().directoryEmailOutbox;
     db.get().directoryRequests = rows().map(row => row.id === current.id ? updated : row);
     if (unpublishProfileId !== undefined) db.get().peopleProfiles = profiles.map(profile => profile.id === unpublishProfileId ? {...profile, published: false, updatedAt: now} : profile);
+    if(['resolved','rejected'].includes(status) && current.status!==status)enqueueEmail(db,'completed-'+current.id+'-'+status,current.email,'request_completed',current.id);
     try { db.save(); } catch {
+      db.get().directoryEmailOutbox=beforeMail;
       db.get().directoryRequests = beforeRequests; db.get().peopleProfiles = beforeProfiles;
       return res.status(503).json({error: 'Não foi possível salvar a análise.'});
     }
