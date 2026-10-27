@@ -1,13 +1,14 @@
 import {StrictMode} from 'react';
 import {createRoot} from 'react-dom/client';
 import App from './App.tsx';
-import {DirectorySafetyFooter, DirectorySafetyPage} from './components/DirectorySafety';
+import {DirectorySafetyFooter, DirectorySafetyPage, LegalVersionHistory} from './components/DirectorySafety';
 import { ErrorBoundary } from './components/ErrorBoundary.tsx';
 import './index.css';
 import './skyglass.css';
 import './skyglass-reference.css';
 import './orix.css';
 import './people.css';
+import './directory-safety.css';
 
 if ('serviceWorker' in navigator) {
   if (import.meta.env.PROD) {
@@ -25,10 +26,11 @@ if ('serviceWorker' in navigator) {
   }
 }
 
+const publicPath = window.location.pathname.replace(/\/+$/, '');
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <ErrorBoundary>
-      {window.location.pathname.replace(/\/+$/, '') === '/pais' ? <DirectorySafetyPage/> : window.location.pathname.replace(/\/+$/, '') === '/privacidade' ? <DirectorySafetyPage privacy/> : <App />}
+      {publicPath === '/pais' ? <DirectorySafetyPage/> : publicPath === '/privacidade' ? <DirectorySafetyPage page="privacy"/> : publicPath === '/termos' ? <DirectorySafetyPage page="terms"/> : publicPath === '/versoes' ? <LegalVersionHistory/> : <App />}
       <DirectorySafetyFooter/>
     </ErrorBoundary>
   </StrictMode>,

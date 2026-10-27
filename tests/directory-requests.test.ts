@@ -108,12 +108,24 @@ async function start() {
 async function stop() {if(child && child.exitCode === null) {const exited = once(child,'exit'); child.kill(); await exited;} child=undefined;}
 try {
   await start();
-  for(const route of ['/pais','/privacidade']) assert.equal((await fetch(`http://127.0.0.1:${port}${route}`)).status,200);
+  for(const route of ['/pais','/privacidade','/termos','/versoes']) assert.equal((await fetch(`http://127.0.0.1:${port}${route}`)).status,200);
+  const history = await (await fetch(`http://127.0.0.1:${port}/api/legal-history`)).json();
+  assert.equal(history.total,1);
+  const versionId = history.current.id;
+  const archiveFile = path.join(directory,'legal-versions',`documentos_${versionId}.json`);
+  const archiveBefore = fs.readFileSync(archiveFile,'utf8');
+  assert.equal(JSON.parse(archiveBefore).documents.terms.path,'/termos');
   const response = await fetch(`http://127.0.0.1:${port}/api/directory-requests`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(input)});
   assert.equal(response.status,201,'anonymous requests must bypass login and usage quota');
   const {id} = await response.json();
   assert.equal(JSON.parse(fs.readFileSync(path.join(directory,'db.json'),'utf8')).directoryRequests[0].id,id);
   await stop(); await start();
+  const afterRestart = await (await fetch(`http://127.0.0.1:${port}/api/legal-history`)).json();
+  assert.equal(afterRestart.total,1,'restart must not duplicate legal document versions');
+  assert.equal(afterRestart.current.id,versionId);
+  assert.equal(fs.readFileSync(archiveFile,'utf8'),archiveBefore,'dated file must remain unchanged');
+  const downloaded = await fetch(`http://127.0.0.1:${port}/api/legal-history/${versionId}/file`);
+  assert.equal(downloaded.status,200);assert.equal(await downloaded.text(),archiveBefore);
   const response2 = await fetch(`http://127.0.0.1:${port}/api/admin/directory-requests`,{headers:{Authorization:'Bearer '+jwt.sign({userId:'admin'},secret)}});
   assert.equal(response2.status,200);
   assert.equal((await response2.json()).requests[0].id,id,'request must survive process restart');

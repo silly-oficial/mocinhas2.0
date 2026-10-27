@@ -18,3 +18,8 @@
 .directory-observations{white-space:pre-wrap}
 .directory-request-row h4{font-weight:700;font-size:1.1rem}
 .directory-request-row fieldset{margin-bottom:0}
+.directory-legal-nav{display:flex;gap:12px 20px;flex-wrap:wrap;align-items:center;margin:20px 0}
+.directory-legal-nav a{display:inline-flex;align-items:center;min-height:44px}
+.directory-legal-nav [aria-current="page"]{font-weight:750;text-decoration-thickness:2px}
+.directory-version-date,.directory-version-id{font-size:.85rem;opacity:.85}
+.directory-history-notice{padding:14px;border:1px solid #8886;border-radius:10px;background:var(--surface-card,#202027)}

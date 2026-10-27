@@ -1,6 +1,8 @@
 import { installProfileVideo } from './server/profile-video';
 import { installPeople } from './server/people';
 import { installDirectoryRequests } from './server/directory-requests';
+import { installLegalHistory, recordLegalVersion } from './server/legal-history';
+import { archiveLegalVersionFile } from './server/legal-history-storage';
 import { validateVideoCover } from './shared/video-cover';
 import { validatePhotoFocus } from './shared/photo-focus';
 import { installWelcome } from './server/welcome';
@@ -114,6 +116,7 @@ function requireAuth(req: express.Request, res: express.Response, next: express.
 
 installWelcome(app, DB, requireAdmin);
 installDirectoryRequests(app, DB, requireAdmin);
+installLegalHistory(app, DB);
 installConsumptionPolicy(app, DB, JWT_SECRET, getAuthUserId, requireAdmin);
 installPeople(app, DB, requireAdmin);
 installProfileVideo(app, requireAdmin);
@@ -2382,6 +2385,7 @@ async function startServer() {
   });
 }
 
+if (process.env.NODE_ENV === 'production') await recordLegalVersion(DB, archiveLegalVersionFile);
 await flushCloud();
 await startServer();
 }

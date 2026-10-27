@@ -1,4 +1,5 @@
 import type { DirectoryRequest } from '../shared/directory-requests';
+import type { LegalDocumentVersion } from '../shared/legal-documents';
 import type { PersonProfile } from '../shared/people';
 import type { WelcomeConfig } from '../shared/welcome';
 import { CLOUD } from './cloud-store';
@@ -199,6 +200,7 @@ export interface DBPaymentCharge {
   status: string; createdAt: number; checkedAt?: number; grantedAt?: number;
 }
 export interface DatabaseSchema {
+  legalDocumentVersions?: LegalDocumentVersion[];
   directoryRequests?: DirectoryRequest[];
   blueLabLinks?: Record<string,string[]>;
   peopleProfiles?: PersonProfile[];
