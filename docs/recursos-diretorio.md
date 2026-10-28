@@ -109,3 +109,11 @@ Vídeos têm barra de busca, pausa, início/fim numéricos e ações para usar o
 | Sem lettering/recortes/motion decorativo | Tela utilitária | N/A | Não contribuem à tarefa |
 
 Checklist: PASS tipos, build e testes direcionados de validação, cadastro/edição de subconjuntos, zoom e estrutura dos controles. NÃO VERIFICADO: renderização visual, contraste composto, zoom do navegador, teclado, movimento e Safari físico. Tentativa de iniciar Playwright confirmou ausência do executável Chromium neste ambiente; nenhum resultado visual foi apresentado como validado.
+
+### Estabilidade após zoom/rolagem
+
+O iframe do avatar agora é montado uma única vez após entrar na área visível. Rolar, alternar aba e mudar zoom não trocam o iframe por uma imagem nem alteram sua URL/key. A visibilidade apenas pausa/retoma; somente mudança de publicação ou nova tentativa explícita cria outra instância. A seleção é enviada na inicialização ou quando muda; eventos repetidos de tempo/imagem não reinstalam listeners nem reiniciam o trecho. Correções do loop são limitadas para evitar uma sequência de seeks ao mesmo tempo.
+
+Foi removida a barreira de visibilidade que podia manter o iframe oculto indefinidamente. O player usa viewport interno 325×578 e escala calculada pelo tamanho real do quadro, preservando o recorte em overflow hidden. Estilos de badge que atingiam o span do avatar são sobrescritos com uma regra específica; o avatar do detalhe tem dimensões explícitas. Publicações TikTok sem thumbnail usam o próprio player na prévia, sem substituir uma foto desconhecida por silhueta. Card único ocupa a largura útil, a grade móvel usa duas colunas e os créditos têm espaçamento/tipo próprios.
+
+Testes de sessão verificam uma inicialização, ausência de seek em zoom/rolagem/retorno da aba, correção limitada de loop e preservação do índice. Renderização física no iPhone segue NÃO VERIFICADA. Ao abrir/atualizar a página ou navegar para uma tela que recria o componente, o carregamento inicial da plataforma externa permanece esperado; não há promessa de cache offline de mídia.

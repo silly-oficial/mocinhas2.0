@@ -1,0 +1,16 @@
+import assert from 'node:assert/strict';
+import {createAvatarSession} from '../shared/avatar-session';
+const url='https://www.tiktok.com/@creator/video/7421111111111111111';
+let now=0,readies=0;const commands:{type:string;value?:number}[]=[];
+const send=(type:string,value?:number)=>commands.push({type,value});
+const session=createAvatarSession({url,kind:'video',start:10,end:12,zoom:1},{preview:false,send,now:()=>now,ready:()=>readies++});
+session.receive('onPlayerReady',undefined);assert.equal(readies,1);assert.equal(commands.filter(c=>c.type==='seekTo').length,1);
+for(let n=0;n<50;n++)session.receive('onCurrentTime',{currentTime:10.5,duration:60});assert.equal(readies,1);assert.equal(commands.filter(c=>c.type==='seekTo').length,1,'time events must not restart playback');
+session.active(false);session.active(true);assert.equal(commands.filter(c=>c.type==='seekTo').length,1,'scroll/tab resume must not seek back or reinitialize');
+session.select({url,kind:'video',start:10,end:12,zoom:2});assert.equal(commands.filter(c=>c.type==='seekTo').length,1,'zoom is presentation only');
+session.receive('onCurrentTime',{currentTime:12,duration:60});session.receive('onCurrentTime',{currentTime:12,duration:60});assert.equal(commands.filter(c=>c.type==='seekTo').length,2,'loop correction must be bounded');
+now=600;session.receive('onCurrentTime',{currentTime:10.2,duration:60});session.select({url,kind:'video',start:20,end:22});assert.equal(commands.at(-2)?.type,'seekTo');assert.equal(commands.at(-2)?.value,20);
+const photoCommands:{type:string;value?:number}[]=[];const photo=createAvatarSession({url:url.replace('/video/','/photo/'),kind:'photo',imageIndex:4},{preview:false,send:(type,value)=>photoCommands.push({type,value}),now:()=>now});
+photo.receive('onImageChange',4);const before=photoCommands.length;photo.active(false);photo.active(true);photo.select({url:url.replace('/video/','/photo/'),kind:'photo',imageIndex:4,zoom:.5});assert.equal(photoCommands.filter(c=>c.type==='navigateTo').length,1,'image events/visibility/zoom do not reapply the selection');
+photo.receive('onImageChange',0);assert.equal(photoCommands.at(-1)?.value,4);assert.ok(photoCommands.length>before);
+console.log('Stable avatar session passed: one initialization, no seek on zoom/scroll/tab resume, bounded loops and selected-photo enforcement.');

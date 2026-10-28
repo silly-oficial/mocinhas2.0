@@ -124,3 +124,15 @@
 .curated-post-player>.profile-link-avatar{flex:1;min-height:260px;border-radius:20px}
 @media(max-width:359px){.media-range-fields{grid-template-columns:1fr}.profile-post-admin{padding:12px!important}}
 .profile-reel-tile>.profile-link-avatar{position:absolute;inset:0;width:100%;height:100%;border-radius:inherit}
+/* Keep avatar viewports separate from badge/owner span rules. Zoom stays inside the viewport. */
+.people-card-photo>.profile-link-avatar{position:absolute;inset:0;top:0;left:0;width:100%;height:100%;padding:0;border-radius:inherit;background:#152035}
+.people-detail-body>.profile-link-avatar.people-avatar{display:block;width:96px;height:96px;flex:none;overflow:hidden}
+.profile-avatar-pending{display:block;width:100%;height:100%;background:var(--theme-choice,#eef2f8)}
+.profile-reel-card{width:100%;min-width:0}
+.profile-reel-card>.profile-reel-tile{width:100%}
+.profile-reel-card .creator-credit{font-size:12px;line-height:1.45;gap:6px;padding:10px 0}
+.profile-reel-card .creator-credit small{font-size:11px;line-height:1.4}
+.profile-reel-card .creator-credit a{overflow-wrap:anywhere}
+.profile-reel-card .creator-credit .people-secondary{width:auto;min-height:36px;padding:6px 10px;font-size:12px}
+.profile-reels-grid{gap:16px}
+@media(max-width:599px){.profile-reels-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.profile-reel-card:only-child{grid-column:1/-1;max-width:360px;width:100%;justify-self:center}.profile-reel-label{white-space:normal}}
