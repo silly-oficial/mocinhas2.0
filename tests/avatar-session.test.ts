@@ -14,3 +14,8 @@ const photoCommands:{type:string;value?:number}[]=[];const photo=createAvatarSes
 photo.receive('onImageChange',4);const before=photoCommands.length;photo.active(false);photo.active(true);photo.select({url:url.replace('/video/','/photo/'),kind:'photo',imageIndex:4,zoom:.5});assert.equal(photoCommands.filter(c=>c.type==='navigateTo').length,1,'image events/visibility/zoom do not reapply the selection');
 photo.receive('onImageChange',0);assert.equal(photoCommands.at(-1)?.value,4);assert.ok(photoCommands.length>before);
 console.log('Stable avatar session passed: one initialization, no seek on zoom/scroll/tab resume, bounded loops and selected-photo enforcement.');
+
+const earlyCommands:string[]=[];
+const early=createAvatarSession({url,kind:'video',start:3,end:5},{preview:false,send:type=>earlyCommands.push(type)});
+early.play();assert.deepEqual(earlyCommands,['mute','play'],'a user gesture sends play even before the readiness event');
+early.receive('onPlayerReady',undefined);assert.equal(earlyCommands.at(-1),'play','readiness reapplies the requested segment');

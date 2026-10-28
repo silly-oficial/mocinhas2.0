@@ -10,7 +10,7 @@ export function createAvatarSession(initial:ProfileAvatarSelection,options:{prev
   select(next:ProfileAvatarSelection){const changed=next.kind!==selection.kind||(next.kind==='photo'&&selection.kind==='photo'?next.imageIndex!==selection.imageIndex:next.kind==='video'&&selection.kind==='video'&&(next.start!==selection.start||next.end!==selection.end));selection=next;if(changed){lastCorrection=-Infinity;apply();}},
   active(value:boolean){if(value===active)return;active=value;if(!ready)return;if(!active)options.send('pause');else if(selection.kind==='video')options.send('play');},
   seek(time:number){if(ready&&Number.isFinite(time)){options.send('pause');options.send('seekTo',time);}},
-  play(){if(ready){options.send('mute');options.send('play');}},pause(){options.send('pause');},
+  play(){active=true;options.send('mute');options.send('play');},pause(){options.send('pause');},
   receive(type:string,value:any){
    if(type==='onPlayerReady')confirm();
    if(type==='onImageChange'&&selection.kind==='photo'&&Number.isInteger(value)){

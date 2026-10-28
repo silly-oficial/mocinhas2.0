@@ -42,5 +42,6 @@ import './gymnastics.css';
 
 
 import "./profile-reels.css";
+import "./directory-polish.css";
 
 

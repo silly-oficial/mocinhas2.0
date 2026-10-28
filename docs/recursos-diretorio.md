@@ -117,3 +117,16 @@ O iframe do avatar agora é montado uma única vez após entrar na área visíve
 Foi removida a barreira de visibilidade que podia manter o iframe oculto indefinidamente. O player usa viewport interno 325×578 e escala calculada pelo tamanho real do quadro, preservando o recorte em overflow hidden. Estilos de badge que atingiam o span do avatar são sobrescritos com uma regra específica; o avatar do detalhe tem dimensões explícitas. Publicações TikTok sem thumbnail usam o próprio player na prévia, sem substituir uma foto desconhecida por silhueta. Card único ocupa a largura útil, a grade móvel usa duas colunas e os créditos têm espaçamento/tipo próprios.
 
 Testes de sessão verificam uma inicialização, ausência de seek em zoom/rolagem/retorno da aba, correção limitada de loop e preservação do índice. Renderização física no iPhone segue NÃO VERIFICADA. Ao abrir/atualizar a página ou navegar para uma tela que recria o componente, o carregamento inicial da plataforma externa permanece esperado; não há promessa de cache offline de mídia.
+
+
+### Revisão de harmonia e reprodução — 28/10/2026
+Contrato A: manter a paleta laranja/neutra e a tipografia do Mocinhas; controles sólidos sobre fundo claro, mídias em destaque, créditos compactos com informações completas expansíveis. Diálogos são superfícies centralizadas com altura do conteúdo, largura limitada e rolagem no viewport dinâmico.
+
+| Decisão | Origem | Proveniência | Motivo e validação |
+|---|---|---|---|
+| CSS final e escopo dos controles | §§4,7,10 | A/D | Evitar que estilos genéricos dos modais substituam a escala dos botões |
+| Crédito compacto e detalhes expansíveis | §§10,13 | D | Preservar autoria e remoção sem parágrafos repetidos dominando a grade |
+| Toque nativo nos trechos de vídeo abertos | API oficial do TikTok | A | Safari pode exigir gesto direto no iframe; preservar play nativo além do comando externo |
+| Altura natural e limite dvh nos diálogos | §§7,11 | D | Não herdar a altura fullscreen do wrapper; rolagem interna sem corte |
+
+Verificação: TypeScript, build e testes de sessão/seleção/créditos executados neste patch. Player real no Safari, contraste renderizado e screenshots responsivas: NÃO VERIFICADO neste ambiente, sem navegador instalado. Curtidas e comentários pertencem ao iframe externo e não são removidos por CSS do site. O player de vídeo aberto aceita toque direto; a miniatura continua abrindo o modal. Nenhuma mídia foi baixada, extraída ou enviada ao servidor.
