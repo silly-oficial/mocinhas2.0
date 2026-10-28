@@ -30,7 +30,7 @@ state.peopleProfiles=[person];
 const items=Array.from({length:20},(_,index)=>({person,index,video:{url,title:'Video',kind:'social' as const,thumbnail:'https://cdn.example.invalid/thumb.jpg'}}));
 const html=renderToStaticMarkup(React.createElement(ProfileVideoGrid,{items,onProfile:()=>{}}));
 assert.ok(!html.includes('<iframe'));assert.ok(!html.includes('<video'));assert.equal((html.match(/Ver no TikTok/g)||[]).length,20);
-assert.ok(renderToStaticMarkup(React.createElement(CreatorCredit,{person})).includes('Imagem/vídeo do criador original'));
+assert.ok(renderToStaticMarkup(React.createElement(CreatorCredit,{person})).includes('Conteúdo do criador original.'));
 const cookieHtml=renderToStaticMarkup(React.createElement(CookiePreferences));assert.ok(cookieHtml.includes('Analíticos'));assert.ok(cookieHtml.includes('Publicidade'));assert.equal(readCookieChoices(),null);
 const storage=new Map<string,string>();(globalThis as any).localStorage={getItem:(key:string)=>storage.get(key)||null};
 storage.set('mocinhas_cookie_choices_v1',JSON.stringify({version:1,essential:true,analytics:false,advertising:true,updatedAt:new Date().toISOString()}));assert.equal(readCookieChoices()?.advertising,true);assert.equal(readCookieChoices()?.analytics,false);delete (globalThis as any).localStorage;
@@ -63,3 +63,4 @@ try{
  assert.equal((await call(route,'PATCH',{status:'revogado'})).status,200);assert.equal(isProfileVerified(db,person),false);assert.equal(state.verificationRequests[0].approvedBy,'reviewer');assert.ok(state.verificationRequests[0].approvedAt);assert.ok(state.verificationRequests[0].revokedAt);
  console.log('Directory features passed: persisted oEmbed cache, concurrent lookup, private/unavailable rejection, saved fallback, zero players for 20 cards, attribution, cookie persistence, mocked email/idempotency, admin settings authorization/rollback and manual badge lifecycle.');
 }finally{server.close();server.closeAllConnections();}
+

@@ -17,3 +17,9 @@ const person:any={socials:{tiktok:'creator'}};
 const profile=renderToStaticMarkup(React.createElement(CreatorCredit,{person,showRights:true}));
 assert.match(profile,/Créditos e remoção/);assert.match(profile,/Pedir remoção/);assert.match(profile,/Direitos reservados/);
 console.log('Presentation regressions passed: muted autoplay and loop independent of zoom, native play control, credits restricted to explicit profile context.');
+
+const actions=renderToStaticMarkup(React.createElement(MediaCredit,{handle:'creator',profileAction:React.createElement('button',null,'Ir para o perfil')}));
+assert.ok(actions.indexOf('Ir para o perfil')<actions.indexOf('Ver no TikTok'),'profile is the first action on directory cards');
+assert.ok(actions.indexOf('Conteúdo do criador original.')>actions.indexOf('Ver no TikTok'),'ownership caption follows the complete action group');
+assert.ok(!actions.includes('Imagem/vídeo do criador original'));
+assert.match(profile,/aria-expanded="false"/);assert.match(profile,/credit-rights-panel[^>]*hidden/);

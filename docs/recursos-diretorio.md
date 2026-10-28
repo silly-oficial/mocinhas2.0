@@ -139,3 +139,8 @@ Verificação: TypeScript, build e testes de sessão/seleção/créditos executa
 - D: avatar em vídeo solicita `autoplay=1`, `muted=1` e `loop=1` ao player oficial; fotos mantêm autoplay desligado. Zoom altera somente a transformação do quadro e não a URL do iframe.
 - D: evento load envia início sem depender do ready, evento playing confirma inicialização se ready foi perdido, e ended reinicia o trecho uma vez por transição, mesmo para trecho curto. Offscreen/aba oculta pausa também antes do ready.
 - PASS: testes de sessão, parâmetros de embed, créditos por contexto, TypeScript e build. Reprodução real em Safari e contraste renderizado: NÃO VERIFICADO. Não se promete vencer bloqueios de autoplay do navegador ou indisponibilidade do TikTok.
+
+
+### Composição dos créditos e ações
+Adaptação A da identidade existente: no card, autoria compacta seguida de um grupo com perfil como ação principal e origem como ação secundária. No detalhe, remover o identificador duplicado e alinhar TikTok/Créditos em duas colunas; o painel de remoção expande abaixo do grupo, com aria-expanded e aria-controls. O aviso de autoria passa a “Conteúdo do criador original.”, após todas as ações, sem texto intercalado entre botões. Laranja sólido reservado à ação primária e superfície clara com texto forte para a secundária (§§4,7,10,13; D/A). Mudanças somente na apresentação, sem alterar player, seleção ou zoom.
+Validação: TypeScript, renderização estrutural dos grupos e build; screenshots reais de Safari NÃO VERIFICADAS.

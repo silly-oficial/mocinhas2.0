@@ -61,3 +61,27 @@
 .full-photo-credit .creator-credit>a:first-child,.legacy-welcome-credit .creator-credit>a:first-child{color:#fff!important}
 .full-photo-credit .creator-credit>small,.legacy-welcome-credit .creator-credit>small{color:#f1f1f1!important}
 .creator-credit .credit-source-button:focus-visible,.creator-rights>summary:focus-visible{outline:3px solid var(--people-accent,#ed4609);outline-offset:3px}
+/* A: one identity, one grouped action area, then a quiet ownership caption. */
+.creator-credit.credit-layout{gap:12px!important;padding:8px 0 0!important}
+.credit-layout .credit-identity{display:flex;align-items:center;flex-wrap:wrap;gap:8px;min-width:0}
+.credit-layout .credit-identity>a{display:inline-flex;align-items:center;min-height:32px;color:var(--people-ink,var(--theme-text,#18181b));font-size:12px;line-height:1.4;font-weight:600;text-decoration:none;overflow-wrap:anywhere}
+.credit-layout .credit-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;min-width:0}
+.credit-actions>:only-child{grid-column:1/-1}
+.credit-layout .credit-actions>:is(a,button){display:flex;align-items:center;justify-content:center;gap:6px;min-width:0;min-height:48px;padding:10px 12px;border:1px solid transparent;border-radius:14px;font-size:12px;font-weight:700;line-height:1.35;text-align:center;text-decoration:none;cursor:pointer}
+.credit-layout .credit-actions>.credit-source-button,.credit-layout .credit-actions>.credit-profile-button{background:var(--people-accent,var(--orix-orange,#ed4609));color:#fff}
+.credit-layout .credit-actions>.credit-rights-button{background:var(--theme-choice,#fff2e9);color:var(--orix-strong,var(--people-ink,#bf3508));border-color:var(--theme-border,#ffcbb0)}
+.credit-layout.credit-layout-card .credit-actions{grid-template-columns:minmax(0,1fr)}
+.credit-layout-card .credit-actions>.credit-source-button{background:var(--people-surface,#fff);color:var(--people-ink,#18181b);border-color:var(--people-border,#e9e6e2)}
+.creator-credit.credit-layout>.credit-caption{display:flex;align-items:flex-start;gap:5px;font-size:10px!important;line-height:1.5!important;color:var(--people-muted,var(--theme-muted,#686461));margin:0!important}
+.credit-caption svg,.credit-actions svg{flex:none}
+.credit-layout .credit-rights-panel{padding:14px;border-radius:14px;border:1px solid var(--people-border,#e9e6e2);background:var(--people-surface,#fff);font-size:12px;line-height:1.6;color:var(--people-ink,#18181b)}
+.credit-rights-panel p{margin:0 0 12px!important;font-size:12px!important;line-height:1.6!important}
+.credit-rights-panel .creator-removal{display:flex;align-items:center;justify-content:center;min-height:44px;padding:10px;border-radius:12px;border:1px solid var(--people-border,#e9e6e2);color:inherit;font-size:12px;font-weight:650;text-decoration:none}
+.people-detail-body>.credit-layout{margin:2px 0 20px}
+.people-detail-body>.people-tags:empty{display:none}
+.people-card .credit-layout{gap:10px!important}
+.people-card .people-card-body{padding:14px}
+.people-card .credit-profile-button{margin:0;width:100%}
+.credit-actions :is(a,button):focus-visible{outline:3px solid var(--people-accent,#ed4609);outline-offset:3px}
+.full-photo-credit .credit-identity>a,.legacy-welcome-credit .credit-identity>a{color:#fff}
+@media(max-width:359px){.credit-layout .credit-actions>:is(a,button){padding:10px 8px;font-size:11px}.people-card .people-card-body{padding:12px}}
