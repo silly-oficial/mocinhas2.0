@@ -8,22 +8,24 @@ import {useUi,ui} from '../i18n/ui';
 import {ModalFrame} from './ModalFrame';
 import {FullPhotoViewer} from './FullPhotoViewer';
 import {pauseMedia} from './ManagedVideo';
-import {categoryKey,socialUrl,type PersonProfile} from '../../shared/people';
+import {categoryKey,socialUrl,socialVideo,type PersonProfile} from '../../shared/people';
 
 export function PersonModal({person,onClose,asPage=false}:{person:PersonProfile;onClose:()=>void;asPage?:boolean}){
  useUi();const [tab,setTab]=useState('photos'),[photo,setPhoto]=useState<string|null>(null),[notice,setNotice]=useState('');
  useEffect(()=>{pauseMedia();},[]);
  async function share(){const url=window.location.origin+'/#person='+encodeURIComponent(person.username);try{if(navigator.share)await navigator.share({title:person.name,url});else{await navigator.clipboard.writeText(url);setNotice(ui('Link do perfil copiado.'));}}catch{setNotice(ui('Não foi possível compartilhar agora.'));}}
+ const photoPosts=person.videos.flatMap((video,index)=>{try{return socialVideo(video.url).postType==='photo'?[{person,video,index}]:[];}catch{return [];}});
+ const videoPosts=person.videos.flatMap((video,index)=>photoPosts.some(item=>item.index===index)?[]:[{person,video,index}]);
  const detail=<><article className="people-detail">
   {asPage?<div className="people-backbar"><button className="people-secondary" onClick={onClose}><ChevronLeft size={19}/>{ui('Voltar')}</button><span>{ui('Perfil')}</span></div>:<div className="people-modal-toolbar"><button className="people-close" onClick={onClose} aria-label={ui('Fechar')}><X/></button></div>}<div className="people-cover" style={person.cover?{backgroundImage:`url(${JSON.stringify(person.cover)})`}:undefined}/>
   <div className="people-detail-body"><img className="people-avatar" src={person.avatar} alt={person.name} onError={e=>{e.currentTarget.src='/profile-placeholder.svg';}}/><div className="people-title"><div><h2>{person.name}</h2><p>@{person.username}</p></div><button className="people-icon" aria-label={ui('Compartilhar perfil')} onClick={share}><Share2 size={19}/></button></div>
    <CreatorCredit person={person}/><div className="people-tags">{person.tags.map(tag=><span key={tag}>{tag}</span>)}</div>{person.bio&&<p className="people-bio">{person.bio}</p>}
    <section className="people-socials"><h3>{ui('Redes sociais dessa pessoa')}</h3><div>{(['tiktok','instagram','pinterest'] as const).filter(s=>person.socials[s]).map(s=><a key={s} href={socialUrl(s,person.socials[s])} target="_blank" rel="noopener noreferrer"><span>{s==='tiktok'?'TikTok':s==='instagram'?'Instagram':'Pinterest'}<strong>@{person.socials[s]}</strong></span><ArrowUpRight size={18}/></a>)}</div>{!Object.values(person.socials).some(Boolean)&&<p>{ui('Redes sociais ainda não informadas.')}</p>}</section>
-   <div className="people-tabs" role="tablist" aria-label={ui('Mídias do perfil')}><button role="tab" aria-selected={tab==='photos'} onClick={()=>{setTab('photos');}}><ImageIcon size={17}/>{ui('Fotos')} <span>{person.photos.length}</span></button><button role="tab" aria-selected={tab==='videos'} onClick={()=>{setTab('videos');}}><Play size={17}/>{ui('Vídeos')} <span>{person.videos.length}</span></button></div>
-   {tab==='photos'?<div className="people-photos">{person.photos.map((src,index)=><article key={src+index}><button onClick={()=>setPhoto(src)} aria-label={ui('Ver foto completa')+' '+(index+1)}><img src={src} alt={person.name+' — '+(index+1)} loading="lazy"/></button><CreatorCredit person={person} handle={person.mediaSources?.find(m=>m.url===src)?.source_handle}/></article>)}{!person.photos.length&&<p>{ui('Nenhuma foto adicionada ainda.')}</p>}</div>:<ProfileVideoGrid items={person.videos.map((video,index)=>({person,video,index}))} onProfile={()=>{}}/>}
+   <div className="people-tabs" role="tablist" aria-label={ui('Mídias do perfil')}><button role="tab" aria-selected={tab==='photos'} onClick={()=>{setTab('photos');}}><ImageIcon size={17}/>{ui('Fotos')} <span>{person.photos.length+photoPosts.length}</span></button><button role="tab" aria-selected={tab==='videos'} onClick={()=>{setTab('videos');}}><Play size={17}/>{ui('Vídeos')} <span>{videoPosts.length}</span></button></div>
+   {tab==='photos'?<>{photoPosts.length>0&&<ProfileVideoGrid items={photoPosts} onProfile={()=>{}}/>}<div className="people-photos">{person.photos.map((src,index)=><article key={src+index}><button onClick={()=>setPhoto(src)} aria-label={ui('Ver foto completa')+' '+(index+1)}><img src={src} alt={person.name+' — '+(index+1)} loading="lazy"/></button><CreatorCredit person={person} handle={person.mediaSources?.find(m=>m.url===src)?.source_handle}/></article>)}{!person.photos.length&&!photoPosts.length&&<p>{ui('Nenhuma foto adicionada ainda.')}</p>}</div></>:<ProfileVideoGrid items={videoPosts} onProfile={()=>{}}/>}
 
    {notice&&<p role="status">{notice}</p>}
-  </div></article>{photo&&<FullPhotoViewer src={photo} alt={person.name} onClose={()=>setPhoto(null)}/>}</>;
+  </div></article>{photo&&<FullPhotoViewer handle={person.mediaSources?.find(m=>m.url===photo)?.source_handle||person.socials.tiktok} src={photo} alt={person.name} onClose={()=>setPhoto(null)}/>}</>;
  return asPage?<section className="people-section people-profile-page" aria-label={ui('Perfil')+' '+person.name}>{detail}</section>:<ModalFrame onClose={onClose} label={ui('Perfil')+' '+person.name} className="people-dialog">{detail}</ModalFrame>;
 }
 
@@ -46,4 +48,5 @@ export function PeopleProfiles({compact=false,admin=false,onManage,onSeeAll,onAc
 
  </section>;
 }
+
 

@@ -6,21 +6,22 @@ import type { DB } from './db';
 import { CLOUD, flushCloud, signedMedia } from './cloud-store';
 import { UPLOADS_DIR } from './storage';
 import type { WelcomeConfig } from '../shared/welcome';
-import {socialVideo} from '../shared/people';
+import {tiktokPost} from '../shared/people';
 import {makeTikTokResolver} from './tiktok-oembed';
 const fallback: WelcomeConfig = {intervalSeconds:5,slides:[]};
-export function validateWelcome(value:any):WelcomeConfig {
+export function validateWelcome(value:any, existing?:WelcomeConfig):WelcomeConfig {
   if(!value || !Number.isInteger(value.intervalSeconds) || value.intervalSeconds<2 || value.intervalSeconds>30 || !Array.isArray(value.slides) || value.slides.length>20)throw Error('Escolha de 2 a 30 segundos e até 20 mídias.');
   const seen=new Set<string>();
   const slides=value.slides.map((s:any)=>{
     if(s?.type==='tiktok') {
-      const source=socialVideo(s.url);
+      const source=tiktokPost(s.url);
       if(source.platform!=='TikTok')throw Error('Use um link do TikTok.');
       const id=typeof s.id==='string'&&/^[a-zA-Z0-9_-]{1,80}$/.test(s.id)?s.id:randomUUID();
       if(seen.has(id))throw Error('Mídias com identificador repetido.');seen.add(id);
       return {id,type:'tiktok' as const,url:source.canonical,source_handle:new URL(source.canonical).pathname.split('/')[1]};
     }
-    if(!s || !['image','video'].includes(s.type) || typeof s.url!=='string' || !/^\/uploads\/[a-zA-Z0-9_.%-]+$/.test(s.url))throw Error('Use arquivos enviados pelo painel.');
+    if(!s || !['image','video'].includes(s.type) || typeof s.url!=='string' || !/^\/uploads\/[a-zA-Z0-9_.%-]+$/.test(s.url))throw Error('Adicione novas mídias por links do TikTok.');
+    if(!existing?.slides.some(old=>old.id===s.id&&old.type===s.type&&old.url===s.url))throw Error('Adicione novas mídias somente por links do TikTok.');
     const file=decodeURIComponent(s.url.slice(9));
     if(!/^[a-zA-Z0-9_-][a-zA-Z0-9_.-]*$/.test(file) || !/\.(jpe?g|png|webp|avif|gif|mp4|webm|mov|m4v)$/i.test(file))throw Error('Formato não suportado.');
     if((s.type==='video')!==/\.(mp4|webm|mov|m4v)$/i.test(file))throw Error('Tipo da mídia inválido.');
@@ -37,7 +38,7 @@ export function installWelcome(app:express.Express,db:typeof DB,admin:express.Re
   const config=()=>db.get().welcomeCarousel||fallback;
   app.get('/api/welcome',(_req,res)=>{res.setHeader('Cache-Control','no-store');const c=config();res.json({intervalSeconds:c.intervalSeconds,slides:c.slides.map(s=>({id:s.id,type:s.type,frame:s.frame,url:s.type==='tiktok'?s.url:'/api/welcome/media/'+s.id,...(s.type==='tiktok'?{thumbnail:s.thumbnail,source_handle:s.source_handle}:{})}))});});
   app.get('/api/admin/welcome',admin,(_req,res)=>res.json(config()));
-  app.put('/api/admin/welcome',admin,async(req,res)=>{try{const c=validateWelcome(req.body);await Promise.all(c.slides.map(async slide=>{if(slide.type==='tiktok'){try{const metadata=await resolveTikTok(slide.url,false);slide.thumbnail=metadata.thumbnail_url;}catch{/* The official player and source link remain available without oEmbed. */}}}));db.get().welcomeCarousel=c;db.save();res.json(c);}catch(e:any){res.status(400).json({error:e.message});}});
+  app.put('/api/admin/welcome',admin,async(req,res)=>{try{const c=validateWelcome(req.body,config());await Promise.all(c.slides.map(async slide=>{if(slide.type==='tiktok'){try{const metadata=await resolveTikTok(slide.url,false);slide.thumbnail=metadata.thumbnail_url;}catch{/* The official player and source link remain available without oEmbed. */}}}));db.get().welcomeCarousel=c;db.save();res.json(c);}catch(e:any){res.status(400).json({error:e.message});}});
   // Only explicitly selected promotional slides are public, never the private uploads route.
   app.get('/api/welcome/media/:id',async(req,res)=>{
     const slide=config().slides.find(s=>s.id===req.params.id);if(!slide||slide.type==='tiktok')return res.status(404).end();

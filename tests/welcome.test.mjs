@@ -9,7 +9,7 @@ const root=fs.mkdtempSync(path.join(os.tmpdir(),'mocinhas-policy-'));
 const secret='isolated-integration-test-secret';
 const token=id=>jwt.sign({userId:id},secret);
 const user=(id,isAdmin=false)=>({id,username:id,email:id+'@example.test',displayName:id,passwordHash:bcrypt.hashSync('test-password-123',4),isAdmin,isPrivate:false,createdAt:new Date().toISOString(),avatar:'',bio:'',banner:'',isVerified:false,animeTitle:'',themeColor:'',website:''});
-const base={ users:[user('owner',true),user('viewer'),user('viewer2')], posts:[], likes:[],saves:[],comments:[],commentLikes:[],follows:[],stories:[],storyViews:[],conversations:[{id:'disabled',isGroup:true}],messages:[],notifications:[],reports:[],blocks:[],mutes:[],usageSettings:{dailyMinutes:1,bindNetwork:false}};
+const base={ users:[user('owner',true),user('viewer'),user('viewer2')], welcomeCarousel:{intervalSeconds:3,slides:[{id:'slide-test',type:'image',url:'/uploads/entry.png',frame:{fit:'contain',x:24,y:75,zoom:1.2}}]},posts:[], likes:[],saves:[],comments:[],commentLikes:[],follows:[],stories:[],storyViews:[],conversations:[{id:'disabled',isGroup:true}],messages:[],notifications:[],reports:[],blocks:[],mutes:[],usageSettings:{dailyMinutes:1,bindNetwork:false}};
 fs.writeFileSync(path.join(root,'db.json'),JSON.stringify(base));
 let child;
 async function start(){ child=spawn(process.execPath,['dist/server.cjs'],{env:{...process.env,STORAGE_BACKEND:'local',NODE_ENV:'production',DATA_DIR:root,JWT_SECRET:secret},stdio:'ignore'}); for(let i=0;i<100;i++){try { await fetch('http://localhost:3000'); return;}catch{await new Promise(r=>setTimeout(r,100));}} throw Error('server failed'); }
@@ -18,7 +18,7 @@ async function call(url,id='viewer',method='GET',body,cookie=''){const res=await
 try {
  await start();
  assert.equal((await fetch('http://localhost:3000/api/welcome')).status,200);
- assert.deepEqual((await call('/api/welcome')).body,{intervalSeconds:5,slides:[]});
+ assert.equal((await call('/api/welcome')).body.slides[0].url,'/api/welcome/media/slide-test');
  assert.equal((await call('/api/admin/welcome','viewer')).status,403);
  const image=Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+a4xsAAAAASUVORK5CYII=','base64');
  fs.writeFileSync(path.join(root,'uploads','entry.png'),image);
@@ -29,6 +29,7 @@ try {
  assert.equal((await call('/api/admin/welcome','owner','PUT',{...config,slides:[{...config.slides[0],url:'/uploads/../db.json'}]})).status,400);
  assert.equal((await call('/api/admin/welcome','owner','PUT',{...config,slides:[{...config.slides[0],url:'https://example.test/private.jpg'}]})).status,400);
  assert.equal((await call('/api/admin/welcome','owner','PUT',{...config,slides:[{...config.slides[0],frame:{fit:'cover',x:-1,y:50,zoom:1}}]})).status,400);
+ assert.equal((await call('/api/admin/welcome','owner','PUT',{...config,slides:[{...config.slides[0],id:'new-upload'}]})).status,400);
  assert.equal((await call('/api/admin/welcome','owner','PUT',config)).status,200);
  const publicConfig=(await call('/api/welcome')).body;assert.equal(publicConfig.slides[0].url,'/api/welcome/media/slide-test');assert.equal(publicConfig.slides[0].name,undefined);
  assert.deepEqual(publicConfig.slides[0].frame,config.slides[0].frame);
@@ -43,3 +44,4 @@ try {
  assert.equal(JSON.parse(fs.readFileSync(path.join(root,'db.json'))).users.length,3);
  console.log('Welcome passed: admin authorization, safe validation, public whitelist, no upload exposure, byte ranges, restart persistence, removed slide access revoked; existing users retained.');
 } finally {if(child && child.exitCode===null)await stop();fs.rmSync(root,{recursive:true,force:true});}
+

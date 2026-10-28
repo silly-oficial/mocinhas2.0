@@ -1,8 +1,9 @@
 export type LegalPageKey = 'terms' | 'privacy' | 'parents';
 export interface LegalDocumentSection {title: string; paragraphs: string[]}
 export interface LegalDocument {path: string; title: string; sections: LegalDocumentSection[]}
-export const legalNotice = 'As imagens e vídeos pertencem aos seus criadores. Se você é responsável e quer ajustar ou remover algo,';
+export const legalNotice = 'Todo o conteúdo do Mocinhas é de autoria dos criadores originais. Cada mídia mantém o crédito e o link do perfil de origem. Encontrou algo seu e quer ajustar ou remover? Fale com a gente pelo contato público ou em /pais. As mídias pertencem aos seus criadores originais.';
 export const legalNavigation = [
+  {path: '/creditos', label: 'Créditos e Remoção'},
   {path: '/termos', label: 'Termos de Uso'},
   {path: '/privacidade', label: 'Privacidade'},
   {path: '/pais', label: 'Para pais e responsáveis'},
@@ -101,3 +102,4 @@ export interface LegalDocumentVersion {
   documents: Record<LegalPageKey, LegalDocument>;
 }
 export type LegalVersionSummary = Pick<LegalDocumentVersion, 'id'|'recordedAt'|'digest'|'commit'>;
+

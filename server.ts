@@ -1,5 +1,6 @@
+import {tiktokPost} from './shared/people';
+import {makeTikTokResolver} from './server/tiktok-oembed';
 import {uploadedMediaOrigin} from './server/media-origin';
-import { installProfileVideo } from './server/profile-video';
 import { installPeople } from './server/people';
 import { installDirectoryRequests } from './server/directory-requests';
 import { installDirectorySettings } from './server/directory-settings';
@@ -24,7 +25,6 @@ import fs from 'fs';
 import { createServer as createViteServer } from 'vite';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
-import multer from 'multer';
 import { GoogleGenAI } from '@google/genai';
 import { DB, loadDB, DBPost, DBUser, DBStory, DBComment, DBMessage, DBConversation, DBNotification } from './server/db.ts';
 import { checkSupabaseConnection, isSupabaseConfigured, updateSupabaseCredentials } from './server/supabase.ts';
@@ -41,22 +41,8 @@ const JWT_SECRET = process.env.JWT_SECRET || DB.get().authSecret || randomBytes(
 if (!process.env.JWT_SECRET && !DB.get().authSecret) { DB.get().authSecret = JWT_SECRET; DB.save(); }
 if (process.env.TRUST_PROXY) app.set('trust proxy', process.env.TRUST_PROXY);
 
-// Storage setup for real file uploads
-if (!fs.existsSync(UPLOADS_DIR)) {
-  fs.mkdirSync(UPLOADS_DIR, { recursive: true });
-}
-
-const storage = multer.diskStorage({
-  destination: (_req, _file, cb) => {
-    cb(null, UPLOADS_DIR);
-  },
-  filename: (_req, file, cb) => {
-    const ext = path.extname(file.originalname) || (file.mimetype.startsWith('video') ? '.mp4' : '.jpg');
-    const uniqueName = `yume_${Date.now()}_${Math.random().toString(36).substring(2, 9)}${ext}`;
-    cb(null, uniqueName);
-  },
-});
-const upload = multer({ storage: CLOUD ? multer.memoryStorage() : storage, limits: { fileSize: 50 * 1024 * 1024 } });
+// Keep legacy media paths readable; new uploads are disabled.
+if(!fs.existsSync(UPLOADS_DIR))fs.mkdirSync(UPLOADS_DIR,{recursive:true});
 
 // Middlewares
 app.use('/api/directory-requests', express.json({ limit: '16kb' }));
@@ -126,7 +112,7 @@ const directoryMail = startDirectoryMailWorker(DB, flushCloud);
 installLegalHistory(app, DB);
 installConsumptionPolicy(app, DB, JWT_SECRET, getAuthUserId, requireAdmin);
 installPeople(app, DB, requireAdmin);
-installProfileVideo(app, requireAdmin);
+app.post('/api/admin/people/prepare-video',requireAdmin,(_req,res)=>res.status(410).json({error:'Uploads desativados. Use links do TikTok.'}));
 app.use('/uploads', async (req, res, next) => {
   if (!CLOUD) return next();
   try {
@@ -269,7 +255,7 @@ app.post('/api/auth/register', (req, res) => {
     avatar: selectedAvatar,
     gender: gender === 'masculino' || gender === 'feminino' || gender === 'outro' ? gender : 'feminino',
     bio: isSuperAdmin ? 'Administrador Oficial da Plataforma ' : ' Bem-vindo ao meu perfil no mocinhas! ',
-    banner: banner || 'https://images.unsplash.com/photo-1522383225653-ed111181a951?w=1200&auto=format&fit=crop&q=80',
+    banner: '',
     isPrivate: false,
     isVerified: isSuperAdmin,
     isAdmin: isSuperAdmin,
@@ -395,6 +381,8 @@ app.put('/api/users/me/profile', requireAuth, (req, res) => {
   const userId = (req as any).userId;
   const { displayName, bio, banner, avatar, gender, isPrivate, animeTitle, themeColor, website } = req.body;
 
+  const currentProfile=DB.findUserById(userId);
+  if((avatar&&avatar!==currentProfile?.avatar)||(banner&&banner!==currentProfile?.banner))return res.status(400).json({error:'Envio de fotos desativado.'});
   const updated = DB.updateUser(userId, {
     ...(displayName && { displayName: displayName.trim() }),
     ...(bio !== undefined && { bio }),
@@ -702,19 +690,20 @@ app.post('/api/admin/emergency-cleanup', requireAdmin, (req, res) => {
   });
 });
 
-app.post('/api/posts', requireAdmin, (req, res) => {
+const resolvePostTikTok=makeTikTokResolver(DB);
+app.post('/api/posts', requireAdmin, async (req, res) => {
   const currentUserId = (req as any).userId;
   const { media, caption, location, allowComments, isTemporary, durationHours } = req.body;
 
   if (!media || !Array.isArray(media) || media.length === 0) {
-    return res.status(400).json({ error: 'Adicione pelo menos uma foto ou vídeo kawaii! ' });
+    return res.status(400).json({ error: 'Adicione pelo menos um link do TikTok.' });
   }
 
-  try {for(const m of media)if(['image','video','gif'].includes(m.type||'image'))uploadedMediaOrigin(m.url,m.source_handle);}catch(error){return res.status(400).json({error:error instanceof Error?error.message:'Informe a origem.'});}
-  try { for (const m of media) if (m.focus !== undefined) { if (!['image','gif'].includes(m.type || 'image')) throw new Error('Destaque disponível apenas para fotos.'); validatePhotoFocus(m.focus); } }
-  catch (error: any) { return res.status(400).json({ error: error.message }); }
-  try { for (const m of media) if (m.coverTime !== undefined) { if (m.type !== 'video') throw new Error('Capa disponível apenas para vídeos.'); validateVideoCover(m); } }
-  catch (error: any) { return res.status(400).json({error:error.message}); }
+  if(caption!==undefined&&(typeof caption!=='string'||caption.length>10000))return res.status(400).json({error:'Legenda inválida (máximo 10000 caracteres).'});
+  if(media.length>30)return res.status(400).json({error:'Use até 30 publicações do TikTok por vez.'});
+  let linkedMedia:any[];
+  try {linkedMedia=await Promise.all(media.map(async(m:any)=>{const source=tiktokPost(m?.url);const metadata=await resolvePostTikTok(source.canonical);const now=new Date().toISOString();return {url:source.canonical,type:source.postType==='photo'?'image':'video',thumbnail:metadata.thumbnail_url,source_platform:'tiktok',source_url:source.canonical,source_handle:new URL(source.canonical).pathname.split('/')[1],captured_at:now,display_mode:'embed',last_check_at:metadata.checkedAt,is_still_available:metadata.available};}));}
+  catch(error){return res.status(400).json({error:error instanceof Error?error.message:'Informe links válidos do TikTok.'});}
   let expiresAt: string | undefined = undefined;
   if (isTemporary) {
     const hours = Number(durationHours) || 24;
@@ -732,18 +721,7 @@ app.post('/api/posts', requireAdmin, (req, res) => {
   const newPost: DBPost = {
     id: `p_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
     userId: currentUserId,
-    media: media.map((m: any, idx: number) => ({
-      id: `m_${Date.now()}_${idx}`,
-      url: m.url,
-      ...(['image','video','gif'].includes(m.type||'image')?uploadedMediaOrigin(m.url,m.source_handle):{}),
-      type: m.type || 'image',
-      filter: m.filter,
-      aspectRatio: m.aspectRatio,
-      ...(m.focus !== undefined ? { focus: validatePhotoFocus(m.focus) } : {}),
-      thumbnail: m.thumbnail || m.url,
-      ...(m.coverTime !== undefined ? {coverTime:validateVideoCover(m).coverTime} : {}),
-      fileName: m.fileName || (m.type === 'audio' ? 'Mensagem de Áudio.mp3' : m.type === 'pdf' ? 'Documento.pdf' : undefined),
-    })),
+    media: linkedMedia.map((m,idx)=>({...m,id:`m_${Date.now()}_${idx}`})),
     caption: textCaption,
     hashtags,
     mentions,
@@ -1985,43 +1963,7 @@ app.get('/api/search', (req, res) => {
 // ----------------------------------------------------
 //  MEDIA UPLOAD (FILE + BASE64 SUPPORT)
 // ----------------------------------------------------
-app.post('/api/upload', requireAdmin, upload.single('file'), async (req, res) => {
-  if (req.file) {
-    const isVideo = req.file.mimetype.startsWith('video');
-    let url: string;
-    try { url = CLOUD ? await uploadCloud(`media_${Date.now()}_${randomBytes(8).toString('hex')}${path.extname(req.file.originalname).replace(/[^.a-zA-Z0-9]/g,'')}`, req.file.buffer, req.file.mimetype) : `/uploads/${req.file.filename}`; }
-    catch (e) { return res.status(503).json({error:'Não foi possível salvar a mídia no armazenamento remoto.'}); }
-    return res.json({ url, type: isVideo ? 'video' : 'image' });
-  }
-
-  // Base64 JSON fallback
-  const { data, filename } = req.body;
-  if (data && typeof data === 'string') {
-    let mime = 'image/jpeg';
-    let base64Data = data;
-    const matches = data.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
-    if (matches && matches.length === 3) {
-      mime = matches[1];
-      base64Data = matches[2];
-    }
-    const isVideo = mime.startsWith('video');
-    const ext = isVideo ? '.mp4' : mime.includes('png') ? '.png' : mime.includes('webp') ? '.webp' : '.jpg';
-    const cleanFilename = (filename || `upload_${Date.now()}${ext}`).replace(/[^a-zA-Z0-9_.-]/g, '_');
-    const fname = `yume_b64_${Date.now()}_${cleanFilename}`;
-    const fpath = path.join(UPLOADS_DIR, fname);
-    try {
-      const bytes = Buffer.from(base64Data, 'base64');
-      if (CLOUD) await uploadCloud(fname, bytes, mime);
-      else fs.writeFileSync(fpath, bytes);
-      return res.json({ url: `/uploads/${fname}`, type: isVideo ? 'video' : 'image' });
-    } catch (saveErr: any) {
-      console.error('Error saving base64 upload:', saveErr);
-      return res.status(500).json({ error: 'Erro ao processar imagem base64' });
-    }
-  }
-
-  res.status(400).json({ error: 'Nenhum arquivo enviado.' });
-});
+app.post('/api/upload', requireAdmin, (_req,res)=>res.status(410).json({error:'Uploads desativados. Use links do TikTok.'}));
 
 // ----------------------------------------------------
 //  GEMINI AI KAWAII ASSISTANT (SERVER-SIDE)
@@ -2223,16 +2165,7 @@ app.delete('/api/admin/users/:id', requireAdmin, (req, res) => {
   res.json({ success: true });
 });
 
-app.patch('/api/admin/posts/:id/cover', requireAdmin, (req, res) => {
-  const post=DB.get().posts.find(p=>p.id===req.params.id);
-  if(!post)return res.status(404).json({error:'Publicação não encontrada.'});
-  const media=post.media.find(m=>m.id===req.body?.mediaId);
-  if(!media)return res.status(404).json({error:'Mídia não encontrada.'});
-  if(media.type!=='video')return res.status(400).json({error:'Capa disponível apenas para vídeos.'});
-  try{const cover=validateVideoCover(req.body);media.thumbnail=cover.thumbnail;media.coverTime=cover.coverTime;}
-  catch(error:any){return res.status(400).json({error:error.message});}
-  DB.save();res.json({post:DB.toPublicPost(post,(req as any).userId)});
-});
+app.patch('/api/admin/posts/:id/cover',requireAdmin,(_req,res)=>res.status(410).json({error:'Capas de novas mídias vêm do TikTok.'}));
 
 app.patch('/api/admin/posts/:id/focus', requireAdmin, (req, res) => {
   const post = DB.get().posts.find(p => p.id === req.params.id);
@@ -2399,5 +2332,6 @@ await flushCloud();
 await startServer();
 }
 bootApplication().catch(error => { console.error(error.message); process.exitCode = 1; });
+
 
 

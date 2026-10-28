@@ -21,5 +21,7 @@ export interface DirectoryRequest {
   updatedAt: string;
   closedAt?: string;
   adminNote: string;
+  publicResult?: string;
   dueAt?: string;
 }
+

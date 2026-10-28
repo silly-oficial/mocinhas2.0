@@ -1,21 +1,24 @@
+import {removalEmailText} from '../shared/credits';
 import {randomUUID} from 'node:crypto';
 import type {DB} from './db';
 import {directorySettings} from './directory-settings';
 import {emailPattern} from '../shared/directory-settings';
 export type EmailTemplate = 'request_received'|'admin_new_request'|'request_completed'|'verification_approved'|'verification_revoked';
-export interface EmailJob {id:string;key:string;to:string;template:EmailTemplate;data:{protocol:string;siteName:string};createdAt:string;sentAt?:string;providerId?:string;firstAttemptAt?:string;attempts:number;nextAttemptAt:number;error?:string;}
+export interface EmailJob {id:string;key:string;to:string;template:EmailTemplate;data:{protocol:string;siteName:string;content?:string;result?:string;contactEmail?:string;resolved?:boolean};createdAt:string;sentAt?:string;providerId?:string;firstAttemptAt?:string;attempts:number;nextAttemptAt:number;error?:string;}
 export async function sendEmail(job: Pick<EmailJob,'to'|'template'|'data'|'key'>, transport:typeof fetch=fetch) {
   if(!process.env.RESEND_API_KEY || !process.env.EMAIL_FROM) throw Error('Provedor de e-mail não configurado.');
   if(!emailPattern.test(job.to) || /[\[\]]/.test(job.to)) throw Error('Destinatário não configurado.');
   const messages:Record<EmailTemplate,string>={request_received:'Recebemos sua solicitação. Ela será analisada pela administração.',admin_new_request:'Há uma nova solicitação no painel administrativo.',request_completed:'A administração marcou a análise da sua solicitação como concluída. Esta mensagem não atesta exclusão de arquivos; consulte a resposta da administração.',verification_approved:'A solicitação de verificação foi aprovada pela administração.',verification_revoked:'A verificação foi revogada e o selo foi retirado.'};
-  const response=await transport('https://api.resend.com/emails',{method:'POST',redirect:'error',headers:{Authorization:'Bearer '+process.env.RESEND_API_KEY,'Content-Type':'application/json','Idempotency-Key':job.key},body:JSON.stringify({from:process.env.EMAIL_FROM,to:[job.to],subject:job.data.siteName+' — solicitação '+job.data.protocol,text:messages[job.template]+'\nProtocolo: '+job.data.protocol}),signal:AbortSignal.timeout(15000)});
+  const completed=job.template==='request_completed'&&!!job.data.result;
+  const text=completed?removalEmailText({content:job.data.content||job.data.protocol,result:job.data.result!,email:job.data.contactEmail||'',siteName:job.data.siteName,resolved:job.data.resolved!==false}):messages[job.template]+'\nProtocolo: '+job.data.protocol;
+  const response=await transport('https://api.resend.com/emails',{method:'POST',redirect:'error',headers:{Authorization:'Bearer '+process.env.RESEND_API_KEY,'Content-Type':'application/json','Idempotency-Key':job.key},body:JSON.stringify({from:process.env.EMAIL_FROM,to:[job.to],...(job.data.contactEmail?{reply_to:job.data.contactEmail}:{}),subject:completed?'Sobre o seu pedido no '+job.data.siteName:job.data.siteName+' — solicitação '+job.data.protocol,text}),signal:AbortSignal.timeout(15000)});
   if(!response.ok) throw Error('Provedor recusou o envio ('+response.status+').');
   const result=await response.json();if(!result?.id)throw Error('Provedor não confirmou o recebimento do e-mail.');
   return result.id as string;
 }
-export function enqueueEmail(db:typeof DB,key:string,to:string,template:EmailTemplate,protocol:string) {
+export function enqueueEmail(db:typeof DB,key:string,to:string,template:EmailTemplate,protocol:string,details:Partial<EmailJob['data']>={}) {
   const rows=db.get().directoryEmailOutbox||[];if(rows.some(row=>row.key===key))return;
-  db.get().directoryEmailOutbox=[...rows,{id:randomUUID(),key,to,template,data:{protocol,siteName:directorySettings(db).siteName},createdAt:new Date().toISOString(),attempts:0,nextAttemptAt:0}];
+  db.get().directoryEmailOutbox=[...rows,{id:randomUUID(),key,to,template,data:{protocol,siteName:directorySettings(db).siteName,contactEmail:directorySettings(db).contactEmail,...details},createdAt:new Date().toISOString(),attempts:0,nextAttemptAt:0}];
 }
 export function startDirectoryMailWorker(db:typeof DB,flush:()=>Promise<void>,sender=sendEmail) {
   let running=false;
@@ -40,3 +43,4 @@ export function startDirectoryMailWorker(db:typeof DB,flush:()=>Promise<void>,se
   const timer=setInterval(()=>{void run().catch(()=>console.warn('[directory-mail] Fila aguardando reconexão.'));},30000);timer.unref();
   return {run,stop:()=>clearInterval(timer)};
 }
+

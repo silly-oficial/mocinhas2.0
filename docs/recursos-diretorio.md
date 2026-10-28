@@ -47,3 +47,16 @@ Links completos `https://www.tiktok.com/@usuario/photo/ID` e `/video/ID` usam o 
 O cadastro de links dos perfis também aceita `/photo/`. As galerias existentes e mídias legadas são preservadas; esta alteração não faz limpeza de produção.
 
 Validação: tipos, compilação e testes direcionados com transporte TikTok simulado. A navegação entre imagens de uma publicação real em Android/iOS permanece pendente; a compilação não comprova disponibilidade do conteúdo externo nem compatibilidade no aparelho.
+
+
+### Cadastro somente por TikTok e créditos públicos
+
+Novos perfis e publicações aceitam somente links canônicos `/video/` e `/photo/` do TikTok. A apresentação da entrada usa a mesma integração. Os formulários ativos não oferecem upload, base64, troca de capa por arquivo ou importação de fotos. As rotas `/api/upload` e `/api/admin/people/prepare-video` retornam 410 para o administrador, sem processar os bytes; a troca manual de capa de posts também foi desativada. O servidor rejeita novas URLs de arquivos em perfis e posts.
+
+Mídias legadas são preservadas para revisão e remoção administrativa, sem limpeza de dados neste deploy. Perfis novos não exigem um arquivo de avatar: usam placeholder ou thumbnail de uma publicação do mesmo criador. Carrosséis do TikTok aparecem na aba Fotos do perfil. As prévias não são salvas como novos uploads. Origem desconhecida de mídia antiga não recebe crédito inventado.
+
+O rodapé global tem o texto de autoria solicitado, copyright com ano atual e link para `/creditos`. A página Créditos e Remoção descreve o fluxo atual, sem prometer autorização dos pais. Mídias têm o aviso curto e o atalho Pedir remoção / reclamar, que abre `/pais` com @ e URL preenchidos quando conhecidos. O contato é sempre o mesmo `contactEmail` de Configurações públicas (`CONTACT_EMAIL` é fallback de ambiente). Como nenhum endereço real foi fornecido no pedido, não foi inventado ou publicado um e-mail de exemplo. Sem endereço configurado, o formulário continua acessível.
+
+A conclusão de um pedido de remoção exige a providência pública executada ou a ação explícita de retirar o perfil de publicação. O e-mail usa o assunto “Sobre o seu pedido no Mocinhas”, a descrição da providência e o contato configurado; o registro interno não é incluído. Recusas recebem resultado de análise, sem afirmar remoção. A fila e a configuração Resend existentes continuam necessárias; estes testes não enviam e-mails reais.
+
+Validação: tipos e build; contratos de upload bloqueado (multipart e base64 sem gravação), cadastro TikTok com crédito derivado no servidor, renderização sem players iniciais, rodapé e página de créditos, e-mail com resposta pública, legado, quotas, persistência e pagamentos com provedores simulados. A exibição externa real continua sujeita ao TikTok e à validação em celular físico.

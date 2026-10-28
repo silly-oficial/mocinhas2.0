@@ -26,3 +26,9 @@ export function socialUrl(platform: keyof PersonProfile['socials'], handle: stri
 }
 
 
+
+export function tiktokPost(url:string) {
+ const source=socialVideo(url);
+ if(source.platform!=='TikTok')throw Error('Use somente links de publicações do TikTok (/video/ ou /photo/).');
+ return source;
+}

@@ -118,13 +118,17 @@ export function installDirectoryRequests(app: express.Express, db: typeof DB, ad
     if (unpublishProfileId !== undefined) {
       if (current.type !== 'remover_conteudo' || status !== 'resolved' || !profiles.some(profile => profile.id === unpublishProfileId && [profile.username, profile.socials.tiktok].some(handle => handle?.replace(/^@/, '').toLowerCase() === current.handle))) return res.status(400).json({error: 'Selecione um perfil correspondente ao @ do pedido de remoção.'});
     }
+    let publicResult='';
+    try{publicResult=field(req.body.publicResult??'',1500);}catch{return res.status(400).json({error:'A resposta ao solicitante pode ter até 1500 caracteres.'});}
+    if(unpublishProfileId!==undefined)publicResult='Perfil retirado da publicação no diretório. A ação não declara exclusão de arquivos ou de outras referências.'+(publicResult?' '+publicResult:'');
+    if(status==='resolved'&&current.type==='remover_conteudo'&&!publicResult)return res.status(400).json({error:'Registre a providência realmente executada para enviar a resposta de conclusão.'});
     const now = new Date().toISOString();
-    const updated: DirectoryRequest = {...current, status, adminNote, updatedAt: now, ...(status === 'resolved' || status === 'rejected' ? {closedAt: now} : {closedAt: undefined})};
+    const updated: DirectoryRequest = {...current, status, adminNote, publicResult, updatedAt: now, ...(status === 'resolved' || status === 'rejected' ? {closedAt: now} : {closedAt: undefined})};
     const beforeRequests = db.get().directoryRequests, beforeProfiles = db.get().peopleProfiles;
     const beforeMail=db.get().directoryEmailOutbox;
     db.get().directoryRequests = rows().map(row => row.id === current.id ? updated : row);
     if (unpublishProfileId !== undefined) db.get().peopleProfiles = profiles.map(profile => profile.id === unpublishProfileId ? {...profile, published: false, updatedAt: now} : profile);
-    if(['resolved','rejected'].includes(status) && current.status!==status)enqueueEmail(db,'completed-'+current.id+'-'+status,current.email,'request_completed',current.id);
+    if(['resolved','rejected'].includes(status) && current.status!==status)enqueueEmail(db,'completed-'+current.id+'-'+status,current.email,'request_completed',current.id,{content:'@'+current.handle,result:publicResult||(status==='rejected'?'O pedido foi indeferido após análise. Entre em contato para mais informações.':''),resolved:status==='resolved'});
     try { db.save(); } catch {
       db.get().directoryEmailOutbox=beforeMail;
       db.get().directoryRequests = beforeRequests; db.get().peopleProfiles = beforeProfiles;
@@ -133,3 +137,4 @@ export function installDirectoryRequests(app: express.Express, db: typeof DB, ad
     return res.json({request: updated});
   });
 }
+

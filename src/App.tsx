@@ -1,3 +1,4 @@
+import {TikTokPostCard} from './components/TikTokPostCard';
 import {MediaCredit} from './components/CreatorCredit';
 import { ProfileVideosFeed } from './components/ProfileVideos';
 import { PeopleProfiles } from './components/PeopleProfiles';
@@ -71,6 +72,7 @@ function Publication({ post, admin, onDeleted, onUpdate, onComments, onNotice, d
     {post.allowComments !== false && <button disabled={disabled} aria-label={ui("Comentários")} onClick={() => onComments(post)}><MessageCircle size={21} /><span>{post.commentsCount || 0}</span></button>}
     <button disabled={disabled || !!busy} aria-label={post.isSaved ? ui("Remover dos salvos") : ui("Salvar publicação")} aria-pressed={!!post.isSaved} onClick={() => interact('save')}><Bookmark size={21} fill={post.isSaved ? 'currentColor' : 'none'} /></button>
   </>;
+  if(post.media.some(m=>m.display_mode==='embed'&&m.source_platform==='tiktok'))return <article className="publication tiktok-publication">{post.media.map(m=><TikTokPostCard key={m.id} media={m} active={!disabled&&mediaActive}/>)}{displayCaption&&<p className="tiktok-post-caption"><AutoTranslatedText text={displayCaption}/></p>}<div className="publication-actions">{actions}{admin&&<button aria-label="Excluir publicação" onClick={async()=>{if(confirm('Excluir esta publicação?')){try{await api.deletePost(post.id);onDeleted();}catch(e:any){onNotice(e.message);}}}}><Trash2 size={18}/></button>}</div></article>;
   if (theme === 'skyglass' || theme === 'orix') {
     const m = post.media[Math.min(mediaIndex, post.media.length - 1)];
     const visual = m && !['audio','pdf'].includes(m.type);
@@ -87,7 +89,7 @@ function Publication({ post, admin, onDeleted, onUpdate, onComments, onNotice, d
         {!cleanVideo && post.media.length > 1 && <div className="sky-media-pager"><button disabled={mediaIndex === 0} aria-label={ui('Mídia anterior')} onClick={() => { pauseMedia(); setMediaIndex(i => i - 1); }}><ChevronLeft size={20}/></button><button disabled={mediaIndex === post.media.length - 1} aria-label={ui('Próxima mídia')} onClick={() => { pauseMedia(); setMediaIndex(i => i + 1); }}><ChevronRight size={20}/></button></div>}
         {theme === 'orix' && m?.type === 'video' && !cleanVideo && <button className="orix-video-toggle" disabled={disabled || !mediaActive} aria-label={ui(videoPlaying ? 'Pausar vídeo' : 'Reproduzir vídeo')} onClick={() => { const video = orixVideo.current; if (!video) return; if (video.paused) video.play().catch(() => onNotice(ui('Toque novamente para reproduzir.'))); else video.pause(); }}>{videoPlaying ? <Pause size={24} fill="currentColor"/> : <Play size={24} fill="currentColor"/>}</button>}
         {fullImage && visual && !fullPhoto && <button className="media-full-close publication-full-close" aria-label={ui('Fechar tela cheia')} onClick={e=>{e.stopPropagation();setFullImage(false);}}><X size={21}/></button>}
-        {fullPhoto && <FullPhotoViewer src={m.url} alt={displayCaption || ui('Publicação')} onClose={() => setFullImage(false)}/>}
+        {fullPhoto && <FullPhotoViewer handle={m.source_handle} src={m.url} alt={displayCaption || ui('Publicação')} onClose={() => setFullImage(false)}/>}
 
         {displayCaption && !cleanVideo && !(fullImage && m?.type === 'video') && <div className={`sky-card-caption ${expanded ? 'expanded' : ''}`}><div><AutoTranslatedText text={displayCaption} renderTransformed={theme === 'orix' ? text => withoutTags ? text.replace(/#[a-zA-Z0-9_À-ÿ]+/g, '').replace(/[ \t]{2,}/g, ' ').trim() : text : undefined} contentClassName={theme === 'orix' && !expanded ? 'orix-caption-text' : undefined}/></div>{displayCaption.length > 95 && <button onClick={() => setExpanded(v => !v)}>{ui(expanded ? 'Ver menos' : 'Ver mais')}</button>}</div>}
       </div>
@@ -216,5 +218,6 @@ function MainApp() {
   </div></>;
 }
 export default function App() { return <LanguageProvider><ThemeProvider><AuthProvider><MainApp /></AuthProvider></ThemeProvider></LanguageProvider>; }
+
 
 

@@ -4,7 +4,7 @@ import {makeTikTokResolver} from './tiktok-oembed';
 import {uploadedMediaOrigin} from './media-origin';
 import {isProfileVerified} from './verification';
 import type {DB} from './db';
-import {categoryKey,socialVideo, type PersonProfile} from '../shared/people';
+import {categoryKey,socialVideo,tiktokPost, type PersonProfile} from '../shared/people';
 function text(value:unknown,max:number) { if(typeof value!=='string'||value.length>max)throw Error(`Texto inválido (máximo ${max} caracteres).`);return value.trim(); }
 function image(value:unknown) {
  const s=text(value,2048);if(!s)return '';
@@ -16,12 +16,13 @@ export function validatePerson(input:any, existing?:PersonProfile):PersonProfile
  if(!input||typeof input!=='object')throw Error('Perfil inválido.');
  const name=text(input.name,80),username=text(input.username,40).replace(/^@/,'').toLowerCase();
  if(!name||! /^[a-z0-9_][a-z0-9_.-]{1,39}$/.test(username))throw Error('Informe um nome e um @usuário de 2 a 40 caracteres, sem espaços.');
- const avatar=image(input.avatar);if(!avatar)throw Error('Adicione a foto do perfil.');
+ const legacyImage=(value:unknown,previous?:string)=>{const url=text(value??'',2048);if(!url||url==='/profile-placeholder.svg')return url;if(url===previous)return url;throw Error('Novas imagens devem vir de publicações do TikTok.');};
+ const avatar=legacyImage(input.avatar,existing?.avatar)||'/profile-placeholder.svg';
  if(!Array.isArray(input.photos)||!Array.isArray(input.videos)||input.videos.length>30||!Array.isArray(input.tags)||input.tags.length>8)throw Error('Limite: 30 vídeos e 8 categorias.');
  if(typeof input.published!=='boolean'||typeof input.featured!=='boolean'||!Number.isInteger(input.order)||input.order<0||input.order>9999)throw Error('Configuração de publicação ou ordem inválida.');
  const socials={} as PersonProfile['socials'];for(const platform of ['tiktok','instagram','pinterest'] as const){const handle=text(input.socials?.[platform]??'',60).replace(/^@/,'');if(handle&&!/^[a-zA-Z0-9_.]{1,60}$/.test(handle))throw Error(`Informe somente o @ de ${platform}, sem o link.`);socials[platform]=handle;}
  const cleanTags = new Map<string,string>();for(const raw of input.tags){const label=text(raw,30).replace(/\s+/g,' ');if(label&&!cleanTags.has(categoryKey(label)))cleanTags.set(categoryKey(label),label);}
- const now=new Date().toISOString();return {id:existing?.id||randomUUID(),name,username,avatar,cover:image(input.cover??''),bio:text(input.bio??'',1500),photos:input.photos.map(image).filter(Boolean),videos:input.videos.map((v:any)=>{const url=text(v?.url,2048),title=text(v?.title??'',100);if(/^\/uploads\/[a-zA-Z0-9_.%-]+\.(mp4|webm|mov|m4v)$/i.test(url))return {url,title,kind:'upload' as const,thumbnail:image(v.thumbnail??''),...(Number.isFinite(v.duration)&&v.duration>0?{duration:Math.min(v.duration,7200)}:{})};if(v?.kind==='upload')throw Error('Envie o arquivo de vídeo pelo painel.');return {url:socialVideo(url).canonical,title,kind:'social' as const,thumbnail:image(v.thumbnail??'')};}),tags:[...cleanTags.values()],socials,published:input.published,featured:input.featured,order:input.order,createdAt:existing?.createdAt||now,updatedAt:now};
+ const now=new Date().toISOString();return {id:existing?.id||randomUUID(),name,username,avatar,cover:legacyImage(input.cover,existing?.cover),bio:text(input.bio??'',1500),photos:input.photos.map((url:unknown)=>{if(typeof url!=='string'||!existing?.photos.includes(url))throw Error('Adicione fotos por links de carrosséis do TikTok.');return url;}),videos:input.videos.map((v:any)=>{const url=text(v?.url,2048),title=text(v?.title??'',100);const previous=existing?.videos.find(old=>old.url===url);if(previous)return {...previous,title};const source=tiktokPost(url);return {url:source.canonical,title,kind:'social' as const};}),tags:[...cleanTags.values()],socials,published:input.published,featured:input.featured,order:input.order,createdAt:existing?.createdAt||now,updatedAt:now};
 }
 export function installPeople(app:express.Express,db:typeof DB,admin:express.RequestHandler){
  const all=()=>db.get().peopleProfiles||[];
@@ -58,6 +59,7 @@ export function installPeople(app:express.Express,db:typeof DB,admin:express.Req
      }else Object.assign(video,origin(video.url),{source_platform:social?.platform.toLowerCase()||'provided',source_url:social?.canonical||'',display_mode:social?'embed':'reupload'});
      sourceRows.push({...video,url:video.url,source_platform:video.source_platform!,source_url:video.source_url!,source_handle:video.source_handle!,captured_at:video.captured_at!,display_mode:video.display_mode!,last_check_at:video.last_check_at??null,is_still_available:video.is_still_available??null});
    }
+   if(profile.avatar==='/profile-placeholder.svg'){const first=profile.videos.find(v=>v.source_platform==='tiktok'&&v.thumbnail&&v.source_handle?.replace(/^@/,'').toLowerCase()===profile.socials.tiktok.toLowerCase());if(first){profile.avatar=first.thumbnail!;sourceRows.push({...first,url:profile.avatar} as any);}}
    profile.mediaSources=sourceRows;
 if(all().some(p=>p.username===profile.username&&p.id!==profile.id))return res.status(409).json({error:'Esse @usuário já está cadastrado.'});
    if(existing){const current=all().find(p=>p.id===existing.id);if(!current)return res.status(404).json({error:'Perfil removido durante a consulta.'});if(current.updatedAt!==existing.updatedAt)return res.status(409).json({error:'O perfil mudou durante a consulta. Reabra-o antes de salvar.'});}
@@ -69,4 +71,5 @@ if(all().some(p=>p.username===profile.username&&p.id!==profile.id))return res.st
  app.put('/api/admin/people/:id',admin,(req,res)=>write(req,res,true));
  app.delete('/api/admin/people/:id',admin,(req,res)=>{if(!all().some(p=>p.id===req.params.id))return res.status(404).json({error:'Perfil não encontrado.'});const before=db.get().peopleProfiles;db.get().peopleProfiles=all().filter(p=>p.id!==req.params.id);try{db.save();res.json({ok:true});}catch{db.get().peopleProfiles=before;res.status(503).json({error:'Não foi possível apagar o perfil.'});}});
 }
+
 

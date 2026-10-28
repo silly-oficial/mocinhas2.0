@@ -116,7 +116,8 @@ function buildNodes(posts: Post[]): UNode[] {
     const hue = 160;
     const title = (p.caption || '').trim().split('\n')[0].slice(0, 60) || 'Publicação';
     const isVid = m.type === 'video';
-    const poster = isVid ? (posterOf(m) || (m.thumbnail !== m.url ? m.thumbnail : undefined)) : (m.url || m.thumbnail);
+    const external=m.display_mode==='embed';
+    const poster = external?(m.thumbnail&&m.thumbnail!==m.url?m.thumbnail:undefined):isVid ? (posterOf(m) || (m.thumbnail !== m.url ? m.thumbnail : undefined)) : (m.url || m.thumbnail);
     return {
       id: p.id,
       post: p,
@@ -125,7 +126,7 @@ function buildNodes(posts: Post[]): UNode[] {
       d,
       hue,
       poster,
-      videoUrl: isVid ? m.url : '',
+      videoUrl: isVid&&!external ? m.url : '',
       title,
     };
   });
@@ -988,4 +989,5 @@ export const UniverseFeed: React.FC<UniverseFeedProps> = ({
     </div>
   );
 };
+
 

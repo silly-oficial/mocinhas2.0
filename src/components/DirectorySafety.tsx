@@ -1,3 +1,4 @@
+import {creditsSections} from '../../shared/credits';
 import React, {useEffect, useState} from 'react';
 import {requestTypes, type DirectoryRequestType} from '../../shared/directory-requests';
 import {legalDocuments, legalNavigation, legalNotice, type LegalDocumentVersion, type LegalPageKey, type LegalVersionSummary} from '../../shared/legal-documents';
@@ -13,19 +14,22 @@ function usePublicSettings() {
   return settings;
 }
 export function LegalNavigation({currentPath,versionId = ''}: {currentPath?:string;versionId?:string}) {
-  return <nav className="directory-legal-nav" aria-label="Documentos e atendimento">{legalNavigation.map(link => <a key={link.path} href={link.path + (versionId && link.path !== '/versoes' ? '?versao=' + encodeURIComponent(versionId) : '')} aria-current={currentPath === link.path ? 'page' : undefined}>{link.label}</a>)}</nav>;
+  return <nav className="directory-legal-nav" aria-label="Documentos e atendimento">{legalNavigation.map(link => <a key={link.path} href={link.path + (versionId && link.path !== '/versoes' && link.path !== '/creditos' ? '?versao=' + encodeURIComponent(versionId) : '')} aria-current={currentPath === link.path ? 'page' : undefined}>{link.label}</a>)}</nav>;
 }
 export function DirectorySafetyFooter() {
   const config = usePublicSettings();const email=config.contactEmail;
-  return <footer className="directory-safety-footer"><p>{config.siteName}{config.organizationName&&' · '+config.organizationName}</p>{config.websiteUrl&&<p><a href={config.websiteUrl}>Site oficial</a></p>}<p>{legalNotice} <a href="/pais">clique aqui</a>.</p><LegalNavigation/>{email && <p>Contato: <a href={'mailto:' + email}>{email}</a></p>}{config.dpoEmail&&<p>Privacidade: <a href={'mailto:'+config.dpoEmail}>{config.dpoEmail}</a></p>}</footer>;
+  return <footer className="directory-safety-footer"><p>Todo o conteúdo do Mocinhas é de autoria dos criadores originais.<br/>Cada mídia mantém o crédito e o link do perfil de origem.<br/>Encontrou algo seu e quer ajustar ou remover? Fale com a gente: {email?<a href={'mailto:'+email}>{email}</a>:<a href="/pais">Pedir remoção / reclamar</a>}</p><p>© {new Date().getFullYear()} Mocinhas. As mídias pertencem aos seus criadores originais.</p><LegalNavigation/>{config.dpoEmail&&<p>Privacidade: <a href={'mailto:'+config.dpoEmail}>{config.dpoEmail}</a></p>}</footer>;
 }
 function LinkedText({text}: {text:string}) {
-  return <>{text.split(/(\/(?:termos|privacidade|pais|versoes))\b/g).map((part,index) => /^\/(termos|privacidade|pais|versoes)$/.test(part) ? <a key={index} href={part}>{part}</a> : part)}</>;
+  return <>{text.split(/(\/(?:termos|privacidade|pais|versoes|creditos))\b/g).map((part,index) => /^\/(termos|privacidade|pais|versoes|creditos)$/.test(part) ? <a key={index} href={part}>{part}</a> : part)}</>;
 }
 function RecordedDate({version}: {version:LegalVersionSummary|null}) {
   return <p className="directory-version-date">{version ? <>Versão registrada em <time dateTime={version.recordedAt}>{new Date(version.recordedAt).toLocaleString('pt-BR',{timeZone:'America/Belem'})} (Belém)</time>.</> : 'Versão de desenvolvimento — ainda não arquivada em produção.'}</p>;
 }
 function ResponsibleRequestForm() {
+  const params=new URLSearchParams(typeof window==='undefined'?'':window.location.search);
+  const handle=params.get('handle')?.replace(/^@/,'').slice(0,60)||'';
+  const content=params.get('conteudo')?.slice(0,2048)||'';
   const [busy,setBusy] = useState(false), [error,setError] = useState(''), [receipt,setReceipt] = useState('');
   const [type,setType] = useState<DirectoryRequestType>('remover_conteudo');
   async function submit(event:React.FormEvent<HTMLFormElement>) {
@@ -46,11 +50,11 @@ function ResponsibleRequestForm() {
   return receipt ? <section className="directory-receipt" role="status" aria-live="polite"><h2>Pedido registrado</h2><p>Protocolo: <strong>{receipt}</strong></p><p>Acompanhe o e-mail informado. Este protocolo confirma o recebimento, não a conclusão da análise.</p><button onClick={() => {setReceipt('');setType('remover_conteudo');}}>Enviar outro pedido</button></section> : <form onSubmit={submit}>
     <fieldset disabled={busy}>
       <legend>Enviar uma solicitação</legend>
-      <label>Nome do responsável<input name="responsibleName" autoComplete="name" required maxLength={120}/></label>
+      <label>Seu nome (criador, titular ou responsável)<input name="responsibleName" autoComplete="name" required maxLength={120}/></label>
       <label>E-mail para resposta<input name="email" type="email" autoComplete="email" required maxLength={254}/></label>
-      <label>@ do perfil<input name="handle" required maxLength={60} placeholder="@usuario" autoCapitalize="none" spellCheck={false}/></label>
+      <label>@ do perfil<input name="handle" defaultValue={handle} required maxLength={60} placeholder="@usuario" autoCapitalize="none" spellCheck={false}/></label>
       <label>Tipo de pedido<select value={type} onChange={event => setType(event.target.value as DirectoryRequestType)}>{Object.entries(requestTypes).map(([key,label]) => <option key={key} value={key}>{label}</option>)}</select></label>
-      <label>Observações<textarea name="observations" rows={5} maxLength={3000} placeholder="Indique o conteúdo ou a informação a corrigir. Não inclua dados pessoais desnecessários."/></label>
+      <label>Observações<textarea name="observations" defaultValue={content} rows={5} maxLength={3000} placeholder="Indique o conteúdo ou a informação a corrigir. Não inclua dados pessoais desnecessários."/></label>
       {(type === 'reivindicar_perfil' || type === 'autorizar_oficialmente') && <label>Link HTTPS do termo assinado (opcional)<input name="documentUrl" type="url" maxLength={2048} placeholder="https://…"/><small>O link é restrito à administração. Compartilhe apenas o termo necessário, com acesso controlado. O envio não gera selo nem autorização automática.</small></label>}
       <p>Ao enviar, seus dados serão usados para tratar esta solicitação. Consulte a <a href="/privacidade">privacidade dos pedidos</a> e os <a href="/termos">Termos de Uso do canal</a>.</p>
       <button type="submit">{busy ? 'Registrando…' : 'Enviar solicitação'}</button>
@@ -104,9 +108,12 @@ export function LegalVersionHistory() {
       {!versions.length && <p>Nenhuma versão registrada em produção ainda.</p>}
       {versions.map((version,index) => <article className="directory-request-row" key={version.id}>
         <h2>Versão {total - page*20 - index}</h2><RecordedDate version={version}/><p className="directory-version-id">Identificador: {version.id}</p>
-        <nav className="directory-legal-nav" aria-label={'Consultar versão ' + version.id}>{legalNavigation.filter(link => link.path !== '/versoes').map(link => <a key={link.path} href={link.path + '?versao=' + encodeURIComponent(version.id)}>{link.label}</a>)}<a href={'/api/legal-history/' + encodeURIComponent(version.id) + '/file'} download>Baixar arquivo JSON datado</a></nav>
+        <nav className="directory-legal-nav" aria-label={'Consultar versão ' + version.id}>{legalNavigation.filter(link => link.path !== '/versoes' && link.path !== '/creditos').map(link => <a key={link.path} href={link.path + '?versao=' + encodeURIComponent(version.id)}>{link.label}</a>)}<a href={'/api/legal-history/' + encodeURIComponent(version.id) + '/file'} download>Baixar arquivo JSON datado</a></nav>
       </article>)}
       {total > 20 && <nav className="directory-legal-nav" aria-label="Páginas do histórico"><button disabled={page === 0} onClick={() => setPage(value => value - 1)}>Anterior</button><span>Página {page + 1}</span><button disabled={(page+1)*20 >= total} onClick={() => setPage(value => value + 1)}>Próxima</button></nav>}
     </>}
   </main>;
 }
+
+
+export function CreditsPage(){const config=usePublicSettings();return <main className="directory-safety-page"><a className="directory-back" href="/">← Voltar ao aplicativo</a><LegalNavigation currentPath="/creditos"/><h1>Créditos e Remoção</h1><p>As mídias pertencem aos criadores originais. <a href="/pais">Pedir remoção / reclamar</a></p>{config.contactEmail&&<p>Contato: <a href={'mailto:'+config.contactEmail}>{config.contactEmail}</a></p>}{creditsSections.map(section=><section key={section.title}><h2>{section.title}</h2>{section.paragraphs.map((text,index)=><p key={index}><LinkedText text={text}/></p>)}</section>)}</main>;}

@@ -1,3 +1,4 @@
+import {MediaCredit} from './CreatorCredit';
 import React, { useEffect, useRef } from 'react';
 import { X } from 'lucide-react';
 import { ui, useUi } from '../i18n/ui';
@@ -5,7 +6,7 @@ import { createPortal } from 'react-dom';
 import { pauseMedia } from './ManagedVideo';
 
 /** Only the complete photo is visible; tap it/backdrop or press Escape to return. */
-export function FullPhotoViewer({ src, alt, onClose }: { src: string; alt: string; onClose: () => void }) {
+export function FullPhotoViewer({ src, alt, handle, onClose }: { src: string; alt: string; handle?:string; onClose: () => void }) {
   useUi();
   const ref = useRef<HTMLDialogElement>(null);
   useEffect(() => {
@@ -17,6 +18,7 @@ export function FullPhotoViewer({ src, alt, onClose }: { src: string; alt: strin
     return () => { dialog.close(); document.documentElement.style.overflow = previous; };
   }, []);
   return createPortal(<dialog ref={ref} className="orix-photo-viewer" aria-label={alt} onCancel={event => { event.preventDefault(); onClose(); }} onClick={onClose}>
-    <div className="media-full-content"><button className="media-full-close" aria-label={ui('Fechar tela cheia')} onClick={event=>{event.stopPropagation();onClose();}}><X size={21}/></button><img src={src} alt={alt} draggable={false}/></div>
+    <div className="media-full-content"><button className="media-full-close" aria-label={ui('Fechar tela cheia')} onClick={event=>{event.stopPropagation();onClose();}}><X size={21}/></button><img src={src} alt={alt} draggable={false}/><div className="full-photo-credit" onClick={e=>e.stopPropagation()}><MediaCredit handle={handle}/></div></div>
   </dialog>, document.body);
 }
+

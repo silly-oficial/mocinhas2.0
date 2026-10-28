@@ -19,8 +19,8 @@ for (const page of ['terms','privacy','parents'] as const) {
 }
 const footer = renderToStaticMarkup(React.createElement(DirectorySafetyFooter));
 for (const link of legalNavigation) assert.ok(footer.includes('href="' + link.path + '"'));
-assert.ok(footer.includes('As imagens e vídeos pertencem aos seus criadores.'));
-assert.match(footer, /href="\/pais">clique aqui/);
+assert.ok(footer.includes('As mídias pertencem aos seus criadores originais.'));
+assert.match(footer, /href="\/pais">Pedir remoção/);
 assert.ok(renderToStaticMarkup(React.createElement(LegalVersionHistory)).includes('Histórico de versões'));
 
 const state: any = {users:[],posts:[],directoryRequests:[{email:'must-remain-private@example.invalid',documentUrl:'https://example.invalid/private-document'}]};
@@ -74,3 +74,4 @@ try {
   assert.equal((await (await fetch(base + '/api/legal-history?page=100')).json()).versions.length,0);
   console.log('Legal pages: reciprocal links, global removal notice, public form, dated immutable archives, restart deduplication, failure rollback, private-data isolation and JSON downloads passed.');
 } finally {server.close();server.closeAllConnections();}
+
