@@ -84,3 +84,9 @@ O avatar passa a reconhecer também `onImageChange` e `onCurrentTime` como sinai
 ### Cadastro de perfil sem metadados oEmbed
 
 O link informado `https://vt.tiktok.com/ZSgbgEMFU/` resolveu de verdade para `https://www.tiktok.com/@rlk_levada/photo/7698298117665328405`; a consulta oEmbed retornou HTTP 400 com mensagem genérica. O cadastro de publicações dos perfis passa a tratar metadados como opcionais. Adicionar, salvar e editar preservam o endereço canônico e o crédito, mesmo sem thumbnail. Falhas oEmbed produzem disponibilidade desconhecida (`null`), sem afirmar que a conta/post está privado/removido nem afirmar que está disponível. O player oficial continua responsável por disponibilizar ou restringir o conteúdo. O fluxo de avatar permanece inalterado. Teste de integração cobre a resposta real observada (simulada), cadastro, edição, status e rejeição de host inválido.
+
+### Seleção direta, navegação externa e crédito automático
+
+Usar foto exibida aplica diretamente ao rascunho do perfil o índice reportado pelo player, com confirmação junto ao botão; Salvar perfil persiste a escolha. A navegação anterior/próxima e seleção numérica ficam abaixo da imagem. O editor usa os tokens e botões do tema atual, com ação principal e mensagens fora da imagem. Controles opcionais do player são desativados por parâmetros oficiais; elementos internos que o TikTok mantiver não são manipulados/cortados pelo site. O erro genérico obsoleto onError não é tratado como falha fatal; erro de reprodução de música não cobre foto já confirmada por onImageChange. Falhas modernas continuam visíveis abaixo da prévia.
+
+O @ é derivado do endereço canônico ao abrir o avatar ou adicionar publicação, também no servidor. O @ do diretório é sugerido pelo link quando estiver vazio. Nenhum arquivo de mídia é exportado ou enviado. Verificação visual e dos controles internos no Safari físico permanece pendente.
