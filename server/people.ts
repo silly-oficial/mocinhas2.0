@@ -1,3 +1,4 @@
+import {optionalTikTokPreview} from './tiktok-preview';
 import {resolveTikTokLink} from './tiktok-link';
 import {validateProfileAvatar} from '../shared/profile-avatar';
 import type express from 'express';
@@ -31,7 +32,7 @@ export function installPeople(app:express.Express,db:typeof DB,admin:express.Req
  const resolveTikTok=makeTikTokResolver(db);
  const publicProfile=(p:PersonProfile)=>({...p,verified:isProfileVerified(db,p)});
  app.post('/api/admin/tiktok-link',admin,async(req,res)=>{try{res.json({url:await resolveTikTokLink(req.body?.url)});}catch(e){res.status(400).json({error:e instanceof Error?e.message:'Não foi possível resolver o link.'});}});
- app.post('/api/admin/tiktok-oembed',admin,async(req,res)=>{try{if(typeof req.body?.url!=='string')throw Error('Informe o link.');res.json(await resolveTikTok(req.body.url));}catch(error){res.status(400).json({error:error instanceof Error?error.message:'Falha no TikTok.'});}});
+ app.post('/api/admin/tiktok-oembed',admin,async(req,res)=>{try{if(typeof req.body?.url!=='string')throw Error('Informe o link.');const url=await resolveTikTokLink(req.body.url);res.json(await optionalTikTokPreview(url,resolveTikTok));}catch(error){res.status(400).json({error:error instanceof Error?error.message:'Falha no TikTok.'});}});
  const sorted=(rows:PersonProfile[])=>[...rows].sort((a,b)=>Number(b.featured)-Number(a.featured)||a.order-b.order||a.name.localeCompare(b.name));
  app.get('/api/people',(_req,res)=>res.json({profiles:sorted(all().filter(p=>p.published)).map(publicProfile)}));
  app.get('/api/people/:id/video-status/:index',async(req,res)=>{
@@ -39,7 +40,7 @@ export function installPeople(app:express.Express,db:typeof DB,admin:express.Req
   if(!profile||!Number.isInteger(index)||!profile.videos[index])return res.status(404).json({error:'Vídeo não encontrado.'});
   const video=profile.videos[index];
   try{
-   const metadata=await resolveTikTok(video.url,false);
+   const metadata=await optionalTikTokPreview(video.url,resolveTikTok);
    const latest=all().find(p=>p.id===profile.id);
    if(latest?.videos[index]?.url===video.url){latest.videos[index]={...latest.videos[index],last_check_at:metadata.checkedAt,is_still_available:metadata.available};db.save();}
    res.json({available:metadata.available});
@@ -57,7 +58,7 @@ export function installPeople(app:express.Express,db:typeof DB,admin:express.Req
    for(const video of profile.videos){
      const social=video.kind==='social'?socialVideo(video.url):null;
      if(social?.platform==='TikTok'){
-       const metadata=await resolveTikTok(video.url,!existing?.videos.some(old=>old.url===video.url));
+       const metadata=await optionalTikTokPreview(video.url,resolveTikTok);
        Object.assign(video,origin(video.url,true),{source_platform:'tiktok',source_url:video.url,source_handle:new URL(video.url).pathname.split('/')[1],thumbnail:metadata.thumbnail_url,last_check_at:metadata.checkedAt,is_still_available:metadata.available,display_mode:'embed'});
      }else Object.assign(video,origin(video.url),{source_platform:social?.platform.toLowerCase()||'provided',source_url:social?.canonical||'',display_mode:social?'embed':'reupload'});
      sourceRows.push({...video,url:video.url,source_platform:video.source_platform!,source_url:video.source_url!,source_handle:video.source_handle!,captured_at:video.captured_at!,display_mode:video.display_mode!,last_check_at:video.last_check_at??null,is_still_available:video.is_still_available??null});

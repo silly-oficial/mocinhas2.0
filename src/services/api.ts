@@ -49,7 +49,7 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
 
 export const api = {
   resolveTikTokLink:(url:string)=>request<{url:string}>('/admin/tiktok-link',{method:'POST',body:JSON.stringify({url})}),
-  resolveTikTok:(url:string)=>request<{thumbnail_url:string}>('/admin/tiktok-oembed',{method:'POST',body:JSON.stringify({url})}),
+  resolveTikTok:(url:string)=>request<{thumbnail_url:string;available:boolean|null}>('/admin/tiktok-oembed',{method:'POST',body:JSON.stringify({url})}),
   getPeople: (admin = false) => request<{profiles: PersonProfile[]}>(admin ? '/admin/people' : '/people'),
   savePerson: (profile: Partial<PersonProfile>) => request<{profile:PersonProfile}>(`/admin/people${profile.id ? '/'+profile.id : ''}`, {method:profile.id ? 'PUT':'POST',body:JSON.stringify(profile)}),
   deletePerson: (id:string) => request('/admin/people/'+id,{method:'DELETE'}),
