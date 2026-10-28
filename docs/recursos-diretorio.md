@@ -130,3 +130,12 @@ Contrato A: manter a paleta laranja/neutra e a tipografia do Mocinhas; controles
 | Altura natural e limite dvh nos diálogos | §§7,11 | D | Não herdar a altura fullscreen do wrapper; rolagem interna sem corte |
 
 Verificação: TypeScript, build e testes de sessão/seleção/créditos executados neste patch. Player real no Safari, contraste renderizado e screenshots responsivas: NÃO VERIFICADO neste ambiente, sem navegador instalado. Curtidas e comentários pertencem ao iframe externo e não são removidos por CSS do site. O player de vídeo aberto aceita toque direto; a miniatura continua abrindo o modal. Nenhuma mídia foi baixada, extraída ou enviada ao servidor.
+
+
+### Ajuste de créditos e avatar em vídeo
+- A: controles de remoção exibidos apenas no crédito principal dentro do perfil (`showRights` explícito); cards e visualizadores mantêm autoria e acesso à origem sem o expansor.
+- A: removida a seção pública de redes sociais. Os dados históricos das redes permanecem preservados; o acesso ao TikTok usa o crédito principal.
+- D: ação TikTok e expansor de créditos usam preenchimento laranja e texto branco. Créditos sobre fotos usam variáveis locais de contraste claro sobre fundo escuro, evitando herdar a cor de texto do tema claro.
+- D: avatar em vídeo solicita `autoplay=1`, `muted=1` e `loop=1` ao player oficial; fotos mantêm autoplay desligado. Zoom altera somente a transformação do quadro e não a URL do iframe.
+- D: evento load envia início sem depender do ready, evento playing confirma inicialização se ready foi perdido, e ended reinicia o trecho uma vez por transição, mesmo para trecho curto. Offscreen/aba oculta pausa também antes do ready.
+- PASS: testes de sessão, parâmetros de embed, créditos por contexto, TypeScript e build. Reprodução real em Safari e contraste renderizado: NÃO VERIFICADO. Não se promete vencer bloqueios de autoplay do navegador ou indisponibilidade do TikTok.

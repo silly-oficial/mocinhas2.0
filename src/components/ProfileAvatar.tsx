@@ -1,5 +1,5 @@
 import React,{useEffect,useRef,useState} from 'react';
-import {tiktokPost} from '../../shared/people';
+import {avatarEmbedSource} from '../../shared/avatar-embed';
 import {createAvatarSession} from '../../shared/avatar-session';
 import type {ProfileAvatarSelection} from '../../shared/profile-avatar';
 /** Stable official iframe: lazy mount once; visibility pauses playback without replacing it. */
@@ -30,10 +30,9 @@ export function ProfileAvatar({selection,fallback='/profile-placeholder.svg',cla
  useEffect(()=>session.current?.active(visible&&foreground),[visible,foreground,entered,retry]);
  useEffect(()=>{if(typeof seekTo==='number')session.current?.seek(seekTo);},[seekTo,seekToken]);
  useEffect(()=>{if(playToken)session.current?.play();},[playToken]);
- const source=selection?new URL(tiktokPost(selection.url).embed):null;
- if(source){for(const [key,value] of Object.entries({controls:interactive?'1':'0',progress_bar:'0',play_button:interactive?'1':'0',volume_control:'0',fullscreen_button:'0',timestamp:'0',muted:'1',autoplay:'0',description:'0',music_info:'0'}))source.searchParams.set(key,value);}
+ const source=selection?avatarEmbedSource(selection,{interactive,preview}):undefined;
  const scale=Math.max(size.width/325,size.height/578)*(selection?.zoom??1);
  return <><span ref={root} className={'profile-link-avatar '+className} aria-label={alt} aria-busy={selection?loading:undefined}>
- {selection&&entered?<iframe key={url+':'+retry} ref={frame} src={source!.href} title={'TikTok: '+alt} allow="autoplay; encrypted-media" tabIndex={preview||interactive?0:-1} style={{position:'absolute',width:325,height:578,maxWidth:'none',left:'50%',top:'50%',pointerEvents:preview||interactive?'auto':'none',transform:`translate(-50%,-50%) scale(${scale})`,transformOrigin:'center'}} onError={()=>{setLoading(false);setReason('Não foi possível carregar o player.');}}/>:!selection?<img src={fallback} alt={alt} onError={e=>{e.currentTarget.src='/profile-placeholder.svg';}}/>:<span className="profile-avatar-pending" aria-hidden="true"/>}
+ {selection&&entered?<iframe key={url+':'+retry} ref={frame} src={source} title={'TikTok: '+alt} allow="autoplay; encrypted-media" tabIndex={preview||interactive?0:-1} style={{position:'absolute',width:325,height:578,maxWidth:'none',left:'50%',top:'50%',pointerEvents:preview||interactive?'auto':'none',transform:`translate(-50%,-50%) scale(${scale})`,transformOrigin:'center'}} onLoad={()=>session.current?.loaded()} onError={()=>{setLoading(false);setReason('Não foi possível carregar o player.');}}/>:!selection?<img src={fallback} alt={alt} onError={e=>{e.currentTarget.src='/profile-placeholder.svg';}}/>:<span className="profile-avatar-pending" aria-hidden="true"/>}
  </span>{preview&&selection?.kind==='video'&&<div className="media-stepper"><button type="button" className="people-secondary" onClick={()=>session.current?.play()}>Reproduzir trecho</button><button type="button" className="people-secondary" onClick={()=>session.current?.pause()}>Pausar</button></div>}{reason&&preview&&<small className="avatar-player-status" role="status">{reason}<button type="button" onClick={()=>setRetry(n=>n+1)}>Tentar novamente</button><a href={url} target="_blank" rel="noopener noreferrer">Abrir no TikTok</a></small>}</>;
 }

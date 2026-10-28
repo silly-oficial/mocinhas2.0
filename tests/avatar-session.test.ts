@@ -19,3 +19,14 @@ const earlyCommands:string[]=[];
 const early=createAvatarSession({url,kind:'video',start:3,end:5},{preview:false,send:type=>earlyCommands.push(type)});
 early.play();assert.deepEqual(earlyCommands,['mute','play'],'a user gesture sends play even before the readiness event');
 early.receive('onPlayerReady',undefined);assert.equal(earlyCommands.at(-1),'play','readiness reapplies the requested segment');
+
+// Iframe load can precede the first readiness message. Bootstrap playback without seeking.
+const bootstrap:{type:string;value?:number}[]=[];
+const boot=createAvatarSession({url,kind:'video',start:8,end:8.2,zoom:2},{preview:false,send:(type,value)=>bootstrap.push({type,value}),now:()=>0});
+boot.loaded();assert.deepEqual(bootstrap.map(c=>c.type),['mute','play']);
+boot.receive('onStateChange',1);assert.equal(bootstrap.filter(c=>c.type==='seekTo').length,1,'playing can confirm a missed ready event');
+boot.receive('onCurrentTime',{currentTime:8.2,duration:60});
+const count=bootstrap.filter(c=>c.type==='seekTo').length;
+boot.receive('onStateChange',0);assert.equal(bootstrap.filter(c=>c.type==='seekTo').length,count+1,'ended restarts even inside the seek throttle window');
+boot.receive('onStateChange',0);assert.equal(bootstrap.filter(c=>c.type==='seekTo').length,count+1,'duplicate ended events do not restart again');
+boot.active(false);const paused=bootstrap.length;boot.loaded();assert.equal(bootstrap.length,paused+1);assert.equal(bootstrap.at(-1)?.type,'pause','offscreen load pauses native autoplay');
