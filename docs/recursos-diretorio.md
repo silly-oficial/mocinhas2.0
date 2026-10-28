@@ -37,3 +37,13 @@ Retenção: pedidos gerais encerrados por 90 dias e abertos por 180; verificaç�
 - E-mails e TikTok usam transportes simulados nos testes; não há disparo real, cobrança ou acesso ao banco de produção. Sem validação visual em Android/iOS físico. Estilos foram preparados para larguras pequenas, mas a apresentação em 320 px ainda precisa de conferência visual no aparelho.
 
 Referências técnicas: https://developers.tiktok.com/docs/en/embed-videos, https://developers.tiktok.com/docs/en/embed-player e https://resend.com/docs/api-reference/emails/send-email.
+
+
+
+### Carrosséis de fotos do TikTok
+
+Links completos `https://www.tiktok.com/@usuario/photo/ID` e `/video/ID` usam o mesmo player oficial, sem importar as imagens. Links encurtados precisam ser abertos antes de copiar o endereço completo. O painel Apresentação da entrada aceita publicações do TikTok, ordenação e remoção. O crédito é derivado do link; a miniatura vem do oEmbed quando disponível. Falhas de miniatura não impedem a exibição do cartão com crédito e link externo. O iframe só é montado ao tocar em Ver publicação; a rotação da entrada pausa enquanto o diálogo está aberto. O player oferece Abrir no TikTok permanentemente e trata erro/timeout.
+
+O cadastro de links dos perfis também aceita `/photo/`. As galerias existentes e mídias legadas são preservadas; esta alteração não faz limpeza de produção.
+
+Validação: tipos, compilação e testes direcionados com transporte TikTok simulado. A navegação entre imagens de uma publicação real em Android/iOS permanece pendente; a compilação não comprova disponibilidade do conteúdo externo nem compatibilidade no aparelho.

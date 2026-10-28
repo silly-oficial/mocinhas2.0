@@ -46,3 +46,17 @@
 .people-photos>article>button{width:100%}
 @media(max-width:480px){.profile-reels-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}}
 .people-card,.people-card-body{height:auto!important;max-height:none!important;overflow:visible!important}
+
+
+/* TikTok cards remain interactive only on the visible entrance slide. */
+.welcome-slide.is-current:has(.welcome-tiktok-card){pointer-events:auto}
+.welcome-tiktok-card{height:100%;display:flex;align-items:center;justify-content:center;padding:20px 48px;position:relative;text-align:center;color:#fff}
+.welcome-tiktok-copy{position:relative;z-index:1;display:grid;gap:10px;justify-items:center;max-height:100%;overflow:auto;font-size:14px;line-height:1.35}
+.welcome-tiktok-copy>a{text-decoration:underline;color:#fff;min-height:32px;display:flex;align-items:center}
+.welcome-tiktok-copy>button{min-height:44px;padding:8px 18px;background:#fff;color:#12203a;border-radius:16px}
+.welcome-tiktok-copy>small{font-size:11px;line-height:1.4;max-width:280px}
+.welcome-tiktok-dialog{width:min(94vw,440px);max-height:92dvh;overflow:auto;padding:16px;background:var(--surface-card,#fff);color:var(--theme-text,#182236);border-radius:20px}
+.welcome-tiktok-dialog .social-video-player{height:auto;min-height:0}
+.welcome-tiktok-dialog .social-video-player>iframe{flex:none;aspect-ratio:9/16;min-height:280px;max-height:65dvh}
+.welcome-tiktok-dialog .social-video-player>img{height:auto;max-height:50dvh}
+.welcome-tiktok-dialog p{font-size:12px;line-height:1.5}
