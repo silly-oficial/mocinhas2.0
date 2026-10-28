@@ -85,3 +85,7 @@
 .credit-actions :is(a,button):focus-visible{outline:3px solid var(--people-accent,#ed4609);outline-offset:3px}
 .full-photo-credit .credit-identity>a,.legacy-welcome-credit .credit-identity>a{color:#fff}
 @media(max-width:359px){.credit-layout .credit-actions>:is(a,button){padding:10px 8px;font-size:11px}.people-card .people-card-body{padding:12px}}
+
+.external-player-controls{display:flex;align-items:center;justify-content:center;gap:12px;padding:8px 0;color:var(--people-ink,var(--theme-text,#18181b));background:var(--people-surface,var(--surface-card,#fff))}
+.external-player-controls span{font-size:13px;font-variant-numeric:tabular-nums}
+.external-player-controls .people-secondary{min-height:44px;font-size:13px}

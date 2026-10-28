@@ -10,7 +10,7 @@ assert.equal(src.searchParams.get('autoplay'),'1');assert.equal(src.searchParams
 assert.equal(avatarEmbedSource({...selection,zoom:2}),src.href,'zoom must not reload or reconfigure playback');
 assert.equal(new URL(avatarEmbedSource({...selection,kind:'photo',imageIndex:4})).searchParams.get('autoplay'),'0');
 assert.equal(new URL(avatarEmbedSource(selection,{preview:true})).searchParams.get('loop'),'0');
-assert.equal(new URL(avatarEmbedSource(selection,{interactive:true})).searchParams.get('play_button'),'1');
+assert.equal(new URL(avatarEmbedSource(selection,{interactive:true})).searchParams.get('play_button'),'0','interaction must not restore controls over the image');
 const card=renderToStaticMarkup(React.createElement(MediaCredit,{handle:'creator',sourceUrl:url}));
 assert.ok(!card.includes('Créditos e remoção'),'cards do not expose removal controls');assert.match(card,/Ver no TikTok/);assert.match(card,/@creator/);assert.match(card,/credit-source-button/);
 const person:any={socials:{tiktok:'creator'}};
@@ -23,3 +23,13 @@ assert.ok(actions.indexOf('Ir para o perfil')<actions.indexOf('Ver no TikTok'),'
 assert.ok(actions.indexOf('Conteúdo do criador original.')>actions.indexOf('Ver no TikTok'),'ownership caption follows the complete action group');
 assert.ok(!actions.includes('Imagem/vídeo do criador original'));
 assert.match(profile,/aria-expanded="false"/);assert.match(profile,/credit-rights-panel[^>]*hidden/);
+
+const {cleanTikTokPlayerSource}=await import('../shared/tiktok-player-options');
+const clean=new URL(cleanTikTokPlayerSource('https://www.tiktok.com/player/v1/7421111111111111111?controls=1&description=1&music_info=1&muted=1&autoplay=1'));
+for(const name of ['controls','play_button','progress_bar','volume_control','fullscreen_button','timestamp','description','music_info','closed_caption','native_context_menu'])assert.equal(clean.searchParams.get(name),'0');
+assert.equal(clean.searchParams.get('autoplay'),'1');assert.equal(clean.searchParams.get('muted'),'1');
+const {SocialVideoPlayer}=await import('../src/components/SocialVideoPlayer');
+const playing=renderToStaticMarkup(React.createElement(SocialVideoPlayer,{video:{url,title:'',kind:'social'},name:'Creator'}));
+assert.match(playing,/Reproduzir/);assert.match(playing,/Pausar/);assert.match(playing,/controls=0/);
+const images=renderToStaticMarkup(React.createElement(SocialVideoPlayer,{video:{url:url.replace('/video/','/photo/'),title:'',kind:'social'},name:'Creator'}));
+assert.match(images,/Próxima foto/);assert.match(images,/Foto 1/);

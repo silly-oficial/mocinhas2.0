@@ -148,3 +148,8 @@ Validação: TypeScript, renderização estrutural dos grupos e build; screensho
 
 ### Contraste das páginas públicas e preferências
 Correção na origem: páginas legais, rodapé e cookies passam a usar `--theme-text` e `--theme-muted`, os mesmos tokens do tema público, com fallback escuro sobre superfície branca. Os antigos tokens `--text-primary`/`--text-secondary` inexistentes nesses componentes acionavam fallbacks claros. Campos, placeholders, links e botões acompanham os tokens do tema. Cookies recebem título/ações com hierarquia explícita e foco visível. Adaptação A/D dos §§2,7,13; nenhuma mudança no consentimento salvo ou nos formulários. Contraste numérico dos pares do tema Ori verificado; validação física em Safari NÃO VERIFICADA.
+
+
+### Redução de controles sobre as mídias
+A configuração oficial de controles foi centralizada e aplicada ao avatar e ao player completo: controls, progress_bar, play_button, volume_control, fullscreen_button, timestamp, description, music_info, closed_caption e native_context_menu em zero. Reprodução/pausa e navegação de fotos ficam fora do quadro no player completo; os trechos selecionados mantêm o controle externo já existente. Autoplay sem som, loop e zoom são preservados. O próximo índice do carrossel é solicitado ao player, que confirma a foto efetiva por onImageChange; não se inventa a quantidade de imagens.
+Limitação: a documentação https://developers.tiktok.com/docs/en/embed-player não publica comando “Limpar tela”. O site não injeta scripts, CSS ou cliques no iframe de outra origem, nem promete remover a identificação e o painel social que o TikTok imponha. Nenhuma extração, download ou upload foi adicionado. Testes estruturais e de parâmetros não substituem validação de reprodução real em Safari.
