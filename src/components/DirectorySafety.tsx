@@ -1,10 +1,11 @@
+import {RequestFollowUp} from './RequestFollowUp';
 import {creditsSections} from '../../shared/credits';
 import React, {useEffect, useState} from 'react';
 import {requestTypes, type DirectoryRequestType} from '../../shared/directory-requests';
 import {legalDocuments, legalNavigation, legalNotice, type LegalDocumentVersion, type LegalPageKey, type LegalVersionSummary} from '../../shared/legal-documents';
 
-function usePublicSettings() {
-  const [settings,setSettings] = useState({contactEmail:'',dpoEmail:'',siteName:'Mocinhas',organizationName:'',websiteUrl:'',responseBusinessDays:5});
+export function usePublicSettings() {
+  const [settings,setSettings] = useState({contactEmail:'',dpoEmail:'',siteName:'Mocinhas',organizationName:'',websiteUrl:'',responseBusinessDays:5,ageRating:'L',ageRatingNote:'Conteúdo sem nudez. Podem aparecer traje de banho, roupa de praia e roupas justas.'});
   useEffect(() => {
     const controller = new AbortController();
     const load=()=>fetch('/api/directory-settings',{signal:controller.signal}).then(r=>r.ok?r.json():null).then(data=>{if(data)setSettings(data);}).catch(()=>{});
@@ -14,14 +15,14 @@ function usePublicSettings() {
   return settings;
 }
 export function LegalNavigation({currentPath,versionId = ''}: {currentPath?:string;versionId?:string}) {
-  return <nav className="directory-legal-nav" aria-label="Documentos e atendimento">{legalNavigation.map(link => <a key={link.path} href={link.path + (versionId && link.path !== '/versoes' && link.path !== '/creditos' ? '?versao=' + encodeURIComponent(versionId) : '')} aria-current={currentPath === link.path ? 'page' : undefined}>{link.label}</a>)}</nav>;
+  return <nav className="directory-legal-nav" aria-label="Documentos e atendimento">{legalNavigation.map(link => <a key={link.path} href={link.path + (versionId && link.path !== '/versoes' && link.path !== '/creditos' && link.path !== '/como-funciona' ? '?versao=' + encodeURIComponent(versionId) : '')} aria-current={currentPath === link.path ? 'page' : undefined}>{link.label}</a>)}</nav>;
 }
 export function DirectorySafetyFooter() {
   const config = usePublicSettings();const email=config.contactEmail;
-  return <footer className="directory-safety-footer"><p>Todo o conteúdo do Mocinhas é de autoria dos criadores originais.<br/>Cada mídia mantém o crédito e o link do perfil de origem.<br/>Encontrou algo seu e quer ajustar ou remover? Fale com a gente: {email?<a href={'mailto:'+email}>{email}</a>:<a href="/pais">Pedir remoção / reclamar</a>}</p><p>© {new Date().getFullYear()} Mocinhas. As mídias pertencem aos seus criadores originais.</p><LegalNavigation/>{config.dpoEmail&&<p>Privacidade: <a href={'mailto:'+config.dpoEmail}>{config.dpoEmail}</a></p>}</footer>;
+  return <footer className="directory-safety-footer"><p>Todo o conteúdo do Mocinhas é de autoria dos criadores originais.<br/>Cada mídia mantém o crédito e o link do perfil de origem.<br/>Encontrou algo seu e quer ajustar ou remover? Fale com a gente: {email?<a href={'mailto:'+email}>{email}</a>:<a href="/pais">Pedir remoção / reclamar</a>}</p><p>© {new Date().getFullYear()} Mocinhas. As mídias pertencem aos seus criadores originais.</p><p>Classificação informada pela curadoria: <strong>{config.ageRating}</strong> · {config.ageRatingNote} <a href="/como-funciona">Como funciona</a></p><LegalNavigation/>{config.dpoEmail&&<p>Privacidade: <a href={'mailto:'+config.dpoEmail}>{config.dpoEmail}</a></p>}</footer>;
 }
 function LinkedText({text}: {text:string}) {
-  return <>{text.split(/(\/(?:termos|privacidade|pais|versoes|creditos))\b/g).map((part,index) => /^\/(termos|privacidade|pais|versoes|creditos)$/.test(part) ? <a key={index} href={part}>{part}</a> : part)}</>;
+  return <>{text.split(/(\/(?:termos|privacidade|pais|versoes|creditos|como-funciona))\b/g).map((part,index) => /^\/(termos|privacidade|pais|versoes|creditos|como-funciona)$/.test(part) ? <a key={index} href={part}>{part}</a> : part)}</>;
 }
 function RecordedDate({version}: {version:LegalVersionSummary|null}) {
   return <p className="directory-version-date">{version ? <>Versão registrada em <time dateTime={version.recordedAt}>{new Date(version.recordedAt).toLocaleString('pt-BR',{timeZone:'America/Belem'})} (Belém)</time>.</> : 'Versão de desenvolvimento — ainda não arquivada em produção.'}</p>;
@@ -30,7 +31,7 @@ function ResponsibleRequestForm() {
   const params=new URLSearchParams(typeof window==='undefined'?'':window.location.search);
   const handle=params.get('handle')?.replace(/^@/,'').slice(0,60)||'';
   const content=params.get('conteudo')?.slice(0,2048)||'';
-  const [busy,setBusy] = useState(false), [error,setError] = useState(''), [receipt,setReceipt] = useState('');
+  const [busy,setBusy] = useState(false), [error,setError] = useState(''), [receipt,setReceipt] = useState(''),[accessToken,setAccessToken]=useState(''),[dueAt,setDueAt]=useState('');
   const [type,setType] = useState<DirectoryRequestType>('remover_conteudo');
   async function submit(event:React.FormEvent<HTMLFormElement>) {
     event.preventDefault(); if(busy) return;
@@ -43,11 +44,11 @@ function ResponsibleRequestForm() {
       })});
       const result = await response.json().catch(() => null);
       if(!response.ok || !result?.id) throw Error(result?.error || 'Não foi possível registrar o pedido. Tente novamente.');
-      setReceipt(result.id); form.reset();
+      setReceipt(result.id);setAccessToken(result.accessToken||'');setDueAt(result.dueAt||'');form.reset();
     } catch(error) {setError(error instanceof Error ? error.message : 'Falha de conexão. Tente novamente.');}
     finally {setBusy(false);}
   }
-  return receipt ? <section className="directory-receipt" role="status" aria-live="polite"><h2>Pedido registrado</h2><p>Protocolo: <strong>{receipt}</strong></p><p>Acompanhe o e-mail informado. Este protocolo confirma o recebimento, não a conclusão da análise.</p><button onClick={() => {setReceipt('');setType('remover_conteudo');}}>Enviar outro pedido</button></section> : <form onSubmit={submit}>
+  return receipt ? <section className="directory-receipt" role="status" aria-live="polite"><h2>Pedido registrado</h2><p>Protocolo: <strong>{receipt}</strong></p><p>Chave privada: <strong>{accessToken}</strong>. Guarde com o protocolo; ela permite consultar e reabrir o pedido.</p>{dueAt&&<p>Prazo: {new Date(dueAt).toLocaleString('pt-BR',{timeZone:'America/Belem'})} (Belém).</p>}<a href={'/pais?protocolo='+encodeURIComponent(receipt)+'#chave='+encodeURIComponent(accessToken)}>Consultar ou reabrir o mesmo protocolo</a><p>Acompanhe o e-mail informado. Este protocolo confirma o recebimento, não a conclusão da análise.</p><button onClick={() => {setReceipt('');setType('remover_conteudo');}}>Enviar outro pedido</button></section> : <form onSubmit={submit}>
     <fieldset disabled={busy}>
       <legend>Enviar uma solicitação</legend>
       <label>Seu nome (criador, titular ou responsável)<input name="responsibleName" autoComplete="name" required maxLength={120}/></label>
@@ -56,7 +57,7 @@ function ResponsibleRequestForm() {
       <label>Tipo de pedido<select value={type} onChange={event => setType(event.target.value as DirectoryRequestType)}>{Object.entries(requestTypes).map(([key,label]) => <option key={key} value={key}>{label}</option>)}</select></label>
       <label>Observações<textarea name="observations" defaultValue={content} rows={5} maxLength={3000} placeholder="Indique o conteúdo ou a informação a corrigir. Não inclua dados pessoais desnecessários."/></label>
       {(type === 'reivindicar_perfil' || type === 'autorizar_oficialmente') && <label>Link HTTPS do termo assinado (opcional)<input name="documentUrl" type="url" maxLength={2048} placeholder="https://…"/><small>O link é restrito à administração. Compartilhe apenas o termo necessário, com acesso controlado. O envio não gera selo nem autorização automática.</small></label>}
-      <p>Ao enviar, seus dados serão usados para tratar esta solicitação. Consulte a <a href="/privacidade">privacidade dos pedidos</a> e os <a href="/termos">Termos de Uso do canal</a>.</p>
+      <p>Ao enviar, seus dados serão usados para tratar esta solicitação. Consulte a <a href="/privacidade">política de privacidade</a> e os <a href="/termos">Termos de Uso do diretório</a>.</p>
       <button type="submit">{busy ? 'Registrando…' : 'Enviar solicitação'}</button>
     </fieldset>{error && <p role="alert">{error}</p>}
   </form>;
@@ -84,7 +85,8 @@ export function DirectorySafetyPage({page = 'parents'}: {page?:LegalPageKey}) {
     {(!versionId || (!loading && !error)) && <>
       {document.sections.map(section => <section key={section.title}><h2>{section.title}</h2>{section.paragraphs.map((paragraph,index) => <p key={index}><LinkedText text={paragraph}/></p>)}</section>)}
       {visibleEmail && <p>Contato da administração: <a href={'mailto:' + visibleEmail}>{visibleEmail}</a>.</p>}
-      {page === 'parents' && !versionId && <ResponsibleRequestForm/>}
+      {page==='privacy'&&!versionId&&<p>Encarregado/contato de privacidade: {config.dpoEmail?<a href={'mailto:'+config.dpoEmail}>{config.dpoEmail}</a>:<>não informado pela administração. Use <a href="/pais">o canal de direitos</a>.</>}</p>}
+      {page === 'parents' && !versionId && <><ResponsibleRequestForm/><RequestFollowUp/></>}
     </>}
   </main>;
 }
@@ -108,7 +110,7 @@ export function LegalVersionHistory() {
       {!versions.length && <p>Nenhuma versão registrada em produção ainda.</p>}
       {versions.map((version,index) => <article className="directory-request-row" key={version.id}>
         <h2>Versão {total - page*20 - index}</h2><RecordedDate version={version}/><p className="directory-version-id">Identificador: {version.id}</p>
-        <nav className="directory-legal-nav" aria-label={'Consultar versão ' + version.id}>{legalNavigation.filter(link => link.path !== '/versoes' && link.path !== '/creditos').map(link => <a key={link.path} href={link.path + '?versao=' + encodeURIComponent(version.id)}>{link.label}</a>)}<a href={'/api/legal-history/' + encodeURIComponent(version.id) + '/file'} download>Baixar arquivo JSON datado</a></nav>
+        <nav className="directory-legal-nav" aria-label={'Consultar versão ' + version.id}>{legalNavigation.filter(link => link.path !== '/versoes' && link.path !== '/creditos' && link.path !== '/como-funciona').map(link => <a key={link.path} href={link.path + '?versao=' + encodeURIComponent(version.id)}>{link.label}</a>)}<a href={'/api/legal-history/' + encodeURIComponent(version.id) + '/file'} download>Baixar arquivo JSON datado</a></nav>
       </article>)}
       {total > 20 && <nav className="directory-legal-nav" aria-label="Páginas do histórico"><button disabled={page === 0} onClick={() => setPage(value => value - 1)}>Anterior</button><span>Página {page + 1}</span><button disabled={(page+1)*20 >= total} onClick={() => setPage(value => value + 1)}>Próxima</button></nav>}
     </>}

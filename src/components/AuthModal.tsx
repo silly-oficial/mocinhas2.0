@@ -1,3 +1,4 @@
+import {api} from '../services/api';
 import { ModalFrame } from './ModalFrame';
 import { ui, useUi } from '../i18n/ui';
 import React, { useState, useRef } from 'react';
@@ -29,6 +30,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   const [showTermsModal, setShowTermsModal] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const [recoverySent,setRecoverySent]=useState(false),[recoveryCode,setRecoveryCode]=useState(''),[newPassword,setNewPassword]=useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
@@ -55,7 +57,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         onClose();
       } else if (mode === 'recovery') {
         if (!email) throw new Error(ui("Digite seu e-mail"));
-        setSuccessMsg("Link de recuperação enviado para seu e-mail.");
+        if(!recoverySent){const result=await api.recoverPassword(email.trim());setSuccessMsg(result.message);setRecoverySent(true);}
+        else {const result=await api.resetPassword({email:email.trim(),code:recoveryCode,newPassword});setSuccessMsg(result.message+' Entre com a nova senha.');setRecoverySent(false);setRecoveryCode('');setNewPassword('');setPassword('');setMode('login');}
       }
     } catch (err: any) {
       setErrorMsg(err.message || 'Ocorreu um erro');
@@ -163,6 +166,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                         setUsername(e.target.value);
                         setEmail(e.target.value);
                       } else {
+                        if(mode==='recovery')setRecoverySent(false);
                         setEmail(e.target.value);
                       }
                     }}
@@ -172,6 +176,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               </div>
             )}
 
+            {mode==='recovery'&&recoverySent&&<div className="auth-recovery-fields"><p>Digite o código recebido por e-mail. Ele vale por 15 minutos e permite até cinco tentativas.</p><label>Código de seis dígitos<input required inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]{6}" minLength={6} maxLength={6} value={recoveryCode} onChange={e=>setRecoveryCode(e.target.value.replace(/[^0-9]/g,''))}/></label><label>Nova senha<input required type="password" minLength={8} maxLength={72} autoComplete="new-password" value={newPassword} onChange={e=>setNewPassword(e.target.value)}/></label><button type="button" disabled={isLoading} onClick={()=>{setRecoverySent(false);setRecoveryCode('');setErrorMsg('');setSuccessMsg('');}}>Solicitar outro código</button></div>}
             {mode !== 'recovery' && (
               <div>
                 <label htmlFor="auth-password" className="text-[11px] font-bold text-zinc-200 block mb-1">
@@ -262,7 +267,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   ? ui("Entrar")
                   : mode === 'register'
                   ? ui("Criar Conta")
-                  : ui("Enviar Instruções")}
+                  : recoverySent?"Redefinir senha":"Enviar código por e-mail"}
               </span>
             </button>
           </form>
@@ -302,3 +307,4 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     </ModalFrame>
   );
 };
+

@@ -1,3 +1,4 @@
+import {DirectoryEntryNotice} from './components/DirectoryInformation';
 import {TikTokPostCard} from './components/TikTokPostCard';
 import {MediaCredit} from './components/CreatorCredit';
 import { ProfileVideosFeed } from './components/ProfileVideos';
@@ -184,6 +185,7 @@ function MainApp() {
         {isAdmin && <button aria-label={ui("Admin")} className="header-admin icon-button items-center gap-2 p-2" onClick={() => setModal('admin')}><ShieldCheck size={19} /><span className="hidden sm:block">{ui("Admin")}</span></button>}
         {!user && <button className="flex items-center gap-2" onClick={() => setModal('auth')}><LogIn size={19} />{ui("Entrar")}</button>}
       </div></div><TranslationStatus /></header>
+    <DirectoryEntryNotice/>
     <div className="app-layout flex gap-6"><aside className="app-sidebar hidden lg:block w-52 shrink-0"><nav className="niuniu-card p-3 sticky top-24 space-y-2">{nav.map(n => <button aria-label={n.label} key={n.id} data-destination={n.id} aria-current={view === n.id ? "page" : undefined} onClick={() => navigate(n.id)} className={`w-full flex items-center gap-3 p-3 rounded-2xl ${view === n.id ? 'bg-emerald-500/15 text-emerald-300' : 'text-zinc-400 hover:bg-white/5'}`}><span className="nav-icon"><n.icon size={20} /></span>{n.label}</button>)}{isAdmin && theme !== "skyglass" && theme !== "orix" && <button className="w-full flex gap-3 p-3 text-zinc-400" onClick={() => navigate('universe')}><Orbit size={20} />{ui("Universo")}</button>}</nav></aside>
     <main className="min-w-0 flex-1">
       <div>

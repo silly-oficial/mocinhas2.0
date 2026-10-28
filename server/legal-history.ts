@@ -1,3 +1,4 @@
+import {directorySettings} from './directory-settings';
 import type express from 'express';
 import {createHash, randomUUID} from 'node:crypto';
 import type {DB} from './db';
@@ -12,7 +13,8 @@ type ArchiveWriter = (version: LegalDocumentVersion, content: string) => Promise
 export async function recordLegalVersion(db: typeof DB, archive: ArchiveWriter, options: {now?: Date; documents?: LegalDocumentVersion['documents']; contactEmail?: string; commit?: string} = {}) {
   const documents = options.documents || legalDocuments;
   const contactEmail = options.contactEmail ?? db.get().directorySettings?.contactEmail ?? publicContactEmail();
-  const digest = createHash('sha256').update(JSON.stringify({documents, notice: legalNotice, contactEmail})).digest('hex');
+  const publicSettings=directorySettings(db);
+  const digest = createHash('sha256').update(JSON.stringify({documents,notice:legalNotice,contactEmail,publicSettings})).digest('hex');
   const rows = db.get().legalDocumentVersions || [];
   const latest = rows.at(-1);
   // Restarts and redeploys with identical documents are not new document versions.
@@ -21,7 +23,7 @@ export async function recordLegalVersion(db: typeof DB, archive: ArchiveWriter, 
   const revision = options.commit ?? process.env.RENDER_GIT_COMMIT ?? '';
   const version: LegalDocumentVersion = {
     id: `${recordedAt.replace(/[:.]/g, '-')}_${digest.slice(0,12)}_${randomUUID().slice(0,8)}`,
-    recordedAt, digest, ...(/^[a-f0-9]{40}$/i.test(revision) ? {commit:revision} : {}),
+    recordedAt,digest,publicSettings, ...(/^[a-f0-9]{40}$/i.test(revision) ? {commit:revision} : {}),
     contactEmail, notice: legalNotice, documents: JSON.parse(JSON.stringify(documents)),
   };
   // The dated file must be durable before adding its record to the database.
@@ -50,3 +52,4 @@ export function installLegalHistory(app: express.Express, db: typeof DB) {
     res.set('Cache-Control','public, max-age=31536000, immutable').json({version});
   });
 }
+

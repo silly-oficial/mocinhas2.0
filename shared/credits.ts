@@ -8,14 +8,14 @@ export const creditsSections = [
  {title:'Navegação, fotos e vídeos',paragraphs:[
   'Eu organizo o conteúdo em páginas e componentes próprios para perfis, publicações, galerias e vídeos. O visitante pode abrir um perfil e visualizar suas mídias.',
   'Novas mídias são cadastradas somente por links do TikTok. O painel aceita links completos de vídeos (/video/) e carrosséis de fotos (/photo/), inclusive para a apresentação da tela inicial. As fotos e os vídeos continuam hospedados no TikTok; o aplicativo não importa cada imagem para uma galeria própria.',
-  'A estrutura também contém visualizadores de fotos e vídeos, edição de capas, ajuste de enquadramento e recursos de qualidade e carregamento de mídia utilizados em conteúdo antigo. As opções de enviar novos arquivos foram desativadas.',
-  'Nem todo componente presente no repositório representa uma função atualmente habilitada: existem arquivos de interfaces anteriores e recursos que podem estar desativados.'
+  'A estrutura preserva a leitura de referências antigas. Novas mídias usam apenas o player do TikTok; os editores de arquivos e o processador de vídeo sem uso foram removidos.',
+  'Rotinas de diagnóstico, recuperação e testes são preservadas mesmo quando não aparecem na interface.'
  ]},
  {title:'Crédito aos criadores',paragraphs:[
-  'Eu mantenho a identificação do criador junto dos cards, com o @ clicável, um botão separado “Ver no TikTok” e a indicação “Imagem/vídeo do criador original”. As mídias pertencem aos seus criadores originais.',
+  'Eu mantenho a identificação do criador junto dos cards, com o @ clicável, um botão separado “Ver no TikTok” e a indicação “Conteúdo público do criador original”. As mídias pertencem aos seus criadores originais.',
   'O link externo fica separado da ação de abrir o perfil dentro do aplicativo. Os créditos usam quebra de linha para permanecerem legíveis em telas pequenas.',
   'Mídias antigas que não possuem uma origem conhecida precisam ser revisadas por mim. O sistema não cria créditos fictícios para preencher essas informações.',
-  'Encontrou algo seu e quer ajustar ou remover? Use “Pedir remoção / reclamar” junto da mídia, o formulário em /pais ou o e-mail de contato informado nesta página e no rodapé.'
+  'Encontrou algo seu e quer ajustar ou remover? Use “Créditos e remoção” dentro do perfil, o formulário em /pais ou o e-mail de contato informado nesta página e no rodapé.'
  ]},
  {title:'Integração com o TikTok',paragraphs:[
   'Quando eu adiciono um link de publicação do TikTok, o servidor consulta o oEmbed oficial para obter informações como a imagem de prévia e a identificação do autor.',
@@ -30,8 +30,8 @@ export const creditsSections = [
  {title:'Verificação manual de perfis',paragraphs:[
   'Eu disponibilizo um fluxo de solicitação de verificação. Um pedido novo começa como recebido e não concede selo automaticamente.',
   'No painel administrativo, eu posso colocar o pedido em análise, conferir a representação do solicitante, registrar o link do termo e aprovar ou recusar.',
-  'O selo “Perfil Verificado” depende de uma aprovação válida. O sistema registra quem analisou e quando a decisão aconteceu. O selo não é uma promessa geral de autorização dos pais para todas as mídias.',
-  'Eu também posso revogar a aprovação, retirando o selo. Se o identificador do TikTok vinculado ao perfil mudar, a verificação anterior perde a validade para esse novo vínculo.'
+  'O selo “Perfil verificado” identifica titularidade; “Autorizado pelo responsável” indica termo aprovado. São independentes. O sistema registra quem analisou e quando a decisão aconteceu. O selo não é uma promessa geral de autorização dos pais para todas as mídias.',
+  'Eu também posso revogar a aprovação, retirando o selo. Mudar nome, ano de nascimento ou identificador do TikTok invalida os selos do vínculo anterior.'
  ]},
  {title:'Atendimento de responsáveis e criadores',paragraphs:[
   'Eu disponibilizo a página /pais para receber solicitações relacionadas aos perfis e conteúdos. Criadores e titulares também podem pedir remoção ou correção por esse canal.',
@@ -44,7 +44,7 @@ export const creditsSections = [
   'A implementação utiliza o Resend e depende da configuração de uma chave e de um remetente autorizado no servidor. Sem essa configuração, os pedidos continuam registrados, mas os e-mails não são enviados.'
  ]},
  {title:'Configurações que posso atualizar pelo admin',paragraphs:[
-  'Na seção Configurações públicas, eu posso alterar o nome do site e da organização, endereço público do aplicativo, e-mail de contato, e-mail para assuntos de privacidade e prazo de atendimento, entre um e cinco dias úteis.',
+  'Na seção Configurações públicas, eu posso alterar o nome do site e da organização, endereço público do aplicativo, e-mail de contato, e-mail para assuntos de privacidade e classificação informada e sua descrição. Remoções têm 48 horas úteis; demais pedidos, cinco dias úteis.',
   'Essas informações ficam no banco e possuem um histórico administrativo das alterações. O mesmo e-mail de contato é usado em todas as páginas. As chaves privadas de serviços continuam exclusivamente no servidor.'
  ]},
  {title:'Cookies e preferências',paragraphs:[
@@ -53,8 +53,8 @@ export const creditsSections = [
   'A escolha fica guardada no navegador e pode ser revista. Essa implementação não adiciona ferramentas de publicidade ou analytics; qualquer integração futura precisa respeitar as preferências salvas.'
  ]},
  {title:'Premium e pagamentos',paragraphs:[
-  'Eu mantenho a estrutura existente do Premium e a integração com a SyncPay. O pacote de novas funções preserva essa integração.',
-  'A confirmação de pagamentos e a liberação de acesso dependem das configurações e das respostas do serviço de pagamento.'
+  'Novas cobranças estão desativadas nesta versão. Os dados e registros antigos da SyncPay foram preservados, sem serem usados para iniciar pagamentos.',
+  'O atendimento é gratuito e não exige Premium. Questões sobre pagamentos antigos podem ser encaminhadas pelo contato público.'
  ]},
  {title:'Documentos e histórico',paragraphs:[
   'Eu disponibilizo páginas de Termos, Privacidade, Créditos e Remoção e atendimento aos responsáveis, com links no rodapé.',

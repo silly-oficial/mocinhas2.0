@@ -1,4 +1,13 @@
 export interface PersonProfile {
+ birthYear?:number|null; ageAtCapture?:number|null; ageUpdatedAt?:string|null;
+ ageSource?:import('./profile-editorial').AgeSource; ageBand?:import('./profile-editorial').AgeBand;
+ guardianStatus?:import('./profile-editorial').GuardianStatus;
+ guardianName?:string;guardianRelation?:string;guardianEmail?:string;
+ ownershipVerified?:boolean;guardianAuthorized?:boolean;identityRevision?:number;
+ rankingCriteria?:string;rankingUpdatedAt?:string|null;
+ sourceSnapshot?:import('./profile-editorial').SourceSnapshot|null;
+ availabilityHistory?:{checkedAt:string;available:boolean|null}[];
+ traits?:string[];
  avatarSelection?: import('./profile-avatar').ProfileAvatarSelection;
  verified?: boolean;
  mediaSources?: MediaOrigin[];

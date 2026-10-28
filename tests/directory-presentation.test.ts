@@ -20,7 +20,7 @@ console.log('Presentation regressions passed: muted autoplay and loop independen
 
 const actions=renderToStaticMarkup(React.createElement(MediaCredit,{handle:'creator',profileAction:React.createElement('button',null,'Ir para o perfil')}));
 assert.ok(actions.indexOf('Ir para o perfil')<actions.indexOf('Ver no TikTok'),'profile is the first action on directory cards');
-assert.ok(actions.indexOf('Conteúdo do criador original.')>actions.indexOf('Ver no TikTok'),'ownership caption follows the complete action group');
+assert.ok(actions.indexOf('Conteúdo público do criador original.')>actions.indexOf('Ver no TikTok'),'ownership caption follows the complete action group');
 assert.ok(!actions.includes('Imagem/vídeo do criador original'));
 assert.match(profile,/aria-expanded="false"/);assert.match(profile,/credit-rights-panel[^>]*hidden/);
 

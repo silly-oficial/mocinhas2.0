@@ -1,3 +1,4 @@
+import {HowItWorksPage} from './components/DirectoryInformation';
 import {CookiePreferences} from './components/CookiePreferences';
 import {StrictMode} from 'react';
 import {createRoot} from 'react-dom/client';
@@ -31,7 +32,7 @@ const publicPath = window.location.pathname.replace(/\/+$/, '');
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <ErrorBoundary>
-      {publicPath === '/creditos' ? <CreditsPage/> : publicPath === '/pais' ? <DirectorySafetyPage/> : publicPath === '/privacidade' ? <DirectorySafetyPage page="privacy"/> : publicPath === '/termos' ? <DirectorySafetyPage page="terms"/> : publicPath === '/versoes' ? <LegalVersionHistory/> : <App />}
+      {publicPath === '/como-funciona' ? <HowItWorksPage/> : publicPath === '/creditos' ? <CreditsPage/> : publicPath === '/pais' ? <DirectorySafetyPage/> : publicPath === '/privacidade' ? <DirectorySafetyPage page="privacy"/> : publicPath === '/termos' ? <DirectorySafetyPage page="terms"/> : publicPath === '/versoes' ? <LegalVersionHistory/> : <App />}
       <DirectorySafetyFooter/><CookiePreferences/>
     </ErrorBoundary>
   </StrictMode>,

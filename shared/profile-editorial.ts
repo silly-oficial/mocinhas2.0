@@ -1,0 +1,39 @@
+import type {PersonProfile} from './people';
+export const ageBands={crianca:'Até 11 anos',adolescente:'12 a 17 anos',adulto:'18 anos ou mais',desconhecido:'Faixa etária não informada'} as const;
+export type AgeBand=keyof typeof ageBands;
+export type AgeSource='declarado_por_responsavel'|'declarado_pelo_perfil'|'estimado'|'desconhecido';
+export type GuardianStatus='sem_contato'|'ciencia_declarada'|'termo_recebido'|'recusado'|'revogado';
+export const editorialTraits=['arte','esporte','musica','educacao','humor','viagem'] as const;
+export interface SourceSnapshot {capturedAt:string;canonicalUrl:string;handle:string;oembedOkAt:string|null;publiclyAccessible:true|null}
+export function ageValues(birthYear:number|null,band:AgeBand='desconhecido',now=new Date()){
+ const age=birthYear===null?null:now.getUTCFullYear()-birthYear;
+ return {ageAtCapture:age,ageUpdatedAt:now.toISOString(),ageBand:age===null?band:age<12?'crianca' as const:age<18?'adolescente' as const:'adulto' as const};
+}
+export function ageLabel(p:Pick<PersonProfile,'birthYear'|'ageBand'|'ageUpdatedAt'>,now=new Date()){
+ if(p.birthYear==null)return ageBands[p.ageBand||'desconhecido'];
+ const upper=now.getUTCFullYear()-p.birthYear;
+ return `Idade aproximada: ${Math.max(0,upper-1)} a ${upper} anos · em ${now.toLocaleDateString('pt-BR',{month:'2-digit',year:'numeric',timeZone:'UTC'})}`;
+}
+export function editorialFields(input:Record<string,unknown>,existing:PersonProfile|undefined,now=new Date()){
+ const birthYear=input.birthYear===undefined?existing?.birthYear??null:input.birthYear;
+ if(birthYear!==null&&(!Number.isInteger(birthYear)||typeof birthYear!=='number'||birthYear<1900||birthYear>now.getUTCFullYear()))throw Error('Informe somente o ano de nascimento, entre 1900 e o ano atual.');
+ const band=input.ageBand??existing?.ageBand??'desconhecido';
+ if(typeof band!=='string'||!Object.hasOwn(ageBands,band))throw Error('Faixa etária inválida.');
+ const source=input.ageSource??existing?.ageSource??'desconhecido';
+ if(!['declarado_por_responsavel','declarado_pelo_perfil','estimado','desconhecido'].includes(String(source)))throw Error('Origem da idade inválida.');
+ const status=input.guardianStatus??existing?.guardianStatus??'sem_contato';
+ if(!['sem_contato','ciencia_declarada','termo_recebido','recusado','revogado'].includes(String(status)))throw Error('Situação do responsável inválida.');
+ function field(key:string,max:number){const value=input[key]??(existing as unknown as Record<string,unknown>|undefined)?.[key]??'';if(typeof value!=='string'||value.length>max)throw Error('Confira os campos editoriais.');return value.trim();}
+ const guardianEmail=field('guardianEmail',254);if(guardianEmail&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(guardianEmail))throw Error('E-mail do responsável inválido.');
+ const traits=input.traits??existing?.traits??[];
+ if(!Array.isArray(traits)||traits.some(t=>typeof t!=='string'||!editorialTraits.includes(t as typeof editorialTraits[number])))throw Error('Use somente os temas editoriais disponíveis.');
+ const rankingCriteria=field('rankingCriteria',1000);
+ const values=ageValues(birthYear as number|null,band as AgeBand,now);
+ if(input.published===true&&birthYear===null&&values.ageBand==='desconhecido')throw Error('Informe o ano ou a faixa etária antes de publicar.');
+ return {birthYear:birthYear as number|null,...values,ageSource:source as AgeSource,guardianStatus:status as GuardianStatus,guardianName:field('guardianName',120),guardianRelation:field('guardianRelation',80),guardianEmail,ownershipVerified:existing?.ownershipVerified??false,guardianAuthorized:status==='termo_recebido',rankingCriteria,rankingUpdatedAt:rankingCriteria!==existing?.rankingCriteria?now.toISOString():existing?.rankingUpdatedAt??null,sourceSnapshot:existing?.sourceSnapshot??null,availabilityHistory:existing?.availabilityHistory?.slice(0,50)??[],traits:[...new Set(traits)] as string[],identityRevision:existing?.identityRevision??0};
+}
+export function availabilityHistory(rows:{checkedAt:string;available:boolean|null}[]){
+ const unique=new Map<string,{checkedAt:string;available:boolean|null}>();
+ for(const row of rows)if(Number.isFinite(Date.parse(row.checkedAt)))unique.set(row.checkedAt+'|'+String(row.available),row);
+ return [...unique.values()].sort((a,b)=>Date.parse(b.checkedAt)-Date.parse(a.checkedAt)).slice(0,50);
+}

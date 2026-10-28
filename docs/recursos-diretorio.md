@@ -164,3 +164,27 @@ Limitação: a documentação https://developers.tiktok.com/docs/en/embed-player
 - Nenhum arquivo de dados, credencial, mídia ou recurso de produção foi apagado. Player, zoom, oEmbed e cache não foram alterados. Nem todo código antigo foi removido: componentes ainda importados, contratos legados, assets e rotinas de recuperação exigem avaliação própria.
 
 Esta etapa não representa a conclusão dos doze itens solicitados. Consulte docs/base-juridica.md para as pendências e referências verificadas.
+
+## Conclusão dos itens editoriais e de segurança
+
+Esta seção atualiza as pendências listadas nas etapas anteriores.
+
+- Campos opcionais no formato persistido mantêm compatibilidade com snapshots antigos; novas gravações normalizam ano/faixa/origem, situação privada de responsável, critérios, temas e revisão da identidade. A validação impede publicação nova/edição sem ano ou faixa. Dados históricos sem idade não são inventados nem despublicados em lote.
+- Idade é um intervalo aproximado pelo ano, com mês de referência; faixa pelo ano informado. Atualização no boot e diariamente, com auditoria de mudança de faixa. Não há coleta da data completa nem verificação de idade.
+- Selos de titularidade e termo aprovado são independentes; aprovar termo exige evidência HTTPS e conferência manual. Alterar nome, ano ou @ incrementa identityRevision e invalida os dois. Novas classificações editoriais usam apenas temas neutros predefinidos. Dados privados guardianName/guardianRelation/guardianEmail/guardianStatus não são enviados pelo serializer público; guardianAuthorized é uma decisão explícita de exposição do selo.
+- sourceSnapshot é gerado no servidor, imutável em edições e arquivado por perfil em sourceSnapshots mesmo após exclusão do cadastro. Há endpoint administrativo paginado, sem cache. availabilityHistory deduplica consultas, ordena por data e mantém até 50 entradas; indisponibilidade não despublica o perfil.
+- Classificação informada (não certificação oficial) no rodapé e diretório; aviso dispensável sem bloquear rolagem. /como-funciona descreve curadoria, ordem, origem, conteúdo, faixa/classificação, idade, selos e direitos. Critérios públicos têm endpoint mínimo próprio, sem exigir conta ou consumir quota. A ordem permanece destaque → order → nome.
+- /termos e /privacidade cobrem o serviço completo; documentos e configurações públicas entram no histórico datado, preservando versões antigas. Contato/DPO ausentes são tratados como dados não configurados, sem identidade fictícia. A avaliação jurídica caso a caso e a conferência de contratos/provedores continuam sendo responsabilidade da operação.
+- Sessão da interface usa cookie HttpOnly/SameSite=Lax/Secure em produção; novos logins não guardam JWT no localStorage. Bearer permanece para clientes legados. Logout limpa o cookie e mantém a sessão local se a confirmação falhar. Proteção de origem para gravações autenticadas por cookie. No Render, proxy de um salto é reconhecido; TRUST_PROXY explícito continua tendo prioridade.
+- Removido o bloqueio antigo da política de consumo que impedia chegar à recuperação segura. Teste HTTP do bundle de produção cobre e-mail simulado, código ausente da resposta, hash, persistência após reinício, uso único e bcrypt 12. Nenhum e-mail real foi enviado.
+- Preferências opcionais começam desativadas e gravam consentVersion e updatedAt. Essenciais permanecem necessários; recusar e aceitar opcionais têm o mesmo peso. Não foi adicionado SDK de analytics ou anúncio.
+- Logs das rotas sensíveis de autenticação/administração/atendimento registram IP, user-agent, método, caminho sem query e status. Não registram deliberadamente corpo, chave ou token; expurgo de seis meses no boot/diário. Registros de acesso são gravados após resposta e podem faltar se houver falha de persistência; não se promete trilha forense completa. Auditoria administrativa tem aba própria e não expira automaticamente.
+- Novas cobranças estão desativadas no servidor e nas telas. O adaptador de pagamentos permanece como contrato coberto por testes e para manutenção de históricos; syncpaySettings não foi apagado nem usado para iniciar cobrança. Nenhuma configuração de produção foi alterada manualmente.
+
+Validação: lint, build e suíte completa, incluindo tipos, idade, sigilo, selos, registro inicial imutável, contestação/reabertura, sessão/recuperação reais em processo isolado, retenção e persistência. Provedores simulados; sem navegador físico. A revisão visual no iPhone e aplicação/revisão de SQL e configurações reais são verificações operacionais externas à alteração de código.
+
+### Checagem final
+
+Teste HTTP isolado do bundle de produção confirmou perfis, ano, origem inicial, despublicação, auditoria e resposta de reabertura após reinício real do processo. O teste de sessão também confirma a validade do código com hash após reinício e seu uso único. As oito seções de /como-funciona, campos dos documentos e as políticas no arquivo SQL têm verificações de regressão. Não houve aplicação de SQL online. A recuperação do formulário está conectada às APIs reais; o provedor foi simulado nos testes.
+
+O SQL de referência também deixa o bucket privado e remove as políticas antigas de leitura/upload anônimo. Essa mudança não foi executada na instalação online; a revisão operacional deve considerar eventuais URLs públicas antigas antes de aplicar o arquivo.

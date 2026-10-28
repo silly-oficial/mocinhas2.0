@@ -27,7 +27,7 @@ export function installConsumptionPolicy(app: express.Express, db: typeof Databa
   const cookies = (req: express.Request) => Object.fromEntries((req.headers.cookie || '').split(';').map(x => x.trim().split(/=(.*)/s).slice(0, 2)));
   const digest = (value: string) => createHmac('sha256', secret).update(value).digest('hex');
   const settings = () => db.get().usageSettings || { dailyMinutes: 0, bindNetwork: false };
-  const cookieOptions = (req: express.Request) => ({ httpOnly: true, sameSite: 'lax' as const, secure: req.secure, maxAge: 365 * DAY, path: '/' });
+  const cookieOptions = (req: express.Request) => ({ httpOnly: true, sameSite: 'lax' as const, secure: process.env.NODE_ENV==='production'||req.secure, maxAge: 365 * DAY, path: '/' });
   function identity(req: express.Request, res: express.Response) {
     let device: string;
     try { device = (jwt.verify(cookies(req).mocinhas_device, secret) as any).device; if (!device) throw Error(); }
@@ -74,8 +74,6 @@ export function installConsumptionPolicy(app: express.Express, db: typeof Databa
   });
   app.use((req, res, next) => {
     const route = req.path;
-    // Legacy recovery returned the reset code to unauthenticated callers.
-    if (route === '/api/auth/recover' || route === '/api/auth/reset-password') return res.status(503).json({ error: 'Recuperação de senha indisponível até configurar verificação de identidade. Contate a administração.' });
     if (/^\/api\/(stories|conversations|messages|groups|rooms|notifications|events|search)(\/|$)/.test(route) ||
       /^\/api\/users\/.+\/(follow|unfollow|followers|following)(\/|$)/.test(route) ||
       /^\/api\/users\/follow-requests/.test(route) || route === '/api/posts/explore/feed') {
@@ -112,3 +110,4 @@ export function installConsumptionPolicy(app: express.Express, db: typeof Databa
     next();
   });
 }
+

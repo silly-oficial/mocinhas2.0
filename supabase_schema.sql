@@ -342,28 +342,15 @@ END $$;
 DO $$
 BEGIN
   INSERT INTO storage.buckets (id, name, public)
-  VALUES ('mocinhas-media', 'mocinhas-media', true)
-  ON CONFLICT (id) DO UPDATE SET public = true;
+  VALUES ('mocinhas-media', 'mocinhas-media', false)
+  ON CONFLICT (id) DO UPDATE SET public = false;
 EXCEPTION WHEN OTHERS THEN NULL; END $$;
 
--- Políticas de Storage para o Bucket 'mocinhas-media'
-DO $$
-BEGIN
-  IF NOT EXISTS (
-    SELECT 1 FROM pg_policies WHERE schemaname = 'storage' AND tablename = 'objects' AND policyname = 'Public Access Mocinhas'
-  ) THEN
-    CREATE POLICY "Public Access Mocinhas" ON storage.objects FOR SELECT USING (bucket_id = 'mocinhas-media');
-  END IF;
-EXCEPTION WHEN OTHERS THEN NULL; END $$;
-
-DO $$
-BEGIN
-  IF NOT EXISTS (
-    SELECT 1 FROM pg_policies WHERE schemaname = 'storage' AND tablename = 'objects' AND policyname = 'Allow Uploads Mocinhas'
-  ) THEN
-    CREATE POLICY "Allow Uploads Mocinhas" ON storage.objects FOR INSERT WITH CHECK (bucket_id = 'mocinhas-media');
-  END IF;
-EXCEPTION WHEN OTHERS THEN NULL; END $$;
+-- Sem leitura ou upload anônimo no bucket; o servidor usa service_role e URLs assinadas.
+DO $$ BEGIN
+  DROP POLICY IF EXISTS "Public Access Mocinhas" ON storage.objects;
+  DROP POLICY IF EXISTS "Allow Uploads Mocinhas" ON storage.objects;
+EXCEPTION WHEN undefined_table THEN NULL; END $$;
 
 -- ==============================================================================
 -- 24. SEGURANÇA E POLÍTICAS RLS (Row Level Security)

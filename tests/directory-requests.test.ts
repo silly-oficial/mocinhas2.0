@@ -52,7 +52,7 @@ try {
   assert.equal((await call('/api/directory-requests','POST',input,false,{'Sec-Fetch-Site':'cross-site'})).status,403);
   const created = await call('/api/directory-requests', 'POST', input);
   assert.equal(created.status,201);
-  assert.deepEqual(Object.keys(created.body), ['id'], 'public response must not echo personal data');
+  assert.deepEqual(Object.keys(created.body), ['id','dueAt','accessToken'], 'receipt only returns protocol, deadline and private access key');
   assert.equal(created.headers.get('cache-control'), 'no-store');
   const id = created.body.id;
   assert.equal(state.directoryEmailOutbox.length,2);assert.deepEqual(state.directoryEmailOutbox.map(row=>row.template),['request_received','admin_new_request']);assert.ok(state.directoryRequests[0].dueAt);
@@ -77,7 +77,7 @@ try {
   assert.equal(state.directoryRequests[0].status,'resolved');
   assert.ok(state.directoryRequests[0].closedAt);
   assert.equal(state.directoryEmailOutbox.filter(row=>row.template==='request_completed').length,1);
-  assert.equal((await call('/api/admin/directory-requests/'+id,'PATCH',{status:'rejected'},true)).status,200);
+  assert.equal((await call('/api/admin/directory-requests/'+id,'PATCH',{status:'rejected',publicResult:'Pedido reavaliado; o perfil já está fora de publicação.'},true)).status,200);
   assert.equal(state.directoryEmailOutbox.filter(row=>row.template==='request_completed').length,2);
   assert.equal((await call('/api/admin/directory-requests?status=pending','GET',undefined,true)).body.total,0);
   assert.equal((await call('/api/directory-requests/'+id)).status,404,'no public request lookup');

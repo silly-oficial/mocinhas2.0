@@ -1,3 +1,4 @@
+import {LegalAuditAdmin} from './LegalAuditAdmin';
 import {DirectoryConfiguration} from './DirectoryConfiguration';
 import {VerificationAdmin} from './VerificationAdmin';
 import { DirectoryRequestsAdmin } from './DirectoryRequestsAdmin';
@@ -14,11 +15,11 @@ import { StorageStatus } from './StorageStatus';
 import { UsageSettings } from './UsageSettings';
 import { ModalFrame } from './ModalFrame';
 
-type Tab = 'welcome' | 'stats' | 'poster' | 'moderation' | 'users' | 'usage' | 'syncpay' | 'supabase' | 'requests' | 'configuration' | 'verification';
+type Tab = 'audit' | 'welcome' | 'stats' | 'poster' | 'moderation' | 'users' | 'usage' | 'syncpay' | 'supabase' | 'requests' | 'configuration' | 'verification';
 type Media = Parameters<typeof api.createPost>[0]['media'][number];
 const tabs: { id: Tab; label: string; icon: typeof Plus }[] = [
   {id:'configuration',label:'Configurações públicas',icon:SettingsIcon},{id:'verification',label:'Verificações',icon:Shield},
-  {id:'requests',label:'Responsáveis',icon:Shield},
+  {id:'requests',label:'Responsáveis',icon:Shield},{id:'audit',label:'Auditoria',icon:FileText},
   {id:'stats',label:'Visão geral',icon:BarChart3},{id:'poster',label:'Publicar',icon:Plus},
   {id:'moderation',label:'Publicações',icon:FileText},{id:'users',label:'Contas',icon:Users},
   {id:'welcome',label:'Tela de entrada',icon:ImageIcon},{id:'usage',label:'Limite diário',icon:Clock},{id:'syncpay',label:'Pagamentos',icon:CreditCard},{id:'supabase',label:'Armazenamento',icon:Database}
@@ -31,7 +32,6 @@ export const AdminPanel: React.FC<{onClose:()=>void;onPostCreated?:()=>void}> = 
   const [mediaUrl,setMediaUrl]=useState(''),[caption,setCaption]=useState(''),[separate,setSeparate]=useState(false);
   const bodyRef=useRef<HTMLDivElement>(null),mounted=useRef(true),submitLock=useRef(false);
   const [search,setSearch]=useState('');
-  const [syncpayClientId,setSyncpayClientId]=useState(''),[syncpayClientSecret,setSyncpayClientSecret]=useState(''),[syncpayWebhookUrl,setSyncpayWebhookUrl]=useState(window.location.origin+'/api/syncpay/webhook'),[syncpayWebhookToken,setSyncpayWebhookToken]=useState(''),[syncpayPixKey,setSyncpayPixKey]=useState(''),[syncpayEnabled,setSyncpayEnabled]=useState(true),[syncpayPrice,setSyncpayPrice]=useState(9.99);
   const [supabaseStatus,setSupabaseStatus]=useState<any>(null),[sbUrlInput,setSbUrlInput]=useState(''),[sbKeyInput,setSbKeyInput]=useState(''),[sbServiceKeyInput,setSbServiceKeyInput]=useState(''),[isSavingSb,setIsSavingSb]=useState(false),[rawSql,setRawSql]=useState(''),[copiedSql,setCopiedSql]=useState(false);
   const headers=()=>({Authorization:'Bearer '+(localStorage.getItem('mocinhas_token')||localStorage.getItem('yume_token')||'')});
   async function adminRequest(path:string,method='GET',body?:any){const r=await fetch('/api/admin/'+path,{method,headers:{...headers(),'Content-Type':'application/json'},body:body===undefined?undefined:JSON.stringify(body)});const data=await r.json();if(!r.ok)throw Error(data.error||ui('Não foi possível concluir a operação.'));return data;}
@@ -41,7 +41,7 @@ export const AdminPanel: React.FC<{onClose:()=>void;onPostCreated?:()=>void}> = 
       if(['stats','poster','moderation','users'].includes(activeTab)){
         const [p,u,s]=await Promise.all([api.getFeed(),adminRequest('users'),adminRequest('stats')]);
         if(!disposed){setPostsList(p.posts);setUsersList(u.users);setStats(s);}
-      }else if(activeTab==='syncpay'){const data=await adminRequest('syncpay');const s=data.settings||{};if(!disposed){setSyncpayClientId(s.clientId||'');setSyncpayClientSecret(s.clientSecret||'');setSyncpayWebhookToken(s.webhookToken||'');setSyncpayWebhookUrl(s.webhookUrl||window.location.origin+'/api/syncpay/webhook');setSyncpayPixKey(s.pixKey||'');setSyncpayEnabled(s.enabled!==false);setSyncpayPrice(s.price??9.99);}}
+      }
       else if(activeTab==='supabase'){const [s,sql]=await Promise.all([api.getSupabaseStatus(),api.getSupabaseSchema()]);if(!disposed){setSupabaseStatus(s);setSbUrlInput(s.url||'');setRawSql(sql);}}
     }catch(e:any){if(!disposed)setLoadError(e.message);}finally{if(!disposed)setIsLoading(false);}}
     load();return()=>{disposed=true;};
@@ -65,7 +65,6 @@ export const AdminPanel: React.FC<{onClose:()=>void;onPostCreated?:()=>void}> = 
   }
   async function removeUser(u:User){if(!confirm(ui('Excluir esta conta e as publicações vinculadas a ela?')))return;setIsLoading(true);try{await adminRequest('users/'+u.id,'DELETE');setUsersList(old=>old.filter(v=>v.id!==u.id));onPostCreated?.();}catch(e:any){setStatusMessage(e.message);}finally{setIsLoading(false);}}
   async function removePost(p:Post){if(!confirm(ui('Deseja excluir esta publicação permanentemente?')))return;setIsLoading(true);try{await adminRequest('posts/'+p.id,'DELETE');setPostsList(old=>old.filter(v=>v.id!==p.id));onPostCreated?.();}catch(e:any){setStatusMessage(e.message);}finally{setIsLoading(false);}}
-  async function handleSaveSyncpaySettings(e:React.FormEvent){e.preventDefault();setIsLoading(true);try{await adminRequest('syncpay','POST',{clientId:syncpayClientId,clientSecret:syncpayClientSecret,webhookToken:syncpayWebhookToken,webhookUrl:syncpayWebhookUrl,pixKey:syncpayPixKey,enabled:syncpayEnabled,price:Number(syncpayPrice)});setStatusMessage(ui('Configurações da Syncpay salvas e ativadas com sucesso!'));}catch(e:any){setStatusMessage(e.message);}finally{setIsLoading(false);}}
   async function handleSaveSupabase(e:React.FormEvent){e.preventDefault();setIsSavingSb(true);try{const r=await api.configureSupabase({url:sbUrlInput.trim(),key:sbKeyInput.trim(),serviceRoleKey:sbServiceKeyInput.trim()||undefined});setSupabaseStatus(r.status);setSbKeyInput('');setSbServiceKeyInput('');setStatusMessage(ui('Configurações do Supabase salvas e conectadas com sucesso!'));}catch(e:any){setStatusMessage(e.message);}finally{setIsSavingSb(false);}}
   async function handleCopySql(){try{await navigator.clipboard.writeText(rawSql);setCopiedSql(true);setStatusMessage(ui('Código SQL copiado para a área de transferência! Cole no SQL Editor do Supabase.'));}catch{setStatusMessage(ui('Selecione e copie o código abaixo.'));}}
   const closing=()=>{if(publishing)return;onClose();};
@@ -94,21 +93,9 @@ export const AdminPanel: React.FC<{onClose:()=>void;onPostCreated?:()=>void}> = 
         {activeTab==='moderation'&&<section className="admin-section"><h3>{ui('Publicações')}</h3><label>{ui('Buscar publicações')}<input type="search" value={search} onChange={e=>setSearch(e.target.value)}/></label><div className="admin-content-list">{postsList.filter(p=>(p.caption||'').toLowerCase().includes(search.toLowerCase())).map(p=><article key={p.id}>{p.media[0]&&<div className="admin-content-thumb">{p.media[0].type==='video'&&(!p.media[0].thumbnail||p.media[0].thumbnail===p.media[0].url)?<Video size={26}/>:<img src={p.media[0].thumbnail||p.media[0].url} alt=""/>}</div>}<div><time>{new Date(p.createdAt).toLocaleDateString(language)}</time><p>{p.caption||ui('Sem legenda')}</p><small>{p.media.length} {ui('mídias')}</small></div><button disabled={isLoading} className="admin-danger" aria-label={ui('Excluir publicação')} onClick={()=>removePost(p)}><Trash2 size={18}/></button></article>)}</div>{!postsList.length&&!isLoading&&<p>{ui('Ainda não há publicações.')}</p>}</section>}
         {activeTab==='users'&&<section className="admin-section"><h3>{ui('Contas')}</h3><label>{ui('Buscar contas')}<input type="search" value={search} onChange={e=>setSearch(e.target.value)}/></label><div className="admin-users-list">{usersList.filter(u=>[u.displayName,u.username,u.email].join(' ').toLowerCase().includes(search.toLowerCase())).map(u=><article key={u.id}><div className="admin-user-summary"><span className="admin-monogram">{u.displayName?.slice(0,2).toUpperCase()}</span><div><strong>{u.displayName}</strong><small>{u.email}</small><small>{u.username}</small></div></div><div className="admin-user-actions"><button disabled={isLoading} aria-pressed={!!u.isPremium} onClick={()=>mutateUser(u,'isPremium')}><Crown size={16}/>{ui(u.isPremium?'Remover Premium':'Dar Premium')}</button><button disabled={isLoading||u.id===currentUser?.id} aria-pressed={!!u.isAdmin} onClick={()=>mutateUser(u,'isAdmin')}><Shield size={16}/>{ui(u.isAdmin?'Remover Admin':'Tornar Admin')}</button><details><summary>{ui('Mais opções')}</summary><button disabled={isLoading} onClick={()=>mutateUser(u,'isVerified')}>{ui(u.isVerified?'Remover verificação':'Verificar')}</button>{u.id!==currentUser?.id&&<button className="admin-danger" disabled={isLoading} onClick={()=>removeUser(u)}><Trash2 size={16}/>{ui('Excluir conta')}</button>}</details></div></article>)}</div></section>}
         {activeTab==='welcome'&&<WelcomeSettings/>}
+        {activeTab==='audit'&&<LegalAuditAdmin/>}
         {activeTab==='usage'&&<UsageSettings/>}
-        {activeTab==='syncpay'&&<form onSubmit={handleSaveSyncpaySettings} className="admin-payment-form">
-          <div className="admin-section-heading"><h3>{ui('Pagamentos e Premium')}</h3><p>{ui('Configure a cobrança Pix e acompanhe a conexão com a SyncPay.')}</p></div>
-          <fieldset disabled={isLoading} className="admin-fields"><legend className="sr-only">{ui('Configurações SyncPay')}</legend>
-            <label className="admin-switch-row"><input type="checkbox" checked={syncpayEnabled} onChange={e=>setSyncpayEnabled(e.target.checked)}/><span><strong>{ui('Ativar pagamentos')}</strong><small>{ui('Disponibilizar a compra do Premium por Pix.')}</small></span></label>
-            <label>{ui('Preço do Premium (R$)')}<input type="number" min="0.01" step="0.01" required value={syncpayPrice} onChange={e=>setSyncpayPrice(Number(e.target.value))}/></label>
-            <p className="admin-muted">{ui('Premium por 30 dias. O limite diário definido pela administração continua valendo.')}</p>
-            <label>{ui('Syncpay Client ID (API Key)')}<input value={syncpayClientId} onChange={e=>setSyncpayClientId(e.target.value)} autoComplete="off"/></label>
-            <label>{ui('Syncpay Client Secret (Token)')}<input type="password" value={syncpayClientSecret} onChange={e=>setSyncpayClientSecret(e.target.value)} autoComplete="new-password"/></label>
-            <label>{ui('Chave PIX da Conta Syncpay (Opcional)')}<input value={syncpayPixKey} onChange={e=>setSyncpayPixKey(e.target.value)}/></label>
-            <details className="admin-advanced"><summary>{ui('Webhook e confirmação automática')}</summary><label>{ui('URL HTTPS do webhook SyncPay')}<input type="url" value={syncpayWebhookUrl} onChange={e=>setSyncpayWebhookUrl(e.target.value)}/></label><label>{ui('Segredo do webhook SyncPay')}<input type="password" value={syncpayWebhookToken} onChange={e=>setSyncpayWebhookToken(e.target.value)} autoComplete="new-password"/></label><p className="admin-muted">{ui('Cadastre na SyncPay o webhook de transações apontando para')} {window.location.origin}/api/syncpay/webhook.</p></details>
-            <button type="button" className="storage-refresh" onClick={async()=>{setIsLoading(true);try{const data=await adminRequest('syncpay/diagnostics');setStatusMessage(data.message||data.error);}catch(e:any){setStatusMessage(e.message);}finally{setIsLoading(false);}}}><RefreshCw size={17}/>{ui('Testar conexão com SyncPay (sem cobrança)')}</button>
-            <button type="submit" className="admin-primary"><CreditCard size={18}/>{ui('Salvar Configurações Syncpay')}</button>
-          </fieldset>
-        </form>}
+        {activeTab==='syncpay'&&<section className="admin-section"><h3>Pagamentos desativados</h3><p>Não há novas cobranças nesta versão. Configurações e registros antigos foram preservados no banco, sem serem usados para iniciar pagamentos.</p></section>}
           {/* TAB: CATEGORIES */}
           {activeTab === 'supabase' && (
             <div className="space-y-6 animate-fadeIn"><StorageStatus/><details className="admin-advanced"><summary>{ui("Configuração avançada do Supabase")}</summary>

@@ -2,6 +2,8 @@ export type VerificationStatus='recebido'|'em_analise'|'aprovado'|'recusado'|'re
 export interface VerificationRequest {
   id:string;requestId:string;profileId:string;requesterName:string;requesterEmail:string;handle:string;
   status:VerificationStatus;termDocUrl:string;reviewedBy?:string;reviewedAt?:string;notes:string;createdAt:string;
+  purpose?:'ownership'|'guardian';boundIdentityRevision?:number;
   boundTikTok?:string;
   approvedBy?:string;approvedAt?:string;revokedBy?:string;revokedAt?:string;
 }
+

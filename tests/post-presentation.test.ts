@@ -8,7 +8,7 @@ assert.deepEqual(validatePostPresentation(subset,photo),subset);assert.equal(val
 for(const p of [{...subset,indices:[]},{...subset,indices:[-1]},{...subset,indices:[1.2]},{...subset,zoom:3},{kind:'video',start:4,end:2,zoom:1}])assert.throws(()=>validatePostPresentation(p,photo));
 assert.deepEqual(validatePostPresentation({kind:'video',start:37.2,end:54.6,zoom:1.2},video),{kind:'video',start:37.2,end:54.6,zoom:1.2});
 assert.equal(validateProfileAvatar({url:video,kind:'video',start:37.2,end:39.2,zoom:1.5})?.zoom,1.5);
-const input={name:'Creator',username:'creator',bio:'',avatar:'',cover:'',photos:[],videos:[{url:photo,title:'subset',kind:'social',presentation:subset}],socials:{tiktok:'creator',instagram:'',pinterest:''},tags:[],published:true,featured:false,order:0};
+const input={name:'Creator',username:'creator',bio:'',avatar:'',cover:'',photos:[],videos:[{url:photo,title:'subset',kind:'social',presentation:subset}],socials:{tiktok:'creator',instagram:'',pinterest:''},tags:[],birthYear:2000,published:true,featured:false,order:0};
 const created=validatePerson(input);assert.deepEqual(created.videos[0].presentation,subset);
 const updated=validatePerson({...input,videos:[{...input.videos[0],presentation:{...subset,indices:[2,6]}}]},created);assert.deepEqual(updated.videos[0].presentation,{...subset,indices:[2,6]});
 assert.equal(validatePerson({...input,videos:[{...input.videos[0],presentation:null}]},updated).videos[0].presentation,undefined);

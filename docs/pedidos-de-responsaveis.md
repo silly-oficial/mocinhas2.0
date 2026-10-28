@@ -82,3 +82,17 @@ Os testes de integração usam banco temporário, usuários e dados fictícios. 
 ## Atualização de segurança e retirada imediata
 
 O painel agora permite retirar o perfil de publicação já durante o recebimento do pedido, sem aguardar conclusão. A ação não apaga arquivos e registra ator, data, campo e motivo em legalAudit. A consulta administrativa da auditoria é paginada e usa no-store. Termos por HTTPS são opcionais em todos os tipos de pedido, e remoção aceita observações vazias. Foi adicionado o tipo contestar_classificacao, mas o fluxo especial de decisão fundamentada/reabertura ainda está pendente; usa por enquanto o atendimento existente. Nenhum prazo novo foi publicado nesta etapa.
+
+## Fluxo atual: oposição, prazo e reabertura
+
+Esta seção substitui as limitações históricas acima. A página /pais começa por remover conteúdo; documento é opcional em todos os tipos e remoção aceita observações vazias. Contestar classificação é uma opção própria. Nome e e-mail identificam o envio; não há pedido anônimo nem necessidade de login/Premium.
+
+Novos protocolos registram dueAt: 48 horas úteis para remoção, 120 horas úteis (cinco dias) para os demais. São horas corridas de segunda a sexta, com suspensão no fim de semana no fuso de Belém. Não há calendário automático de feriados. Prazos de protocolos anteriores não são reescritos. A configuração antiga responseBusinessDays é preservada por compatibilidade, mas não define novos prazos.
+
+A confirmação retorna id, dueAt e uma chave privada aleatória. O pedido guarda o hash; não há consulta pública por id sozinho. /pais?protocolo=… permite consultar com a chave ou reabrir com nome, mesmo e-mail e resposta. O recibo oferece link com a chave no fragmento; a chave não deve ser compartilhada. Pedidos antigos sem chave usam o contato público. As reaberturas permanecem no mesmo protocolo e preservam decisões/respostas, com limite de 20 respostas. O prazo de retenção do protocolo segue sua data original/último encerramento, não uma nova identidade fictícia.
+
+A consulta tem limite próprio de 20/min por rede. Envios novos e reaberturas compartilham 5/h por rede e as proteções de origem. Contestações seguem pending → reviewing → resolved/rejected (procedente/improcedente), exigindo fundamentacao de 80–3000 caracteres e descrição pública da providência. A chave não sai na listagem administrativa; dados privados e registro interno não saem na consulta do solicitante.
+
+Todo encerramento exige providência concreta. O e-mail inclui a resposta e o caminho para consultar/reabrir; usa nova revisão da fila a cada novo encerramento. Retirada imediata está disponível sem aguardar a análise. Não remove a mídia no TikTok nem declara exclusão física.
+
+O envio de e-mail depende de RESEND_API_KEY e EMAIL_FROM; o endereço público é configurável. Sem remetente configurado, a fila persiste. Não foram enviados e-mails reais na validação.

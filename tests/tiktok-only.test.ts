@@ -11,7 +11,7 @@ import {TikTokPostCard} from '../src/components/TikTokPostCard';
 import {creditsSections} from '../shared/credits';
 import type {DB} from '../server/db';
 const photo='https://www.tiktok.com/@creator/photo/7421111111111111111';
-const input={name:'Creator',username:'creator',bio:'',avatar:'',cover:'',photos:[],videos:[{url:photo,title:'Photos',thumbnail:'https://evil.invalid/spoof.jpg',source_handle:'@spoof'}],socials:{tiktok:'creator',instagram:'',pinterest:''},tags:[],published:true,featured:false,order:0};
+const input={name:'Creator',username:'creator',bio:'',avatar:'',cover:'',photos:[],videos:[{url:photo,title:'Photos',thumbnail:'https://evil.invalid/spoof.jpg',source_handle:'@spoof'}],socials:{tiktok:'creator',instagram:'',pinterest:''},tags:[],birthYear:2000,published:true,featured:false,order:0};
 for(const patch of [{avatar:'https://example.invalid/image.jpg'},{photos:['/uploads/photo.png']},{videos:[{url:'/uploads/video.mp4',title:'Upload',kind:'upload'}]},{videos:[{url:'https://www.instagram.com/reel/abcd/',title:'Instagram'}]}])assert.throws(()=>validatePerson({...input,...patch}));
 const legacy:any={...input,id:'legacy',avatar:'/uploads/old.jpg',photos:Array(57).fill('/uploads/old.jpg'),videos:[{url:'/uploads/old.mp4',title:'Old',kind:'upload'}]};
 assert.equal(validatePerson(legacy,legacy).photos.length,57,'legacy photos remain editable without truncation');
@@ -30,7 +30,7 @@ try{
  const job=state.directoryEmailOutbox.find((j:any)=>j.template==='request_completed');
  const oldKey=process.env.RESEND_API_KEY,oldFrom=process.env.EMAIL_FROM;process.env.RESEND_API_KEY='fake';process.env.EMAIL_FROM='sender@example.invalid';
  try{await sendEmail(job,(async(_url:any,options:any)=>{const email=JSON.parse(options.body);assert.equal(email.subject,'Sobre o seu pedido no Mocinhas');assert.match(email.text,/Já tomamos a providência: Crédito corrigido/);assert.ok(!email.text.includes('Private internal note'));assert.equal(email.reply_to,'contact@example.invalid');return new Response(JSON.stringify({id:'fixture'}));}) as typeof fetch);}finally{if(oldKey===undefined)delete process.env.RESEND_API_KEY;else process.env.RESEND_API_KEY=oldKey;if(oldFrom===undefined)delete process.env.EMAIL_FROM;else process.env.EMAIL_FROM=oldFrom;}
- const html=renderToStaticMarkup(React.createElement(TikTokPostCard,{media:{id:'photo',url:photo,type:'image',thumbnail:video.thumbnail}}));assert.ok(!html.includes('<iframe'));assert.ok(!html.includes('<video'));assert.match(html,/Conteúdo do criador original/);assert.match(html,/Conteúdo do criador original/);
+ const html=renderToStaticMarkup(React.createElement(TikTokPostCard,{media:{id:'photo',url:photo,type:'image',thumbnail:video.thumbnail}}));assert.ok(!html.includes('<iframe'));assert.ok(!html.includes('<video'));assert.match(html,/Conteúdo público do criador original/);assert.match(html,/Conteúdo público do criador original/);
  const page=renderToStaticMarkup(React.createElement(CreditsPage));for(const section of creditsSections)assert.ok(page.includes(section.title));assert.match(page,/Créditos e Remoção/);
  const footer=renderToStaticMarkup(React.createElement(DirectorySafetyFooter));assert.match(footer,/Todo o conteúdo do Mocinhas é de autoria dos criadores originais/);assert.match(footer,/href="\/creditos"/);assert.ok(!footer.includes('MEU-EMAIL@EXEMPLO.COM'));
  console.log('TikTok-only profiles, legacy preservation, canonical attribution, lazy media card, credits/footer and result email passed. External transports mocked; no email sent.');

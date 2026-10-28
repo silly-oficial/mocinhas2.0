@@ -1,6 +1,8 @@
+import {authRateLimit} from './auth-security';
+import {requestDeadline} from '../shared/request-deadline';
 import {appendLegalAudit} from './legal-audit';
 import type express from 'express';
-import {createHash, randomUUID} from 'node:crypto';
+import {createHash, randomUUID,randomBytes,timingSafeEqual} from 'node:crypto';
 import type {DB} from './db';
 import {requestTypes, type DirectoryRequest} from '../shared/directory-requests';
 import {directorySettings} from './directory-settings';
@@ -62,36 +64,61 @@ export function installDirectoryRequests(app: express.Express, db: typeof DB, ad
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value) ? value : '';
   }
   app.get('/api/directory-contact', (_req, res) => res.set('Cache-Control', 'no-store').json({email: contactEmail()}));
+  app.use('/api/directory-requests',(req,res,next)=>{
+    if(req.method!=='POST')return next();
+    const origin=req.get('origin');if(req.get('sec-fetch-site')==='cross-site'||(origin&&origin!==`${req.protocol}://${req.get('host')}`))return res.status(403).json({error:'Envie pelo próprio site.'});
+    if(!req.is('application/json'))return res.status(415).json({error:'Formato inválido.'});
+    if(req.path.endsWith('/access'))return next();
+    const now=Date.now();for(const [id,b] of buckets)if(b.until<=now)buckets.delete(id);
+    const key=createHash('sha256').update(req.ip||req.socket.remoteAddress||'unknown').digest('hex'),bucket=buckets.get(key)||{count:0,until:now+3600000};
+    if(bucket.count>=5||(!buckets.has(key)&&buckets.size>=5000)){res.set('Retry-After',String(Math.max(1,Math.ceil((bucket.until-now)/1000))));return res.status(429).json({error:'Muitos envios. Aguarde uma hora.'});}
+    bucket.count++;buckets.set(key,bucket);next();
+  });
+  const tokenHash=(value:string)=>createHash('sha256').update(value).digest('hex');
+  const authorized=(request:DirectoryRequest,token:unknown)=>typeof token==='string'&&token.length===48&&typeof request.accessTokenHash==='string'&&request.accessTokenHash.length===64&&timingSafeEqual(Buffer.from(tokenHash(token),'hex'),Buffer.from(request.accessTokenHash,'hex'));
+  app.post('/api/directory-requests/:id/access',authRateLimit(20,60000,req=>req.ip||'unknown'),(req,res)=>{
+    res.set('Cache-Control','no-store');const request=rows().find(row=>row.id===req.params.id);
+    if(!request||!authorized(request,req.body.accessToken))return res.status(404).json({error:'Protocolo ou chave inválidos.'});
+    return res.json({id:request.id,status:request.status,type:request.type,dueAt:request.dueAt,publicResult:request.publicResult||'',decision:request.decision,fundamentacao:request.fundamentacao,decisions:request.decisions||[],closedAt:request.closedAt});
+  });
+  app.post('/api/directory-requests/:id/reopen',(req,res)=>{
+    res.set('Cache-Control','no-store');const current=rows().find(row=>row.id===req.params.id);
+    if(!current||!authorized(current,req.body.accessToken))return res.status(404).json({error:'Protocolo ou chave inválidos.'});
+    if(!['resolved','rejected'].includes(current.status))return res.status(409).json({error:'O pedido já está aberto.'});
+    try{
+      const name=field(req.body.responsibleName,120,true),email=field(req.body.email,254,true).toLowerCase(),message=field(req.body.observations,3000,true);
+      if(email!==current.email)return res.status(400).json({error:'Use o e-mail do pedido original.'});
+      const now=new Date().toISOString(),before=db.get().directoryRequests,mail=db.get().directoryEmailOutbox,audit=db.get().legalAudit;
+      const updated:DirectoryRequest={...current,responsibleName:name,status:'pending',updatedAt:now,closedAt:undefined,dueAt:requestDeadline(current.type),publicResult:'',decision:undefined,fundamentacao:undefined,replies:[...(current.replies||[]),{at:now,message}]};
+      if(updated.replies!.length>20)return res.status(400).json({error:'Limite de respostas no protocolo. Use o contato público para continuar.'});
+      db.get().directoryRequests=rows().map(row=>row.id===current.id?updated:row);
+      appendLegalAudit(db,{actor:'solicitante',entity:current.id,field:'status',before:current.status,after:'pending',reason:'Discordância recebida no mesmo protocolo.'});
+      enqueueEmail(db,'reopen-'+current.id+'-'+now,current.email,'request_received',current.id);enqueueEmail(db,'reopen-admin-'+current.id+'-'+now,directorySettings(db).contactEmail,'admin_new_request',current.id);
+      try{db.save();}catch{db.get().directoryRequests=before;db.get().directoryEmailOutbox=mail;db.get().legalAudit=audit;return res.status(503).json({error:'Não foi possível registrar a resposta.'});}
+      return res.json({id:current.id,dueAt:updated.dueAt});
+    }catch{return res.status(400).json({error:'Informe nome, e-mail e a resposta à decisão.'});}
+  });
   app.post('/api/directory-requests', (req, res) => {
     res.set('Cache-Control', 'no-store');
     const origin = req.get('origin');
     if (req.get('sec-fetch-site') === 'cross-site' || (origin && origin !== `${req.protocol}://${req.get('host')}`)) return res.status(403).json({error: 'Envie o formulário pelo próprio site.'});
     if (!req.is('application/json')) return res.status(415).json({error: 'Formato de envio inválido.'});
     const now = Date.now();
-    for (const [key, bucket] of buckets) if (bucket.until <= now) buckets.delete(key);
-    const key = createHash('sha256').update(req.ip || req.socket.remoteAddress || 'unknown').digest('hex');
-    const bucket = buckets.get(key) || {count: 0, until: now + 60 * 60 * 1000};
-    if (bucket.count >= 5 || (!buckets.has(key) && buckets.size >= 5000)) {
-      res.set('Retry-After', String(Math.max(1, Math.ceil((bucket.until - now) / 1000))));
-      return res.status(429).json({error: 'Muitos envios. Aguarde uma hora ou use o contato informado na página.'});
-    }
-    bucket.count++; buckets.set(key, bucket);
     try {
       const input = validateDirectoryRequest(req.body);
       prune();
       if (rows().length >= 10000) return res.status(503).json({error: 'Fila temporariamente cheia. Utilize o contato informado na página.'});
       const date = new Date(now).toISOString();
-      const due = new Date(now);let days=directorySettings(db).responseBusinessDays;
-      while(days){due.setUTCDate(due.getUTCDate()+1);if(![0,6].includes(due.getUTCDay()))days--;}
-      const request: DirectoryRequest = {...input, id: randomUUID(), status: 'pending', createdAt: date, updatedAt: date, dueAt:due.toISOString(), adminNote: ''};
+      const accessToken=randomBytes(24).toString('hex');
+      const request:DirectoryRequest={...input,id:randomUUID(),status:'pending',createdAt:date,updatedAt:date,dueAt:requestDeadline(input.type,new Date(now)),adminNote:'',accessTokenHash:tokenHash(accessToken),revision:0};
       const before = db.get().directoryRequests;
       const beforeMail=db.get().directoryEmailOutbox,beforeVerification=db.get().verificationRequests;
       db.get().directoryRequests = [...rows(), request];
       addVerificationRequest(db,request);
-      enqueueEmail(db,'received-'+request.id,request.email,'request_received',request.id);
+      enqueueEmail(db,'received-'+request.id,request.email,'request_received',request.id,{accessKey:accessToken,reopenUrl:directorySettings(db).websiteUrl+'/pais?protocolo='+request.id});
       enqueueEmail(db,'admin-'+request.id,directorySettings(db).contactEmail,'admin_new_request',request.id);
       try { db.save(); } catch (error) { db.get().directoryRequests = before;db.get().directoryEmailOutbox=beforeMail;db.get().verificationRequests=beforeVerification;throw error; }
-      return res.status(201).json({id: request.id});
+      return res.status(201).json({id:request.id,dueAt:request.dueAt,accessToken});
     } catch (error) {
       if (error instanceof Error && /Pedido inválido|Confira os campos|Informe|Selecione|Use um link|Termos são/.test(error.message)) return res.status(400).json({error: error.message});
       return res.status(503).json({error: 'Não foi possível registrar o pedido. Tente novamente.'});
@@ -119,7 +146,7 @@ export function installDirectoryRequests(app: express.Express, db: typeof DB, ad
     if (!['pending','reviewing','resolved','rejected','all'].includes(status)) return res.status(400).json({error: 'Status inválido.'});
     const page = Math.max(0, Math.min(10000, Number(req.query.page) || 0) | 0);
     const selected = rows().filter(row => status === 'all' || row.status === status).sort((a,b) => a.createdAt.localeCompare(b.createdAt));
-    res.set('Cache-Control', 'no-store').json({requests: selected.slice(page * 50, (page + 1) * 50), total: selected.length});
+    res.set('Cache-Control', 'no-store').json({requests: selected.slice(page * 50, (page + 1) * 50).map(({accessTokenHash:_privateKey,...request})=>request), total: selected.length});
   });
   app.patch('/api/admin/directory-requests/:id', admin, (req, res) => {
     res.set('Cache-Control', 'no-store');
@@ -127,7 +154,11 @@ export function installDirectoryRequests(app: express.Express, db: typeof DB, ad
     if (!current) return res.status(404).json({error: 'Pedido não encontrado.'});
     const {status, unpublishProfileId} = req.body || {};
     if (!['reviewing','resolved','rejected'].includes(status)) return res.status(400).json({error: 'Status inválido.'});
-    if(current.type==='revogar_autorizacao' && status==='resolved' && (db.get().verificationRequests||[]).some(row=>row.handle===current.handle&&row.status==='aprovado'))return res.status(400).json({error:'Revogue o termo e o selo na aba Verificações antes de concluir este pedido.'});
+    if(current.type==='revogar_autorizacao' && status==='resolved' && (db.get().verificationRequests||[]).some(row=>row.handle===current.handle&&row.status==='aprovado'&&row.purpose==='guardian'))return res.status(400).json({error:'Revogue o termo e o selo na aba Verificações antes de concluir este pedido.'});
+    const contest=current.type==='contestar_classificacao',closing=['resolved','rejected'].includes(status);
+    if(contest&&!(current.status==='pending'&&status==='reviewing'||current.status==='reviewing'&&closing))return res.status(400).json({error:'Inicie a análise antes de decidir; pedido encerrado deve ser reaberto pelo solicitante.'});
+    const fundamentacao=typeof req.body.fundamentacao==='string'?req.body.fundamentacao.trim():'';
+    if(contest&&closing&&(fundamentacao.length<80||fundamentacao.length>3000))return res.status(400).json({error:'Registre fundamentação de 80 a 3000 caracteres.'});
     let adminNote: string;
     try { adminNote = field(req.body.adminNote ?? '', 3000); } catch { return res.status(400).json({error: 'Observação administrativa muito longa.'}); }
     const profiles = db.get().peopleProfiles || [];
@@ -137,21 +168,21 @@ export function installDirectoryRequests(app: express.Express, db: typeof DB, ad
     let publicResult='';
     try{publicResult=field(req.body.publicResult??'',1500);}catch{return res.status(400).json({error:'A resposta ao solicitante pode ter até 1500 caracteres.'});}
     if(unpublishProfileId!==undefined)publicResult='Perfil retirado da publicação no diretório. A ação não declara exclusão de arquivos ou de outras referências.'+(publicResult?' '+publicResult:'');
-    if(status==='resolved'&&current.type==='remover_conteudo'&&!publicResult)return res.status(400).json({error:'Registre a providência realmente executada para enviar a resposta de conclusão.'});
+    if(closing&&!publicResult)return res.status(400).json({error:'Registre a providência realmente executada para enviar a resposta de conclusão.'});
     const now = new Date().toISOString();
-    const updated: DirectoryRequest = {...current, status, adminNote, publicResult, updatedAt: now, ...(status === 'resolved' || status === 'rejected' ? {closedAt: now} : {closedAt: undefined})};
+    const updated: DirectoryRequest = {...current,status,adminNote,publicResult,fundamentacao,decision:contest&&closing?(status==='resolved'?'procedente':'improcedente'):undefined,revision:closing?(current.revision||0)+1:current.revision,decisions:closing?[...(current.decisions||[]),{at:now,status,result:publicResult,fundamentacao}]:(current.decisions||[]),updatedAt:now, ...(status === 'resolved' || status === 'rejected' ? {closedAt: now} : {closedAt: undefined})};
     const beforeRequests = db.get().directoryRequests, beforeProfiles = db.get().peopleProfiles;
     const beforeMail=db.get().directoryEmailOutbox, beforeAudit=db.get().legalAudit;
     db.get().directoryRequests = rows().map(row => row.id === current.id ? updated : row);
     if (unpublishProfileId !== undefined) db.get().peopleProfiles = profiles.map(profile => profile.id === unpublishProfileId ? {...profile, published: false, updatedAt: now} : profile);
     if(unpublishProfileId!==undefined)appendLegalAudit(db,{actor:(req as express.Request&{userId?:string}).userId||'admin',entity:unpublishProfileId,field:'published',before:profiles.find(profile=>profile.id===unpublishProfileId)?.published,after:false,reason:'Retirada pelo pedido '+current.id});
-    if(['resolved','rejected'].includes(status) && current.status!==status)enqueueEmail(db,'completed-'+current.id+'-'+status,current.email,'request_completed',current.id,{content:'@'+current.handle,result:publicResult||(status==='rejected'?'O pedido foi indeferido após análise. Entre em contato para mais informações.':''),resolved:status==='resolved'});
+    if(['resolved','rejected'].includes(status) && current.status!==status)enqueueEmail(db,'completed-'+current.id+'-'+status+'-'+updated.revision,current.email,'request_completed',current.id,{content:'@'+current.handle,result:publicResult+(contest&&fundamentacao?' Fundamentação: '+fundamentacao:''),resolved:status==='resolved',reopenUrl:directorySettings(db).websiteUrl+'/pais?protocolo='+current.id});
     try { db.save(); } catch {
       db.get().directoryEmailOutbox=beforeMail;db.get().legalAudit=beforeAudit;
       db.get().directoryRequests = beforeRequests; db.get().peopleProfiles = beforeProfiles;
       return res.status(503).json({error: 'Não foi possível salvar a análise.'});
     }
-    return res.json({request: updated});
+    const {accessTokenHash:_privateKey,...publicAdminRequest}=updated;return res.json({request:publicAdminRequest});
   });
 }
 

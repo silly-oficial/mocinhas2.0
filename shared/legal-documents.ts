@@ -3,6 +3,7 @@ export interface LegalDocumentSection {title: string; paragraphs: string[]}
 export interface LegalDocument {path: string; title: string; sections: LegalDocumentSection[]}
 export const legalNotice = 'Todo o conteúdo do Mocinhas é de autoria dos criadores originais. Cada mídia mantém o crédito e o link do perfil de origem. Encontrou algo seu e quer ajustar ou remover? Fale com a gente pelo contato público ou em /pais. As mídias pertencem aos seus criadores originais.';
 export const legalNavigation = [
+  {path: '/como-funciona', label: 'Como funciona'},
   {path: '/creditos', label: 'Créditos e Remoção'},
   {path: '/termos', label: 'Termos de Uso'},
   {path: '/privacidade', label: 'Privacidade'},
@@ -13,83 +14,183 @@ export const legalNavigation = [
 // These notices describe the implemented reporting channel, not an authorization
 // to catalogue or monetize children's profiles. Do not add unsupported guarantees.
 export const legalDocuments: Record<LegalPageKey, LegalDocument> = {
-  terms: {
-    path: '/termos', title: 'Termos de Uso do canal de atendimento', sections: [
-      {title: '1. Finalidade deste canal', paragraphs: [
-        'Estas regras descrevem o uso do canal de atendimento do Mocinhas para pedidos de remoção, correção de informações, reivindicação de perfil e apresentação de autorização. O atendimento é gratuito e não exige cadastro nem assinatura Premium.',
-        'O aviso de tratamento dos dados enviados está em /privacidade. O formulário para encaminhar uma solicitação está em /pais.',
-      ]},
-      {title: '2. Titularidade e respeito aos responsáveis', paragraphs: [
-        'As imagens e os vídeos pertencem aos seus respectivos criadores e titulares. A presença de um conteúdo em uma rede social, a atribuição de crédito ou o link para a origem não equivalem, por si só, a uma autorização de uso.',
-        'Mocinhas é independente do TikTok e não representa a plataforma ou os titulares dos perfis. O envio de um termo ou pedido de reivindicação não concede automaticamente autorização, identidade verificada ou selo.',
-      ]},
-      {title: '3. Como solicitar atendimento', paragraphs: [
-        'Use /pais para informar seu nome, e-mail, @ do perfil e o que precisa ser tratado. Para pedir remoção, não é necessário apresentar termo assinado, justificar o pedido ou contratar um plano.',
-        'Informe dados verdadeiros e somente o necessário para analisar o pedido. Não envie senhas, dados de cartão ou documentos de identidade nas observações. A administração pode solicitar uma verificação proporcional da representação antes de compartilhar informações pessoais ou autorizar alterações.',
-      ]},
-      {title: '4. Recebimento e análise', paragraphs: [
-        'Após o envio confirmado, guarde o protocolo. A administração responderá pelo e-mail informado em até cinco dias úteis. O protocolo confirma o recebimento; ele não indica que a análise ou a remoção já foi concluída.',
-        'A análise é manual; avisos de recebimento e conclusão são enviados por e-mail quando o provedor está configurado. Retirar um perfil de publicação oculta o perfil no diretório; pedidos relativos a arquivos, posts ou outras referências exigem tratamento específico pela administração. A equipe deve registrar o que foi feito antes de concluir o pedido.',
-      ]},
-      {title: '5. Uso adequado e contato', paragraphs: [
-        'Não utilize o formulário para se passar por outra pessoa, enviar ameaças ou fazer envios abusivos. Limites técnicos protegem a disponibilidade do atendimento; não impedem o uso do contato da administração, quando informado na página.',
-        'Você pode consultar a privacidade dos pedidos em /privacidade e solicitar acesso, correção ou exclusão dos dados do seu pedido em /pais, informando o protocolo.',
-      ]},
-      {title: '6. Alterações e histórico', paragraphs: [
-        'As versões destes documentos são registradas com data e preservadas para consulta e download em /versoes. Uma atualização não altera o conteúdo das versões já arquivadas.',
-      ]},
-    ],
+  "terms": {
+    "path": "/termos",
+    "title": "Termos de Uso do Mocinhas",
+    "sections": [
+      {
+        "title": "1. Objeto e natureza editorial",
+        "paragraphs": [
+          "Mocinhas é um diretório editorial de perfis, organizado manualmente. A inclusão, o destaque e a ordem seguem critérios subjetivos da curadoria. Não são avaliações objetivas das pessoas nem resultado de votação pública. Os critérios informados aparecem em cada perfil e em /como-funciona."
+        ]
+      },
+      {
+        "title": "2. Acesso e gratuidade",
+        "paragraphs": [
+          "O acesso ao diretório e ao atendimento é atualmente gratuito. Novas cobranças estão desativadas nesta versão. Não é necessário Premium, cadastro ou pagamento para pedir remoção, correção ou contestar uma classificação. Registros antigos de pagamentos permanecem sujeitos às obrigações aplicáveis."
+        ]
+      },
+      {
+        "title": "3. Informações e limitações",
+        "paragraphs": [
+          "Nome, apresentação, ano de nascimento e faixa etária podem estar incompletos ou errados. Só o ano não permite determinar a idade em anos completos: o aplicativo informa um intervalo aproximado. Não fazemos verificação de idade com documento, selfie ou provedor externo. Use /pais para corrigir informações."
+        ]
+      },
+      {
+        "title": "4. Conteúdo e propriedade intelectual",
+        "paragraphs": [
+          "Novas publicações são exibidas por links no player oficial do TikTok, com crédito e acesso à origem. Não baixamos, reenviamos nem processamos essas mídias. Referências antigas ainda presentes podem exigir tratamento individual pela administração. As mídias e os direitos de terceiros não pertencem ao Mocinhas.",
+          "Conteúdo público, crédito, link ou incorporação não constituem, sozinhos, autorização geral de uso. Mocinhas é independente do TikTok. O selo de titularidade e o de autorização documentada são diferentes; nenhum deles comprova a idade ou oferece garantia geral de regularidade."
+        ]
+      },
+      {
+        "title": "5. Uso adequado",
+        "paragraphs": [
+          "Não se passe por outra pessoa, ameace, persiga ou tente obter dados privados dos perfis e responsáveis. Não envie senhas ou documentos de identidade no formulário de atendimento. É proibido tentar contornar restrições do TikTok, acessar contas privadas ou explorar falhas do aplicativo."
+        ]
+      },
+      {
+        "title": "6. Remoção, correção e contestação",
+        "paragraphs": [
+          "O canal /pais exige nome e e-mail para resposta, sem cadastro obrigatório. Remoção não exige justificativa ou documento. Termos são opcionais; apresentá-los não concede selo automaticamente. Retirar de publicação oculta o perfil no diretório e não declara exclusão física de arquivos nem remoção na plataforma original.",
+          "Pedidos de remoção têm prazo de 48 horas úteis; os demais, cinco dias úteis. A contagem pausa aos sábados e domingos, no fuso de Belém, e não considera um calendário automático de feriados. O prazo exato aparece no protocolo.",
+          "Contestações de classificação recebem decisão fundamentada após análise. Guarde a chave privada do protocolo para consultar a resposta e reabrir o mesmo pedido em caso de discordância. Não compartilhe essa chave."
+        ]
+      },
+      {
+        "title": "7. Disponibilidade e responsabilidade",
+        "paragraphs": [
+          "O TikTok pode restringir, alterar ou retirar uma publicação e o navegador pode impedir sua reprodução automática. O diretório não contorna essas restrições. Falha de reprodução ou indisponibilidade na origem não comprova que um perfil deixou de ser público em outro momento.",
+          "Podemos corrigir falhas, retirar itens da curadoria ou interromper o serviço. Não prometemos disponibilidade contínua. Estas limitações não afastam responsabilidades impostas pela legislação nem direitos do usuário."
+        ]
+      },
+      {
+        "title": "8. Mudanças, privacidade e solução de conflitos",
+        "paragraphs": [
+          "As alterações de Termos, Privacidade e atendimento são registradas com data e versões em /versoes. Consulte /privacidade para entender o tratamento dos dados.",
+          "Tente primeiro o canal /pais ou o contato público configurado pela administração. Eventuais conflitos serão tratados no foro competente conforme a legislação brasileira, preservado o foro do consumidor quando aplicável. Não foi estabelecido um endereço ou foro exclusivo fictício."
+        ]
+      }
+    ]
   },
-  privacy: {
-    path: '/privacidade', title: 'Privacidade dos pedidos de responsáveis', sections: [
-      {title: '1. Alcance deste aviso', paragraphs: [
-        'Este aviso descreve o tratamento dos dados enviados pelo canal de atendimento. Ele não é uma política completa sobre todas as funcionalidades do aplicativo. As regras do canal estão em /termos; o formulário fica em /pais.',
-      ]},
-      {title: '2. Dados recebidos e finalidade', paragraphs: [
-        'Recebemos nome do responsável, e-mail, @ do perfil, tipo de pedido, observações e, opcionalmente, link de um termo. Esses dados servem para localizar o conteúdo indicado, analisar a solicitação, verificar a representação quando necessário e responder pelo e-mail informado.',
-        'Não envie documentos de identidade, endereço ou outros dados desnecessários nas observações. O formulário não exige login ou Premium. O envio de um termo não gera selo nem autorização automática.',
-      ]},
-      {title: '3. Acesso e compartilhamento', paragraphs: [
-        'Os dados do pedido, as observações administrativas e os links de termos são restritos à administração. Não são publicados no perfil, no histórico de documentos ou em anúncios.',
-        'A infraestrutura do aplicativo armazena os pedidos. Links de termos apontam para o provedor escolhido por quem os envia; o servidor não acessa automaticamente esses links. Compartilhe apenas o documento necessário e controle quem pode abri-lo.',
-      ]},
-      {title: '4. Prazo de retenção', paragraphs: [
-        'Pedidos encerrados são excluídos da base ativa após 90 dias do encerramento; pedidos ainda abertos, após 180 dias do envio. A rotina é executada diariamente e no início do serviço. Cópias de segurança seguem o ciclo de retenção da infraestrutura.',
-        'Registros de verificação aprovados são mantidos enquanto a autorização estiver ativa; após revogação ou recusa, por até 90 dias. Pedidos de verificação ainda abertos são mantidos por até 180 dias. Os avisos na fila de e-mail são mantidos por até 90 dias. O histórico público preserva somente os textos dos documentos, o aviso do rodapé, a data e os dados públicos de contato. Ele não inclui os pedidos ou os documentos enviados por responsáveis.',
-      ]},
-      {title: '5. Crianças e adolescentes', paragraphs: [
-        'As solicitações relacionadas a crianças e adolescentes devem priorizar sua proteção e seu melhor interesse. A existência de um perfil público, o crédito ou um link para a origem não substituem uma autorização válida.',
-        'O responsável pode solicitar remoção sem apresentar termo assinado. A administração deve avaliar o pedido e a representação, quando necessária, sem exigir dados excessivos.',
-      ]},
-      {title: '6. Dados técnicos e cookies do formulário', paragraphs: [
-        'O formulário não instala cookies de publicidade nem cria um perfil comportamental. Um identificador derivado do endereço de rede, mantido somente em memória por até uma hora, limita envios repetidos. O provedor de hospedagem pode manter seus próprios registros técnicos.',
-        'Este aviso não afirma que as demais funcionalidades do aplicativo deixam de usar cookies ou outros identificadores.',
-      ]},
-      {title: '7. Direitos e contato', paragraphs: [
-        'Você pode solicitar acesso, correção ou exclusão dos dados do seu pedido em /pais, informando o protocolo. A administração pode verificar a identidade de forma proporcional antes de fornecer dados pessoais.',
-        'As regras do canal estão em /termos. Versões anteriores deste aviso ficam em /versoes. O contato da administração aparece abaixo quando houver um e-mail configurado.',
-      ]},
-    ],
+  "privacy": {
+    "path": "/privacidade",
+    "title": "Política de Privacidade do Mocinhas",
+    "sections": [
+      {
+        "title": "1. Quem responde e alcance",
+        "paragraphs": [
+          "Esta política abrange o diretório, as contas, o atendimento e os registros técnicos do Mocinhas. O nome da organização e os contatos publicados dependem das configurações da administração. O contato de privacidade/encarregado aparece nesta página quando informado; sua ausência é uma pendência de configuração, não indicação de que exista um encarregado fictício."
+        ]
+      },
+      {
+        "title": "2. Dados e finalidades",
+        "paragraphs": [
+          "@, nome público, bio, links, critérios editoriais e temas servem para apresentar e organizar os perfis. O ano de nascimento, quando conhecido, serve somente para estimar a idade e informar a faixa; não guardamos a data completa neste cadastro.",
+          "E-mail de conta e senha com hash servem para autenticação e recuperação de acesso. A recuperação guarda hash do código, validade de 15 minutos e tentativas, sem publicar o código em produção. Nome, e-mail, observações e links opcionais de termos dos pedidos servem para atendimento e análise.",
+          "IP, user-agent, horário, método, caminho sem query e status da API servem para segurança e diagnóstico. Senhas, corpos de requisição, tokens e chaves de protocolo não são incluídos deliberadamente no log de acesso. Preferências locais e cookies essenciais permitem sessão, limites técnicos, escolhas de interface e registro das preferências opcionais."
+        ]
+      },
+      {
+        "title": "3. Hipóteses legais e oposição",
+        "paragraphs": [
+          "O diretório não faz captação ativa de autorização nem usa um consentimento geral como fundamento para catalogar perfis. O tratamento de dados de acesso público deve respeitar finalidade, boa-fé e direitos do titular; a dispensa de consentimento para dados manifestamente públicos pelo titular está no art. 7º, §4º, e não elimina os demais deveres da LGPD.",
+          "O legítimo interesse do art. 7º, IX, exige avaliação documentada de finalidade, necessidade e equilíbrio com direitos e expectativas; a proteção do titular e o melhor interesse de crianças e adolescentes devem prevalecer. Publicar esta política não prova que todo perfil atende a esses requisitos. A curadoria deve avaliar cada caso e receber oposição em /pais.",
+          "Dados de conta também atendem à prestação do acesso solicitado; registros de segurança e atendimento podem atender a obrigações legais e exercício de direitos. As escolhas opcionais de cookies são separadas e não autorizam uso da imagem de terceiros."
+        ]
+      },
+      {
+        "title": "4. Compartilhamento e transferência internacional",
+        "paragraphs": [
+          "Supabase pode guardar o documento JSON e arquivos históricos; Render hospeda a aplicação; Resend recebe o endereço e o conteúdo das mensagens necessárias ao atendimento e recuperação quando configurado. O player do TikTok é uma integração externa e pode tratar dados de conexão conforme suas próprias regras.",
+          "Esses provedores podem operar fora do Brasil. A administração deve verificar a localização e as garantias contratuais de cada operação, adotando mecanismo permitido pelo art. 33 da LGPD quando houver transferência internacional. O código não confirma automaticamente contratação de cláusulas-padrão, países de destino ou adequação de todos os contratos."
+        ]
+      },
+      {
+        "title": "5. Retenção por categoria",
+        "paragraphs": [
+          "Perfis são mantidos enquanto necessários à curadoria e sujeitos a correção, oposição ou retirada. Retirar de publicação não equivale a apagar dados. Contas permanecem até sua exclusão ou atendimento específico, ressalvadas obrigações legais. A administração deve analisar pedidos de exclusão e eventuais exceções.",
+          "Logs de acesso das rotas de autenticação, administração e atendimento são expurgados da base ativa após seis meses, em rotina no início do serviço e diária. Pedidos encerrados permanecem por até 90 dias do encerramento; os abertos, até 180 dias do envio. Respostas e decisões vinculadas seguem o mesmo protocolo e prazo.",
+          "Verificações aprovadas permanecem enquanto ativas; após recusa ou revogação, até 90 dias; verificações abertas, até 180 dias. A fila de e-mails permanece por até 90 dias conforme a rotina de atendimento.",
+          "A auditoria jurídica e o registro inicial da origem não têm expurgo automático nesta implementação; ficam restritos à administração. Essa conservação exige revisão de necessidade e não impede pedidos de direitos. Versões públicas dos documentos preservam seus textos e contatos históricos. Cópias de segurança e registros próprios dos provedores seguem seus ciclos, que podem diferir da base ativa."
+        ]
+      },
+      {
+        "title": "6. Direitos e como exercer",
+        "paragraphs": [
+          "Use /pais para pedir confirmação, acesso, correção, informação sobre compartilhamentos, oposição, revisão, anonimização, bloqueio ou eliminação quando aplicáveis, nos termos do art. 18 da LGPD. Não há decisão de classificação inteiramente automatizada: a curadoria e o atendimento são humanos.",
+          "O formulário é identificado por nome e e-mail, sem documento obrigatório. Para fornecer dados pessoais privados, pode ser necessária confirmação proporcional da identidade. Não exigimos comprovação excessiva para simplesmente receber uma oposição ou pedido de remoção. Guarde protocolo e chave privada para acompanhar e responder à decisão."
+        ]
+      },
+      {
+        "title": "7. Crianças e adolescentes",
+        "paragraphs": [
+          "O melhor interesse deve orientar a curadoria e cada tratamento, com minimização e linguagem simples. Guardamos apenas o ano quando informado; não realizamos verificação documental de idade. Oposição e correção são acessíveis em /pais.",
+          "Os dados privados de responsáveis e os termos não são publicados. O selo de titularidade não substitui autorização documentada; a ausência de um selo não resolve, por si só, a análise jurídica de um caso. Não há filtros ou sugestões de classificação sexualizada de menores."
+        ]
+      },
+      {
+        "title": "8. Segurança praticada",
+        "paragraphs": [
+          "A aplicação usa HTTPS quando publicada, controles administrativos, sessão por cookie HttpOnly/SameSite=Lax/Secure em produção e compatibilidade com clientes antigos que usam token. Novos logins da interface não gravam o token no armazenamento local.",
+          "Senhas novas usam bcrypt com custo 12. Há limites de tentativas, códigos de recuperação com hash, uso único e expiração, validação das mensagens do player e listas explícitas de campos públicos. Nenhuma medida elimina todos os riscos. As políticas SQL do repositório não são prova de que foram aplicadas à instalação existente."
+        ]
+      },
+      {
+        "title": "9. Cookies, publicidade e preferências",
+        "paragraphs": [
+          "Cookies essenciais permanecem necessários à sessão e às proteções do serviço. Analíticos e publicidade começam desativados. Recusar opcionais e aceitar opcionais têm o mesmo peso visual; a seleção e sua versão ficam no navegador com data. A preferência pode ser revista.",
+          "Esta implementação não instala SDK de analytics, anúncios ou perfilamento comportamental. Se houver publicidade no futuro, ela dependerá de avaliação própria, respeito às preferências e às vedações aplicáveis, inclusive as da Lei 15.211/2025. Não afirmamos que uma integração futura já existe ou está automaticamente autorizada."
+        ]
+      },
+      {
+        "title": "10. Contato e versões",
+        "paragraphs": [
+          "Use o contato público ou o canal /pais para falar com a administração. O contato específico de privacidade é configurável e aparece abaixo. As versões anteriores desta política estão em /versoes."
+        ]
+      }
+    ]
   },
-  parents: {
-    path: '/pais', title: 'Para pais e responsáveis', sections: [
-      {title: '1. Pedir remoção ou correção', paragraphs: [
-        'Os perfis são adicionados pela administração. Se você é responsável e quer remover conteúdo ou corrigir informações, use o formulário abaixo. O atendimento é gratuito, sem cadastro e sem necessidade de assinar o Premium.',
-        'Para solicitar remoção, basta informar o @ e o que precisa ser removido. Não é necessário apresentar termo assinado ou justificar o pedido.',
-      ]},
-      {title: '2. Prazo e protocolo', paragraphs: [
-        'Responderemos pelo e-mail informado em até cinco dias úteis. Guarde o protocolo exibido após o envio. O registro não remove automaticamente o conteúdo: a administração fará a análise e responderá ao pedido.',
-        'Indique arquivos, posts ou outras referências que também precisem de tratamento. Ocultar um perfil do diretório não apaga automaticamente esses outros itens.',
-      ]},
-      {title: '3. Reivindicação e apresentação de termo', paragraphs: [
-        'Você também pode solicitar a análise de uma reivindicação ou apresentar um termo por link HTTPS. Não envie documentos de identidade nas observações. Um termo não é necessário para solicitar remoção.',
-        'Esses envios são analisados pela administração. Eles não concedem automaticamente acesso de gerenciamento, autorização de publicação, selo ou destaque. O selo depende de análise e aprovação manual; pode ser revogado pela administração.',
-      ]},
-      {title: '4. Como seus dados serão tratados', paragraphs: [
-        'O pedido e seus documentos não são públicos. Leia /privacidade para saber quais dados são recebidos, quem pode acessá-los e por quanto tempo são mantidos. As regras do atendimento estão em /termos.',
-      ]},
-    ],
-  },
+  "parents": {
+    "path": "/pais",
+    "title": "Para pais, responsáveis e titulares",
+    "sections": [
+      {
+        "title": "1. Remover, corrigir ou contestar",
+        "paragraphs": [
+          "O atendimento é gratuito, identificado por nome e e-mail, sem login ou Premium. A ação padrão é remover conteúdo. Para remoção, não exigimos justificativa, termo ou documento. Basta indicar o @ e, quando possível, o que deve ser retirado.",
+          "Também é possível corrigir idade ou nome, contestar a classificação e reivindicar um perfil. A apresentação de termo e a revogação de autorização são opções de atendimento, não uma captação ativa."
+        ]
+      },
+      {
+        "title": "2. Prazo e protocolo",
+        "paragraphs": [
+          "Remoção: 48 horas úteis. Demais pedidos: cinco dias úteis. A contagem pausa nos fins de semana, no fuso de Belém; não há calendário automático de feriados. O prazo aparece após o envio.",
+          "Guarde o protocolo e a chave privada. Eles permitem consultar a providência executada e reabrir o mesmo protocolo com uma resposta, caso discorde. A consulta não expõe dados a quem conhece apenas o número do protocolo."
+        ]
+      },
+      {
+        "title": "3. Análise e retirada imediata",
+        "paragraphs": [
+          "A administração pode retirar um perfil da publicação antes de concluir a análise. Despublicar não apaga arquivos, posts ou a publicação no TikTok. A resposta deve descrever a ação realmente realizada.",
+          "Contestações passam de recebidas para em análise e depois procedentes ou improcedentes, com fundamentação de pelo menos 80 caracteres. A nova resposta do solicitante fica vinculada ao mesmo protocolo. Os avisos por e-mail dependem de configuração do provedor."
+        ]
+      },
+      {
+        "title": "4. Documentos e selos",
+        "paragraphs": [
+          "Documentos por link HTTPS são opcionais em todos os tipos de pedido; o servidor não abre o link automaticamente. Não envie identidade, selfie ou dados desnecessários.",
+          "“Perfil verificado” trata do vínculo com o @. “Autorizado pelo responsável” exige termo aprovado. Um pedido não concede nenhum selo automaticamente. A administração pode revogar aprovações; mudar a identidade vinculada invalida os selos anteriores."
+        ]
+      },
+      {
+        "title": "5. Privacidade e contato",
+        "paragraphs": [
+          "Pedidos e dados de responsáveis ficam restritos à administração. Leia /privacidade e /termos. Contatos reais são publicados quando configurados; sem e-mail informado, o formulário continua sendo o canal disponível."
+        ]
+      }
+    ]
+  }
 };
 
 export interface LegalDocumentVersion {
@@ -97,7 +198,8 @@ export interface LegalDocumentVersion {
   recordedAt: string;
   digest: string;
   commit?: string;
-  contactEmail: string;
+  contactEmail:string;
+  publicSettings?:import('./directory-settings').DirectorySettings;
   notice: string;
   documents: Record<LegalPageKey, LegalDocument>;
 }

@@ -4,7 +4,7 @@ import {emailPattern, type DirectorySettings} from '../shared/directory-settings
 export function directorySettings(db: typeof DB): DirectorySettings {
   const stored = db.get().directorySettings || {};
   const email = (value:string|undefined) => value && emailPattern.test(value) && !/[\[\]]/.test(value) ? value : '';
-  return {siteName:'Mocinhas',organizationName:'',websiteUrl:'',responseBusinessDays:5,...stored,contactEmail:email(stored.contactEmail ?? process.env.CONTACT_EMAIL),dpoEmail:email(stored.dpoEmail ?? process.env.DPO_EMAIL)};
+  return {siteName:stored.siteName||'Mocinhas',organizationName:stored.organizationName||'',websiteUrl:stored.websiteUrl||'',responseBusinessDays:stored.responseBusinessDays||5,ageRating:stored.ageRating||'L',ageRatingNote:stored.ageRatingNote??'Conteúdo sem nudez. Podem aparecer traje de banho, roupa de praia e roupas justas.',contactEmail:email(stored.contactEmail??process.env.CONTACT_EMAIL),dpoEmail:email(stored.dpoEmail??process.env.DPO_EMAIL)};
 }
 export function installDirectorySettings(app:express.Express,db:typeof DB,admin:express.RequestHandler,onChanged?:()=>Promise<void>) {
   app.get('/api/directory-settings',(_req,res)=>res.set('Cache-Control','no-store').json(directorySettings(db)));
@@ -23,6 +23,9 @@ export function installDirectorySettings(app:express.Express,db:typeof DB,admin:
       const days = req.body.responseBusinessDays;
       if(!Number.isInteger(days) || days<1 || days>5) throw Error('Use um prazo de 1 a 5 dias úteis.');
       settings.responseBusinessDays=days;
+      const previous=directorySettings(db),rating=req.body.ageRating??previous.ageRating,note=req.body.ageRatingNote??previous.ageRatingNote;
+      if(typeof rating!=='string'||!['L','10','12','14','16','18'].includes(rating)||typeof note!=='string'||note.length>1000)throw Error('Confira a classificação e a descrição.');
+      settings.ageRating=rating;settings.ageRatingNote=note.trim();
       const before=db.get().directorySettings, audit=db.get().directorySettingsAudit, versions=db.get().legalDocumentVersions;
       db.get().directorySettings=settings;
       db.get().directorySettingsAudit=[...(audit||[]),{by:(req as any).userId,at:new Date().toISOString(),settings}].slice(-100);
@@ -31,3 +34,4 @@ export function installDirectorySettings(app:express.Express,db:typeof DB,admin:
     } catch(error) {res.status(400).json({error:error instanceof Error?error.message:'Falha ao salvar.'});}
   });
 }
+

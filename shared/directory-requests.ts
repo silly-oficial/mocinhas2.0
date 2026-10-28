@@ -11,6 +11,10 @@ export type DirectoryRequestType = keyof typeof requestTypes;
 export type DirectoryRequestStatus = 'pending' | 'reviewing' | 'resolved' | 'rejected';
 export interface DirectoryRequest {
   id: string;
+  accessTokenHash?:string;revision?:number;fundamentacao?:string;
+  decision?:'procedente'|'improcedente';
+  replies?:{at:string;message:string}[];
+  decisions?:{at:string;status:DirectoryRequestStatus;result:string;fundamentacao:string}[];
   responsibleName: string;
   email: string;
   handle: string;

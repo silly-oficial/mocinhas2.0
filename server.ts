@@ -1,8 +1,10 @@
+import {installAccessLog} from './server/access-log';
+import {sessionToken,setSession,protectCookieWrites} from './server/session-security';
 import {authRateLimit,issueRecovery,consumeRecovery,deliverRecovery} from './server/auth-security';
 import {tiktokPost} from './shared/people';
 import {makeTikTokResolver} from './server/tiktok-oembed';
 import {uploadedMediaOrigin} from './server/media-origin';
-import { installPeople } from './server/people';
+import { refreshProfileAges, installPeople } from './server/people';
 import { installDirectoryRequests } from './server/directory-requests';
 import { installDirectorySettings } from './server/directory-settings';
 import { installVerification } from './server/verification';
@@ -12,12 +14,11 @@ import { archiveLegalVersionFile } from './server/legal-history-storage';
 import { validateVideoCover } from './shared/video-cover';
 import { validatePhotoFocus } from './shared/photo-focus';
 import { installWelcome } from './server/welcome';
-import { CLOUD, flushCloud, assertCloudHealthy, uploadCloud, signedMedia, signedStaticMedia } from './server/cloud-store';
+import { CLOUD, flushCloud, assertCloudHealthy, uploadCloud, signedMedia } from './server/cloud-store';
 import { hydrateCloudDatabase } from './server/storage';
 import 'dotenv/config';
 import { UPLOADS_DIR, DB_FILE, storageDiagnostics } from './server/storage';
 import { randomBytes } from 'node:crypto';
-import { installSyncpayPayments } from './server/payments.ts';
 import { installConsumptionPolicy } from './server/consumption.ts';
 
 import express from 'express';
@@ -40,7 +41,7 @@ if (!DB.get().engagementRestored) {
 const PORT = Number(process.env.PORT) || 3000;
 const JWT_SECRET = process.env.JWT_SECRET || DB.get().authSecret || randomBytes(48).toString('hex');
 if (!process.env.JWT_SECRET && !DB.get().authSecret) { DB.get().authSecret = JWT_SECRET; DB.save(); }
-if (process.env.TRUST_PROXY) app.set('trust proxy', process.env.TRUST_PROXY);
+if(process.env.TRUST_PROXY)app.set('trust proxy',/^\d+$/.test(process.env.TRUST_PROXY)?Number(process.env.TRUST_PROXY):process.env.TRUST_PROXY);else if(process.env.RENDER==='true')app.set('trust proxy',1);
 
 // Keep legacy media paths readable; new uploads are disabled.
 if(!fs.existsSync(UPLOADS_DIR))fs.mkdirSync(UPLOADS_DIR,{recursive:true});
@@ -49,6 +50,7 @@ if(!fs.existsSync(UPLOADS_DIR))fs.mkdirSync(UPLOADS_DIR,{recursive:true});
 app.use('/api/directory-requests', express.json({ limit: '16kb' }));
 app.use(express.json({ limit: '50mb', verify: (req, _res, buf) => { if (req.url === '/api/syncpay/webhook') (req as any).rawBody = Buffer.from(buf); } }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
+app.use(protectCookieWrites);
 // No API acknowledgement is sent before its queued remote snapshot is durable.
 app.use((req, res, next) => {
   if (!CLOUD || (!req.path.startsWith('/api/') && !req.path.startsWith('/uploads/'))) return next();
@@ -62,6 +64,7 @@ app.use((req, res, next) => {
   }) as typeof res.json;
   next();
 });
+installAccessLog(app,DB);
 // Media is served after the consumption policy below.
 
 // SSE Clients for Live Real-Time Notifications & Messages
@@ -85,9 +88,7 @@ function broadcastEvent(recipientUserId: string, eventType: string, data: any) {
 
 // Auth Helper Middleware
 function getAuthUserId(req: express.Request): string | null {
-  const authHeader = req.headers.authorization;
-  if (!authHeader || !authHeader.startsWith('Bearer ')) return null;
-  const token = authHeader.split(' ')[1];
+  const token=sessionToken(req);if(!token)return null;
   try {
     const decoded = jwt.verify(token, JWT_SECRET) as { userId: string };
     return decoded.userId;
@@ -109,6 +110,8 @@ installWelcome(app, DB, requireAdmin);
 installDirectoryRequests(app, DB, requireAdmin);
 installDirectorySettings(app, DB, requireAdmin,async()=>{await recordLegalVersion(DB,archiveLegalVersionFile);});
 installVerification(app, DB, requireAdmin);
+refreshProfileAges(DB);
+const ageTimer=setInterval(()=>{try{refreshProfileAges(DB);}catch{console.warn('[idade] Falha ao atualizar as faixas.');}},86400000);ageTimer.unref();
 const directoryMail = startDirectoryMailWorker(DB, flushCloud);
 installLegalHistory(app, DB);
 installConsumptionPolicy(app, DB, JWT_SECRET, getAuthUserId, requireAdmin);
@@ -187,35 +190,7 @@ app.post('/api/supabase/config', requireAdmin, express.json(), async (req, res) 
 // ----------------------------------------------------
 //  SERVER-SENT-EVENTS (SSE) FOR REAL-TIME SYNC
 // ----------------------------------------------------
-app.get('/api/events', (req, res) => {
-  const token = req.query.token as string;
-  let userId: string | null = null;
-  if (token) {
-    try {
-      const decoded = jwt.verify(token, JWT_SECRET) as { userId: string };
-      userId = decoded.userId;
-    } catch (e) {}
-  }
 
-  if (!userId) {
-    return res.status(401).end();
-  }
-
-  res.setHeader('Content-Type', 'text/event-stream');
-  res.setHeader('Cache-Control', 'no-cache');
-  res.setHeader('Connection', 'keep-alive');
-  res.flushHeaders();
-
-  const clientId = `${userId}_${Date.now()}_${Math.random()}`;
-  const client: SSEClient = { id: clientId, userId, res };
-  sseClients.push(client);
-
-  res.write(`data: ${JSON.stringify({ type: 'connected', userId })}\n\n`);
-
-  req.on('close', () => {
-    sseClients = sseClients.filter(c => c.id !== clientId);
-  });
-});
 
 // ----------------------------------------------------
 //  AUTHENTICATION ENDPOINTS
@@ -272,7 +247,7 @@ app.post('/api/auth/register', (req, res) => {
 
   const token = jwt.sign({ userId: newUser.id }, JWT_SECRET, { expiresIn: '30d' });
   const publicUser = DB.toPublicUser(newUser, newUser.id);
-  res.json({ token, user: publicUser });
+  setSession(res,token);res.json({token,user:publicUser});
 });
 
 app.post('/api/auth/login', authRateLimit(5,60000,req=>(req.ip||'')+'|'+String(req.body?.identifier||'').trim().toLowerCase()), (req, res) => {
@@ -300,9 +275,10 @@ app.post('/api/auth/login', authRateLimit(5,60000,req=>(req.ip||'')+'|'+String(r
 
   const token = jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: '30d' });
   const publicUser = DB.toPublicUser(user, user.id);
-  res.json({ token, user: publicUser });
+  setSession(res,token);res.json({token,user:publicUser});
 });
 
+app.post('/api/auth/logout',(_req,res)=>{res.clearCookie('mocinhas_session',{httpOnly:true,sameSite:'lax',secure:process.env.NODE_ENV==='production',path:'/'});res.set('Cache-Control','no-store').json({success:true});});
 app.get('/api/auth/me', (req, res) => {
   const currentUserId = getAuthUserId(req);
   if (!currentUserId) {
@@ -398,150 +374,19 @@ app.put('/api/users/me/profile', requireAuth, (req, res) => {
   res.json({ user: DB.toPublicUser(updated, userId) });
 });
 
-app.post('/api/users/:id/follow', requireAuth, (req, res) => {
-  const currentUserId = (req as any).userId;
-  const targetUserId = req.params.id;
 
-  if (currentUserId === targetUserId) {
-    return res.status(400).json({ error: 'Você não pode seguir a si mesma(o) ♡' });
-  }
 
-  const targetUser = DB.findUserById(targetUserId);
-  if (!targetUser) return res.status(404).json({ error: 'Usuário não encontrado' });
 
-  const currentUser = DB.findUserById(currentUserId)!;
-  const rawDb = DB.get();
 
-  // Check if already following
-  const existing = rawDb.follows.find(f => f.followerId === currentUserId && f.followingId === targetUserId);
-  if (existing) {
-    return res.json({ status: existing.status });
-  }
 
-  const status = targetUser.isPrivate ? 'pending' : 'accepted';
-  const newFollow = {
-    id: `f_${Date.now()}`,
-    followerId: currentUserId,
-    followingId: targetUserId,
-    status: status as 'pending' | 'accepted',
-    createdAt: new Date().toISOString()
-  };
-  rawDb.follows.push(newFollow);
 
-  // Notification
-  const notif: DBNotification = {
-    id: `notif_${Date.now()}`,
-    recipientId: targetUserId,
-    actorId: currentUserId,
-    type: targetUser.isPrivate ? 'follow_request' : 'follow',
-    targetId: currentUserId,
-    targetType: 'user',
-    textSnippet: targetUser.isPrivate ? 'solicitou para seguir seu perfil privado' : 'começou a seguir você ',
-    isRead: false,
-    createdAt: new Date().toISOString(),
-  };
-  rawDb.notifications.push(notif);
-  DB.save();
 
-  broadcastEvent(targetUserId, 'notification', { ...notif, actor: DB.toPublicUser(currentUser) });
 
-  res.json({ status, user: DB.toPublicUser(targetUser, currentUserId) });
-});
 
-app.post('/api/users/:id/unfollow', requireAuth, (req, res) => {
-  const currentUserId = (req as any).userId;
-  const targetUserId = req.params.id;
-  const rawDb = DB.get();
 
-  rawDb.follows = rawDb.follows.filter(f => !(f.followerId === currentUserId && f.followingId === targetUserId));
-  DB.save();
 
-  const targetUser = DB.findUserById(targetUserId);
-  res.json({ success: true, user: targetUser ? DB.toPublicUser(targetUser, currentUserId) : null });
-});
 
-app.get('/api/users/follow-requests/pending', requireAuth, (req, res) => {
-  const currentUserId = (req as any).userId;
-  const rawDb = DB.get();
-  const requests = rawDb.follows
-    .filter(f => f.followingId === currentUserId && f.status === 'pending')
-    .map(f => {
-      const u = DB.findUserById(f.followerId);
-      return {
-        id: f.id,
-        followerId: f.followerId,
-        createdAt: f.createdAt,
-        requester: u ? DB.toPublicUser(u, currentUserId) : null
-      };
-    })
-    .filter(r => r.requester !== null);
-  res.json({ requests });
-});
 
-app.post('/api/users/follow-requests/:id/accept', requireAuth, (req, res) => {
-  const currentUserId = (req as any).userId;
-  const requestId = req.params.id;
-  const rawDb = DB.get();
-
-  const follow = rawDb.follows.find(f => f.id === requestId && f.followingId === currentUserId);
-  if (!follow) return res.status(404).json({ error: 'Solicitação não encontrada' });
-
-  follow.status = 'accepted';
-  const notif: DBNotification = {
-    id: `notif_${Date.now()}`,
-    recipientId: follow.followerId,
-    actorId: currentUserId,
-    type: 'follow_accept',
-    targetId: currentUserId,
-    targetType: 'user',
-    textSnippet: 'aceitou sua solicitação para seguir ',
-    isRead: false,
-    createdAt: new Date().toISOString(),
-  };
-  rawDb.notifications.push(notif);
-  DB.save();
-
-  const currentUser = DB.findUserById(currentUserId)!;
-  broadcastEvent(follow.followerId, 'notification', { ...notif, actor: DB.toPublicUser(currentUser) });
-
-  res.json({ success: true });
-});
-
-app.post('/api/users/follow-requests/:id/reject', requireAuth, (req, res) => {
-  const currentUserId = (req as any).userId;
-  const requestId = req.params.id;
-  const rawDb = DB.get();
-
-  rawDb.follows = rawDb.follows.filter(f => !(f.id === requestId && f.followingId === currentUserId));
-  DB.save();
-  res.json({ success: true });
-});
-
-app.get('/api/users/:id/followers', (req, res) => {
-  const currentUserId = getAuthUserId(req) || undefined;
-  const rawDb = DB.get();
-  const followers = rawDb.follows
-    .filter(f => f.followingId === req.params.id && f.status === 'accepted')
-    .map(f => {
-      const u = DB.findUserById(f.followerId);
-      return u ? DB.toPublicUser(u, currentUserId) : null;
-    })
-    .filter(Boolean);
-  res.json({ followers });
-});
-
-app.get('/api/users/:id/following', (req, res) => {
-  const currentUserId = getAuthUserId(req) || undefined;
-  const rawDb = DB.get();
-  const following = rawDb.follows
-    .filter(f => f.followerId === req.params.id && f.status === 'accepted')
-    .map(f => {
-      const u = DB.findUserById(f.followingId);
-      return u ? DB.toPublicUser(u, currentUserId) : null;
-    })
-    .filter(Boolean);
-  res.json({ following });
-});
 
 app.post('/api/users/:id/block', requireAuth, (req, res) => {
   const currentUserId = (req as any).userId;
@@ -661,33 +506,7 @@ app.get('/api/posts', (req, res) => {
   res.json({ posts });
 });
 
-app.post('/api/admin/emergency-cleanup', requireAdmin, (req, res) => {
-  const rawDb = DB.get();
-  const now = Date.now();
-  const initialPosts = rawDb.posts.length;
-  const initialStories = rawDb.stories.length;
 
-  rawDb.posts = rawDb.posts.filter(p => {
-    if (!p.expiresAt) return true;
-    return new Date(p.expiresAt).getTime() > now;
-  });
-
-  rawDb.stories = rawDb.stories.filter(s => {
-    if (!s.expiresAt) return true;
-    return new Date(s.expiresAt).getTime() > now;
-  });
-
-  const removedPosts = initialPosts - rawDb.posts.length;
-  const removedStories = initialStories - rawDb.stories.length;
-
-  DB.save();
-  res.json({
-    success: true,
-    message: `Limpeza de emergência executada com sucesso! Removidos ${removedPosts} posts e ${removedStories} stories expirados. `,
-    removedPosts,
-    removedStories
-  });
-});
 
 const resolvePostTikTok=makeTikTokResolver(DB);
 app.post('/api/posts', requireAdmin, async (req, res) => {
@@ -793,38 +612,11 @@ app.delete('/api/posts/:id', requireAdmin, (req, res) => {
 // ----------------------------------------------------
 let ephemeral1HourMode = false; // Enabled by default as requested
 
-app.get('/api/ephemeral/settings', (_req, res) => {
-  res.json({
-    ephemeral1HourMode,
-    expiresAfterMinutes: 60,
-    message: ephemeral1HourMode
-      ? 'Modo Efêmero Ativo: Todo conteúdo expira permanentemente após 1 hora '
-      : 'Modo Efêmero Desativado',
-  });
-});
 
-app.post('/api/ephemeral/settings', requireAuth, (req, res) => {
-  const { enabled } = req.body;
-  ephemeral1HourMode = Boolean(enabled);
-  if (ephemeral1HourMode) {
-    DB.cleanEphemeral1HourContent(3600000);
-  }
-  res.json({ success: true, ephemeral1HourMode });
-});
 
-app.post('/api/ephemeral/cleanup', (_req, res) => {
-  const results = DB.cleanEphemeral1HourContent(3600000);
-  res.json({
-    success: true,
-    deletedCount: {
-      posts: results.deletedPosts,
-      messages: results.deletedMessages,
-      stories: results.deletedStories,
-      groups: results.deletedGroups,
-    },
-    message: `Limpeza efêmera concluída: ${results.deletedPosts} posts, ${results.deletedMessages} mensagens, ${results.deletedStories} stories e ${results.deletedGroups} grupos expirados removidos! `,
-  });
-});
+
+
+
 
 app.post('/api/posts/:id/like', requireAuth, (req, res) => {
   const currentUserId = (req as any).userId;
@@ -1049,21 +841,7 @@ app.delete('/api/comments/:id', requireAuth, (req, res) => {
   res.json({ success: true, commentsCount: totalComments, postId: comment.postId });
 });
 
-app.get('/api/posts/explore/feed', (req, res) => {
-  const currentUserId = getAuthUserId(req) || undefined;
-  const rawDb = DB.get();
 
-  const posts = rawDb.posts
-    .filter(p => DB.canViewUserContent(p.userId, currentUserId))
-    .sort((a, b) => {
-      const likesA = rawDb.likes.filter(l => l.postId === a.id).length;
-      const likesB = rawDb.likes.filter(l => l.postId === b.id).length;
-      return likesB - likesA;
-    })
-    .map(p => DB.toPublicPost(p, currentUserId));
-
-  res.json({ posts });
-});
 
 app.get('/api/posts/reels/feed', (req, res) => {
   const currentUserId = getAuthUserId(req) || undefined;
@@ -1125,839 +903,66 @@ app.get('/api/posts/user/:username', (req, res) => {
 // ----------------------------------------------------
 //  STORIES ENDPOINTS (24H EXPIRY)
 // ----------------------------------------------------
-app.get('/api/stories', (req, res) => {
-  const currentUserId = getAuthUserId(req) || undefined;
-  const rawDb = DB.get();
-  const now = new Date().getTime();
 
-  // Only stories younger than 24h
-  const activeStories = rawDb.stories.filter(s => new Date(s.expiresAt).getTime() > now);
 
-  // Group by user
-  const groupedMap: { [userId: string]: DBStory[] } = {};
-  activeStories.forEach(s => {
-    if (DB.canViewUserContent(s.userId, currentUserId)) {
-      if (!groupedMap[s.userId]) groupedMap[s.userId] = [];
-      groupedMap[s.userId].push(s);
-    }
-  });
 
-  const storyGroups = Object.keys(groupedMap).map(userId => {
-    const user = DB.findUserById(userId);
-    const userStories = groupedMap[userId].sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
 
-    const hasUnseen = currentUserId
-      ? userStories.some(s => !rawDb.storyViews.some(sv => sv.storyId === s.id && sv.userId === currentUserId))
-      : true;
 
-    const enrichedStories = userStories.map(s => {
-      const viewsCount = rawDb.storyViews.filter(sv => sv.storyId === s.id).length;
-      const isViewed = currentUserId ? rawDb.storyViews.some(sv => sv.storyId === s.id && sv.userId === currentUserId) : false;
-      const reactionsCount = rawDb.storyViews.filter(sv => sv.storyId === s.id && sv.reaction).length;
-      return {
-        ...s,
-        user: user ? DB.toPublicUser(user, currentUserId) : null,
-        viewsCount,
-        isViewed,
-        reactionsCount
-      };
-    });
 
-    return {
-      user: user ? DB.toPublicUser(user, currentUserId) : null,
-      stories: enrichedStories,
-      hasUnseen,
-      latestCreatedAt: userStories[userStories.length - 1]?.createdAt || ''
-    };
-  }).filter(g => g.user !== null);
 
-  res.json({ storyGroups });
-});
 
-app.post('/api/stories', requireAuth, (req, res) => {
-  const currentUserId = (req as any).userId;
-  const { mediaUrl, mediaType, textOverlay, stickers, location, mentions, filter } = req.body;
 
-  if (!mediaUrl) {
-    return res.status(400).json({ error: 'Mídia obrigatória para o Story ' });
-  }
-
-  const newStory: DBStory = {
-    id: `s_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
-    userId: currentUserId,
-    mediaUrl,
-    mediaType: mediaType || 'image',
-    textOverlay,
-    stickers: stickers || [],
-    location,
-    mentions: mentions || [],
-    filter,
-    createdAt: new Date().toISOString(),
-    expiresAt: new Date(Date.now() + 24 * 3600000).toISOString(),
-  };
-
-  const rawDb = DB.get();
-  rawDb.stories.push(newStory);
-  DB.save();
-
-  res.json({ story: newStory });
-});
-
-app.post('/api/stories/:id/view', requireAuth, (req, res) => {
-  const currentUserId = (req as any).userId;
-  const storyId = req.params.id;
-  const rawDb = DB.get();
-
-  const story = rawDb.stories.find(s => s.id === storyId);
-  if (!story) return res.status(404).json({ error: 'Story não encontrado' });
-
-  if (!rawDb.storyViews.some(sv => sv.storyId === storyId && sv.userId === currentUserId)) {
-    rawDb.storyViews.push({
-      id: `sv_${Date.now()}`,
-      storyId,
-      userId: currentUserId,
-      createdAt: new Date().toISOString()
-    });
-    DB.save();
-  }
-
-  res.json({ success: true });
-});
-
-app.post('/api/stories/:id/react', requireAuth, (req, res) => {
-  const currentUserId = (req as any).userId;
-  const storyId = req.params.id;
-  const { reaction } = req.body;
-  const rawDb = DB.get();
-
-  const story = rawDb.stories.find(s => s.id === storyId);
-  if (!story) return res.status(404).json({ error: 'Story não encontrado' });
-
-  let view = rawDb.storyViews.find(sv => sv.storyId === storyId && sv.userId === currentUserId);
-  if (view) {
-    view.reaction = reaction || '';
-  } else {
-    rawDb.storyViews.push({
-      id: `sv_${Date.now()}`,
-      storyId,
-      userId: currentUserId,
-      reaction: reaction || '',
-      createdAt: new Date().toISOString()
-    });
-  }
-
-  if (story.userId !== currentUserId) {
-    const currentUser = DB.findUserById(currentUserId)!;
-    const notif: DBNotification = {
-      id: `notif_${Date.now()}`,
-      recipientId: story.userId,
-      actorId: currentUserId,
-      type: 'story_reaction',
-      targetId: story.id,
-      targetType: 'story',
-      targetThumbnail: story.mediaUrl,
-      textSnippet: `reagiu ao seu Story com ${reaction || ''}`,
-      isRead: false,
-      createdAt: new Date().toISOString()
-    };
-    rawDb.notifications.push(notif);
-    broadcastEvent(story.userId, 'notification', { ...notif, actor: DB.toPublicUser(currentUser) });
-  }
-
-  DB.save();
-  res.json({ success: true, reaction });
-});
-
-app.delete('/api/stories/:id', requireAuth, (req, res) => {
-  const currentUserId = (req as any).userId;
-  const storyId = req.params.id;
-  const rawDb = DB.get();
-
-  const story = rawDb.stories.find(s => s.id === storyId);
-  if (!story) return res.status(404).json({ error: 'Story não encontrado' });
-  if (story.userId !== currentUserId) return res.status(403).json({ error: 'Não autorizado' });
-
-  rawDb.stories = rawDb.stories.filter(s => s.id !== storyId);
-  rawDb.storyViews = rawDb.storyViews.filter(sv => sv.storyId !== storyId);
-  DB.save();
-
-  res.json({ success: true });
-});
 
 // ----------------------------------------------------
 //  DIRECT MESSAGES & GROUP CHATS
 // ----------------------------------------------------
-app.get('/api/conversations', requireAuth, (req, res) => {
-  const currentUserId = (req as any).userId;
-  const rawDb = DB.get();
 
-  const userConvs = rawDb.conversations
-    .filter(c => c.participantIds.includes(currentUserId))
-    .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
-    .map(c => {
-      const participants = c.participantIds
-        .map(id => DB.findUserById(id))
-        .filter(Boolean)
-        .map(u => DB.toPublicUser(u!, currentUserId));
 
-      const messages = rawDb.messages.filter(m => m.conversationId === c.id);
-      const lastMessage = messages[messages.length - 1] || undefined;
-      const unreadCount = messages.filter(m => m.senderId !== currentUserId && m.status !== 'read').length;
 
-      return {
-        id: c.id,
-        participantIds: c.participantIds,
-        participants,
-        isGroup: Boolean(c.isGroup),
-        name: c.name,
-        description: c.description,
-        avatar: c.avatar,
-        isPublic: c.isPublic ?? true,
-        creatorId: c.creatorId,
-        adminIds: c.adminIds || (c.creatorId ? [c.creatorId] : []),
-        rules: c.rules,
-        inviteCode: c.inviteCode,
-        durationMode: c.durationMode || 'permanent',
-        messageDurationHours: c.messageDurationHours || 24,
-        messagesClearedAt: c.messagesClearedAt,
-        lastMessage,
-        unreadCount,
-        createdAt: c.createdAt,
-        updatedAt: c.updatedAt
-      };
-    });
-
-  res.json({ conversations: userConvs });
-});
-
-app.post('/api/conversations', requireAuth, (req, res) => {
-  const currentUserId = (req as any).userId;
-  const { recipientId } = req.body;
-
-  if (!recipientId || recipientId === currentUserId) {
-    return res.status(400).json({ error: 'Destinatário inválido.' });
-  }
-
-  const rawDb = DB.get();
-  let conv = rawDb.conversations.find(c =>
-    !c.isGroup &&
-    c.participantIds.length === 2 &&
-    c.participantIds.includes(currentUserId) &&
-    c.participantIds.includes(recipientId)
-  );
-
-  if (!conv) {
-    conv = {
-      id: `conv_${Date.now()}`,
-      participantIds: [currentUserId, recipientId],
-      isGroup: false,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    };
-    rawDb.conversations.unshift(conv);
-    DB.save();
-  }
-
-  const participants = conv.participantIds
-    .map(id => DB.findUserById(id))
-    .filter(Boolean)
-    .map(u => DB.toPublicUser(u!, currentUserId));
-
-  res.json({ conversation: { ...conv, participants, unreadCount: 0 } });
-});
 
 // Group Endpoints
-app.get('/api/groups/public', requireAuth, (req, res) => {
-  const currentUserId = (req as any).userId;
-  const rawDb = DB.get();
 
-  const publicGroups = rawDb.conversations
-    .filter(c => c.isGroup && c.isPublic)
-    .sort((a, b) => (b.participantIds?.length || 0) - (a.participantIds?.length || 0))
-    .map(c => {
-      const participants = c.participantIds
-        .map(id => DB.findUserById(id))
-        .filter(Boolean)
-        .map(u => DB.toPublicUser(u!, currentUserId));
 
-      const messages = rawDb.messages.filter(m => m.conversationId === c.id);
-      const lastMessage = messages[messages.length - 1] || undefined;
-      const unreadCount = messages.filter(m => m.senderId !== currentUserId && m.status !== 'read').length;
 
-      return {
-        id: c.id,
-        participantIds: c.participantIds,
-        participants,
-        isGroup: true,
-        name: c.name || 'Grupo Sem Nome',
-        description: c.description || '',
-        avatar: c.avatar || 'https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=300&auto=format&fit=crop&q=80',
-        isPublic: true,
-        creatorId: c.creatorId,
-        adminIds: c.adminIds || (c.creatorId ? [c.creatorId] : []),
-        rules: c.rules,
-        inviteCode: c.inviteCode,
-        durationMode: c.durationMode || 'permanent',
-        messageDurationHours: c.messageDurationHours || 24,
-        messagesClearedAt: c.messagesClearedAt,
-        lastMessage,
-        unreadCount,
-        createdAt: c.createdAt,
-        updatedAt: c.updatedAt
-      };
-    });
 
-  res.json({ groups: publicGroups });
-});
 
-app.post('/api/groups', requireAuth, (req, res) => {
-  const currentUserId = (req as any).userId;
-  const {
-    name,
-    description,
-    avatar,
-    isPublic = true,
-    memberIds = [],
-    rules,
-    durationMode = 'permanent',
-    messageDurationHours = 24
-  } = req.body;
 
-  if (!name || !name.trim()) {
-    return res.status(400).json({ error: 'Nome do grupo é obrigatório.' });
-  }
 
-  const rawDb = DB.get();
-  const allMemberIds = Array.from(new Set([currentUserId, ...(Array.isArray(memberIds) ? memberIds : [])]));
-  const inviteCode = Math.random().toString(36).substring(2, 8).toUpperCase();
 
-  const newGroup: DBConversation = {
-    id: `grp_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
-    name: name.trim(),
-    description: (description || '').trim(),
-    avatar: avatar || 'https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=300&auto=format&fit=crop&q=80',
-    isGroup: true,
-    isPublic: Boolean(isPublic),
-    creatorId: currentUserId,
-    adminIds: [currentUserId],
-    participantIds: allMemberIds,
-    rules: rules ? rules.trim() : undefined,
-    inviteCode,
-    durationMode: durationMode === 'temporary' ? 'temporary' : 'permanent',
-    messageDurationHours: Number(messageDurationHours) || 24,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
-  };
 
-  rawDb.conversations.unshift(newGroup);
 
-  // System welcome message
-  const durationText = newGroup.durationMode === 'temporary'
-    ? ` As mensagens expiram a cada ${newGroup.messageDurationHours}h (o grupo é mantido).`
-    : ` Grupo permanente.`;
 
-  const welcomeMsg: DBMessage = {
-    id: `msg_${Date.now()}_system`,
-    conversationId: newGroup.id,
-    senderId: currentUserId,
-    text: ` Grupo "${newGroup.name}" foi criado com sucesso!${durationText}`,
-    status: 'read',
-    createdAt: new Date().toISOString()
-  };
-  rawDb.messages.push(welcomeMsg);
 
-  DB.save();
 
-  const participants = newGroup.participantIds
-    .map(id => DB.findUserById(id))
-    .filter(Boolean)
-    .map(u => DB.toPublicUser(u!, currentUserId));
 
-  res.json({
-    group: {
-      ...newGroup,
-      participants,
-      lastMessage: welcomeMsg,
-      unreadCount: 0
-    }
-  });
-});
 
-app.get('/api/groups/:id', requireAuth, (req, res) => {
-  const currentUserId = (req as any).userId;
-  const groupId = req.params.id;
-  const rawDb = DB.get();
 
-  const group = rawDb.conversations.find(c => c.id === groupId && c.isGroup);
-  if (!group) return res.status(404).json({ error: 'Grupo não encontrado.' });
 
-  // If private and not member
-  if (!group.isPublic && !group.participantIds.includes(currentUserId)) {
-    return res.status(403).json({ error: 'Este grupo é privado.' });
-  }
-
-  const participants = group.participantIds
-    .map(id => DB.findUserById(id))
-    .filter(Boolean)
-    .map(u => DB.toPublicUser(u!, currentUserId));
-
-  res.json({ group: { ...group, participants } });
-});
-
-app.post('/api/groups/:id/join', requireAuth, (req, res) => {
-  const currentUserId = (req as any).userId;
-  const groupId = req.params.id;
-  const { inviteCode } = req.body;
-  const rawDb = DB.get();
-
-  const group = rawDb.conversations.find(c => c.id === groupId && c.isGroup);
-  if (!group) return res.status(404).json({ error: 'Grupo não encontrado.' });
-
-  if (!group.isPublic && group.inviteCode && group.inviteCode !== inviteCode) {
-    return res.status(403).json({ error: 'Código de convite inválido para este grupo privado.' });
-  }
-
-  if (!group.participantIds.includes(currentUserId)) {
-    group.participantIds.push(currentUserId);
-    group.updatedAt = new Date().toISOString();
-
-    const joiningUser = DB.findUserById(currentUserId);
-    const joinMsg: DBMessage = {
-      id: `msg_${Date.now()}_join`,
-      conversationId: group.id,
-      senderId: currentUserId,
-      text: ` ${joiningUser?.displayName || 'Uma mocinha'} entrou no grupo.`,
-      status: 'read',
-      createdAt: new Date().toISOString()
-    };
-    rawDb.messages.push(joinMsg);
-    DB.save();
-  }
-
-  const participants = group.participantIds
-    .map(id => DB.findUserById(id))
-    .filter(Boolean)
-    .map(u => DB.toPublicUser(u!, currentUserId));
-
-  res.json({ group: { ...group, participants } });
-});
-
-app.post('/api/groups/:id/leave', requireAuth, (req, res) => {
-  const currentUserId = (req as any).userId;
-  const groupId = req.params.id;
-  const rawDb = DB.get();
-
-  const group = rawDb.conversations.find(c => c.id === groupId && c.isGroup);
-  if (!group) return res.status(404).json({ error: 'Grupo não encontrado.' });
-
-  group.participantIds = group.participantIds.filter(id => id !== currentUserId);
-  group.adminIds = (group.adminIds || []).filter(id => id !== currentUserId);
-
-  // If creator leaves, assign next admin or member
-  if (group.creatorId === currentUserId && group.participantIds.length > 0) {
-    group.creatorId = group.adminIds?.[0] || group.participantIds[0];
-    if (!group.adminIds?.includes(group.creatorId)) {
-      group.adminIds = [group.creatorId, ...(group.adminIds || [])];
-    }
-  }
-
-  const leavingUser = DB.findUserById(currentUserId);
-  const leaveMsg: DBMessage = {
-    id: `msg_${Date.now()}_leave`,
-    conversationId: group.id,
-    senderId: currentUserId,
-    text: ` ${leavingUser?.displayName || 'Uma mocinha'} saiu do grupo.`,
-    status: 'read',
-    createdAt: new Date().toISOString()
-  };
-  rawDb.messages.push(leaveMsg);
-  group.updatedAt = new Date().toISOString();
-
-  DB.save();
-  res.json({ success: true });
-});
-
-app.post('/api/groups/:id/members', requireAuth, (req, res) => {
-  const currentUserId = (req as any).userId;
-  const groupId = req.params.id;
-  const { userIds } = req.body;
-  const rawDb = DB.get();
-
-  const group = rawDb.conversations.find(c => c.id === groupId && c.isGroup);
-  if (!group) return res.status(404).json({ error: 'Grupo não encontrado.' });
-
-  if (!group.participantIds.includes(currentUserId)) {
-    return res.status(403).json({ error: 'Você precisa ser membro do grupo para adicionar pessoas.' });
-  }
-
-  if (Array.isArray(userIds)) {
-    userIds.forEach(uid => {
-      if (!group.participantIds.includes(uid)) {
-        group.participantIds.push(uid);
-      }
-    });
-    group.updatedAt = new Date().toISOString();
-    DB.save();
-  }
-
-  const participants = group.participantIds
-    .map(id => DB.findUserById(id))
-    .filter(Boolean)
-    .map(u => DB.toPublicUser(u!, currentUserId));
-
-  res.json({ group: { ...group, participants } });
-});
-
-app.delete('/api/groups/:id/members/:userId', requireAuth, (req, res) => {
-  const currentUserId = (req as any).userId;
-  const groupId = req.params.id;
-  const targetUserId = req.params.userId;
-  const rawDb = DB.get();
-
-  const group = rawDb.conversations.find(c => c.id === groupId && c.isGroup);
-  if (!group) return res.status(404).json({ error: 'Grupo não encontrado.' });
-
-  const isAdmin = group.adminIds?.includes(currentUserId) || group.creatorId === currentUserId;
-  if (!isAdmin) {
-    return res.status(403).json({ error: 'Apenas administradores podem remover membros.' });
-  }
-
-  group.participantIds = group.participantIds.filter(id => id !== targetUserId);
-  group.adminIds = (group.adminIds || []).filter(id => id !== targetUserId);
-  group.updatedAt = new Date().toISOString();
-
-  DB.save();
-
-  const participants = group.participantIds
-    .map(id => DB.findUserById(id))
-    .filter(Boolean)
-    .map(u => DB.toPublicUser(u!, currentUserId));
-
-  res.json({ group: { ...group, participants } });
-});
-
-app.post('/api/groups/:id/admins/:userId', requireAuth, (req, res) => {
-  const currentUserId = (req as any).userId;
-  const groupId = req.params.id;
-  const targetUserId = req.params.userId;
-  const rawDb = DB.get();
-
-  const group = rawDb.conversations.find(c => c.id === groupId && c.isGroup);
-  if (!group) return res.status(404).json({ error: 'Grupo não encontrado.' });
-
-  const isCreatorOrAdmin = group.creatorId === currentUserId || group.adminIds?.includes(currentUserId);
-  if (!isCreatorOrAdmin) {
-    return res.status(403).json({ error: 'Apenas criador ou administradores podem alterar permissões.' });
-  }
-
-  if (!group.adminIds) group.adminIds = [group.creatorId || currentUserId];
-
-  if (group.adminIds.includes(targetUserId)) {
-    group.adminIds = group.adminIds.filter(id => id !== targetUserId);
-  } else {
-    group.adminIds.push(targetUserId);
-  }
-
-  group.updatedAt = new Date().toISOString();
-  DB.save();
-
-  const participants = group.participantIds
-    .map(id => DB.findUserById(id))
-    .filter(Boolean)
-    .map(u => DB.toPublicUser(u!, currentUserId));
-
-  res.json({ group: { ...group, participants } });
-});
-
-app.put('/api/groups/:id', requireAuth, (req, res) => {
-  const currentUserId = (req as any).userId;
-  const groupId = req.params.id;
-  const { name, description, avatar, isPublic, rules, durationMode, messageDurationHours } = req.body;
-  const rawDb = DB.get();
-
-  const group = rawDb.conversations.find(c => c.id === groupId && c.isGroup);
-  if (!group) return res.status(404).json({ error: 'Grupo não encontrado.' });
-
-  const isAdmin = group.adminIds?.includes(currentUserId) || group.creatorId === currentUserId;
-  if (!isAdmin) {
-    return res.status(403).json({ error: 'Apenas administradores podem editar o grupo.' });
-  }
-
-  if (name !== undefined && name.trim()) group.name = name.trim();
-  if (description !== undefined) group.description = description.trim();
-  if (avatar !== undefined) group.avatar = avatar;
-  if (isPublic !== undefined) group.isPublic = Boolean(isPublic);
-  if (rules !== undefined) group.rules = rules.trim();
-  if (durationMode !== undefined) {
-    group.durationMode = durationMode === 'temporary' ? 'temporary' : 'permanent';
-  }
-  if (messageDurationHours !== undefined) {
-    group.messageDurationHours = Number(messageDurationHours) || 24;
-  }
-
-  group.updatedAt = new Date().toISOString();
-  DB.save();
-
-  const participants = group.participantIds
-    .map(id => DB.findUserById(id))
-    .filter(Boolean)
-    .map(u => DB.toPublicUser(u!, currentUserId));
-
-  res.json({ group: { ...group, participants } });
-});
 
 // Clear group messages without deleting the group
-app.post('/api/groups/:id/clear-messages', requireAuth, (req, res) => {
-  const currentUserId = (req as any).userId;
-  const groupId = req.params.id;
-  const rawDb = DB.get();
 
-  const group = rawDb.conversations.find(c => c.id === groupId && c.isGroup);
-  if (!group) return res.status(404).json({ error: 'Grupo não encontrado.' });
 
-  const isAdmin = group.adminIds?.includes(currentUserId) || group.creatorId === currentUserId;
-  if (!isAdmin) {
-    return res.status(403).json({ error: 'Apenas administradores podem limpar as mensagens do grupo.' });
-  }
 
-  // Delete all messages belonging to this group
-  rawDb.messages = rawDb.messages.filter(m => m.conversationId !== groupId);
-  group.messagesClearedAt = new Date().toISOString();
-  group.updatedAt = new Date().toISOString();
 
-  // System notice
-  const noticeMsg: DBMessage = {
-    id: `msg_${Date.now()}_cleared`,
-    conversationId: group.id,
-    senderId: currentUserId,
-    text: ` As mensagens anteriores do grupo foram limpas. O grupo continua ativo!`,
-    status: 'read',
-    createdAt: new Date().toISOString()
-  };
-  rawDb.messages.push(noticeMsg);
-  DB.save();
 
-  res.json({ success: true, message: 'Mensagens do grupo foram limpas com sucesso!' });
-});
 
-app.delete('/api/groups/:id', requireAuth, (req, res) => {
-  const currentUserId = (req as any).userId;
-  const groupId = req.params.id;
-  const rawDb = DB.get();
 
-  const group = rawDb.conversations.find(c => c.id === groupId && c.isGroup);
-  if (!group) return res.status(404).json({ error: 'Grupo não encontrado.' });
 
-  if (group.creatorId !== currentUserId) {
-    return res.status(403).json({ error: 'Apenas a criadora do grupo pode excluí-lo.' });
-  }
 
-  rawDb.conversations = rawDb.conversations.filter(c => c.id !== groupId);
-  rawDb.messages = rawDb.messages.filter(m => m.conversationId !== groupId);
-  DB.save();
-
-  res.json({ success: true });
-});
-
-app.get('/api/conversations/:id/messages', requireAuth, (req, res) => {
-  const currentUserId = (req as any).userId;
-  const convId = req.params.id;
-  const rawDb = DB.get();
-
-  const conv = rawDb.conversations.find(c => c.id === convId && c.participantIds.includes(currentUserId));
-  if (!conv) return res.status(404).json({ error: 'Conversa não encontrada' });
-
-  // If group is temporary, prune messages that exceeded duration limit
-  if (conv.isGroup && conv.durationMode === 'temporary') {
-    const groupDurationMs = (conv.messageDurationHours || 24) * 3600000;
-    const now = Date.now();
-    const beforeCount = rawDb.messages.length;
-    rawDb.messages = rawDb.messages.filter(m => {
-      if (m.conversationId === convId) {
-        return (now - new Date(m.createdAt).getTime()) < groupDurationMs;
-      }
-      return true;
-    });
-    if (rawDb.messages.length !== beforeCount) {
-      DB.save();
-    }
-  }
-
-  // Mark messages from others as read
-  let markedCount = 0;
-  rawDb.messages.forEach(m => {
-    if (m.conversationId === convId && m.senderId !== currentUserId && m.status !== 'read') {
-      m.status = 'read';
-      markedCount++;
-    }
-  });
-  if (markedCount > 0) DB.save();
-
-  const messages = rawDb.messages
-    .filter(m => m.conversationId === convId)
-    .map(m => {
-      const sender = DB.findUserById(m.senderId);
-      const replyTo = m.replyToId ? rawDb.messages.find(rm => rm.id === m.replyToId) : undefined;
-      return {
-        ...m,
-        sender: sender ? DB.toPublicUser(sender, currentUserId) : null,
-        replyTo
-      };
-    });
-
-  res.json({ messages });
-});
-
-app.post('/api/conversations/:id/messages', requireAuth, (req, res) => {
-  const currentUserId = (req as any).userId;
-  const convId = req.params.id;
-  const { text, mediaUrl, mediaType, replyToId } = req.body;
-
-  if (!text?.trim() && !mediaUrl) {
-    return res.status(400).json({ error: 'Mensagem vazia' });
-  }
-
-  const rawDb = DB.get();
-  const conv = rawDb.conversations.find(c => c.id === convId && c.participantIds.includes(currentUserId));
-  if (!conv) return res.status(404).json({ error: 'Conversa ou grupo não encontrado' });
-
-  const newMessage: DBMessage = {
-    id: `msg_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
-    conversationId: convId,
-    senderId: currentUserId,
-    text: (text || '').trim(),
-    mediaUrl,
-    mediaType,
-    replyToId,
-    status: 'delivered',
-    createdAt: new Date().toISOString()
-  };
-
-  rawDb.messages.push(newMessage);
-  conv.updatedAt = new Date().toISOString();
-
-  // Notify other participants
-  const senderUser = DB.findUserById(currentUserId)!;
-  const otherUserIds = conv.participantIds.filter(id => id !== currentUserId);
-
-  otherUserIds.forEach(targetId => {
-    broadcastEvent(targetId, 'message', {
-      ...newMessage,
-      conversationId: convId,
-      isGroup: Boolean(conv.isGroup),
-      groupName: conv.name,
-      sender: DB.toPublicUser(senderUser)
-    });
-  });
-
-  DB.save();
-  res.json({
-    message: {
-      ...newMessage,
-      sender: DB.toPublicUser(senderUser, currentUserId)
-    }
-  });
-});
-
-app.delete('/api/messages/:id', requireAuth, (req, res) => {
-  const currentUserId = (req as any).userId;
-  const rawDb = DB.get();
-
-  const msg = rawDb.messages.find(m => m.id === req.params.id);
-  if (!msg) return res.status(404).json({ error: 'Mensagem não encontrada' });
-  if (msg.senderId !== currentUserId) return res.status(403).json({ error: 'Você só pode apagar suas mensagens.' });
-
-  rawDb.messages = rawDb.messages.filter(m => m.id !== req.params.id);
-  DB.save();
-  res.json({ success: true });
-});
 
 // ----------------------------------------------------
 //  NOTIFICATIONS ENDPOINTS
 // ----------------------------------------------------
-app.get('/api/notifications', requireAuth, (req, res) => {
-  const currentUserId = (req as any).userId;
-  const rawDb = DB.get();
 
-  const userNotifs = rawDb.notifications
-    .filter(n => n.recipientId === currentUserId)
-    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-    .map(n => {
-      const actor = DB.findUserById(n.actorId);
-      return {
-        ...n,
-        actor: actor ? DB.toPublicUser(actor, currentUserId) : null
-      };
-    })
-    .filter(n => n.actor !== null);
 
-  const unreadCount = userNotifs.filter(n => !n.isRead).length;
 
-  res.json({ notifications: userNotifs, unreadCount });
-});
 
-app.post('/api/notifications/read-all', requireAuth, (req, res) => {
-  const currentUserId = (req as any).userId;
-  const rawDb = DB.get();
 
-  rawDb.notifications.forEach(n => {
-    if (n.recipientId === currentUserId) n.isRead = true;
-  });
-  DB.save();
-  res.json({ success: true });
-});
-
-app.post('/api/notifications/:id/read', requireAuth, (req, res) => {
-  const currentUserId = (req as any).userId;
-  const rawDb = DB.get();
-
-  const notif = rawDb.notifications.find(n => n.id === req.params.id && n.recipientId === currentUserId);
-  if (notif) {
-    notif.isRead = true;
-    DB.save();
-  }
-  res.json({ success: true });
-});
 
 // ----------------------------------------------------
 //  SEARCH ENDPOINT
 // ----------------------------------------------------
-app.get('/api/search', (req, res) => {
-  const currentUserId = getAuthUserId(req) || undefined;
-  const q = (req.query.q as string || '').trim().toLowerCase();
-  const rawDb = DB.get();
 
-  if (!q) {
-    return res.json({ users: [], posts: [], hashtags: [] });
-  }
-
-  const matchedUsers = rawDb.users
-    .filter(u => u.username.toLowerCase().includes(q) || u.displayName.toLowerCase().includes(q) || (u.bio && u.bio.toLowerCase().includes(q)))
-    .map(u => DB.toPublicUser(u, currentUserId))
-    .slice(0, 15);
-
-  const matchedPosts = rawDb.posts
-    .filter(p =>
-      DB.canViewUserContent(p.userId, currentUserId) &&
-      (p.caption.toLowerCase().includes(q) || p.hashtags.some(h => h.includes(q)) || (p.location && p.location.toLowerCase().includes(q)))
-    )
-    .map(p => DB.toPublicPost(p, currentUserId))
-    .slice(0, 20);
-
-  // Hashtag aggregation
-  const allHashtags: { [tag: string]: number } = {};
-  rawDb.posts.forEach(p => {
-    p.hashtags.forEach(h => {
-      if (h.includes(q)) {
-        allHashtags[h] = (allHashtags[h] || 0) + 1;
-      }
-    });
-  });
-
-  const hashtagList = Object.keys(allHashtags).map(tag => ({ tag, count: allHashtags[tag] }));
-
-  res.json({ users: matchedUsers, posts: matchedPosts, hashtags: hashtagList });
-});
 
 // ----------------------------------------------------
 //  MEDIA UPLOAD (FILE + BASE64 SUPPORT)
@@ -2278,7 +1283,7 @@ app.put('/api/admin/users/:id/premium', requireAdmin, (req, res) => {
   res.json({ success: true, user: DB.toPublicUser(user) });
 });
 
-installSyncpayPayments(app, DB, requireAuth, requireAdmin);
+app.use('/api/syncpay',(req,res)=>res.status(req.path==='/create-charge'?503:req.path==='/confirm-charge'?404:410).json({error:'Pagamentos desativados neste diretório.'}));
 
 // ----------------------------------------------------
 //  VITE MIDDLEWARE & STATIC SERVING
@@ -2292,22 +1297,6 @@ async function startServer() {
     app.use(vite.middlewares);
   } else {
     const distPath = path.join(process.cwd(), 'dist');
-    app.get(/^\/assets\/person-segmentation\/(?:vision_wasm_(?:nosimd_)?internal\.(?:wasm|js)|selfie_segmenter\.tflite)$/, async (req, res, next) => {
-      if (!CLOUD) return next();
-      const relative = req.path.slice(1);
-      const local = path.join(distPath, relative);
-      if (!local.startsWith(distPath + path.sep) || !fs.existsSync(local)) return next();
-      try {
-        const ext = path.extname(local).toLowerCase();
-        const type = ext === '.js' ? 'text/javascript; charset=utf-8' : ext === '.wasm' ? 'application/wasm' : 'application/octet-stream';
-        const url = await signedStaticMedia(relative, fs.readFileSync(local), type);
-        res.setHeader('Cache-Control', 'public, max-age=3600');
-        return res.redirect(307, url);
-      } catch (error) {
-        console.warn('[static-cdn] fallback local:', relative, error instanceof Error ? error.message : error);
-        return next();
-      }
-    });
     app.use(express.static(distPath, { maxAge: '7d', immutable: false, setHeaders: (res, filename) => {
       if (filename.endsWith('index.html')) res.setHeader('Cache-Control', 'no-cache');
       else res.setHeader('Cache-Control', 'public, max-age=604800');

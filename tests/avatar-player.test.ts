@@ -5,7 +5,7 @@ assert.equal(avatarPlayerError('onError',1,'photo',true),'','deprecated abort mu
 assert.equal(avatarPlayerError('onPlayerError',{errorCode:3001},'photo',true),'','photo music failure must not cover image');
 assert.match(avatarPlayerError('onPlayerError',{errorCode:1001},'photo',true),/1001/);
 assert.match(avatarPlayerError('onPlayerError',{errorCode:3002},'video',false),/Reproduzir/);
-const person={name:'Creator',username:'creator',bio:'',avatar:'',cover:'',photos:[],videos:[],socials:{tiktok:'',instagram:'',pinterest:''},tags:[],published:true,featured:false,order:0,avatarSelection:{url:'https://www.tiktok.com/@real.creator/photo/7421111111111111111',kind:'photo',imageIndex:3}};
+const person={name:'Creator',username:'creator',bio:'',avatar:'',cover:'',photos:[],videos:[],socials:{tiktok:'',instagram:'',pinterest:''},tags:[],birthYear:2000,published:true,featured:false,order:0,avatarSelection:{url:'https://www.tiktok.com/@real.creator/photo/7421111111111111111',kind:'photo',imageIndex:3}};
 assert.equal(validatePerson(person).socials.tiktok,'real.creator');
 assert.equal(validatePerson({...person,avatarSelection:null,videos:[{url:person.avatarSelection.url,title:'',kind:'social'}]}).socials.tiktok,'real.creator');
 console.log('Avatar regression: visible photo ignores deprecated abort/music errors; modern fatal errors retained; creator handle derived automatically.');

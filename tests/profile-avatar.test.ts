@@ -6,7 +6,7 @@ assert.deepEqual(validateProfileAvatar({url:photo+'?slide=3',kind:'photo',imageI
 assert.deepEqual(validateProfileAvatar({url:video,kind:'video',start:2,end:4}),{url:video,kind:'video',start:2,end:4});
 for(const bad of [{url:photo,kind:'photo',imageIndex:-1},{url:photo,kind:'photo',imageIndex:1.5},{url:photo,kind:'video',start:0,end:2},{url:video,kind:'video',start:4,end:2},{url:video,kind:'video',start:0,end:16},{url:video,kind:'video',start:'0',end:2},{url:'data:video/mp4;base64,AA',kind:'video',start:0,end:2},{url:'https://www.instagram.com/p/abcd/',kind:'photo',imageIndex:0}])assert.throws(()=>validateProfileAvatar(bad));
 assert.equal(validateProfileAvatar(null),undefined);
-const input={name:'Creator',username:'creator',bio:'',avatar:'',cover:'',photos:[],videos:[],socials:{tiktok:'creator',instagram:'',pinterest:''},tags:[],published:true,featured:false,order:0,avatarSelection:{url:video,kind:'video',start:2,end:4}};
+const input={name:'Creator',username:'creator',bio:'',avatar:'',cover:'',photos:[],videos:[],socials:{tiktok:'creator',instagram:'',pinterest:''},tags:[],birthYear:2000,published:true,featured:false,order:0,avatarSelection:{url:video,kind:'video',start:2,end:4}};
 const saved=validatePerson(input);assert.deepEqual(saved.avatarSelection,input.avatarSelection);assert.equal(saved.avatar,'/profile-placeholder.svg');assert.equal(saved.photos.length,0);assert.equal(saved.videos.length,0);
 assert.equal(validatePerson({...input,avatarSelection:null},saved).avatarSelection,undefined);
 console.log('Profile avatar selections passed: canonical links only, bounded photo index/video segment, no file fields, profile round-trip and removal. Device playback not tested.');
