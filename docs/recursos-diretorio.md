@@ -90,3 +90,22 @@ O link informado `https://vt.tiktok.com/ZSgbgEMFU/` resolveu de verdade para `ht
 Usar foto exibida aplica diretamente ao rascunho do perfil o índice reportado pelo player, com confirmação junto ao botão; Salvar perfil persiste a escolha. A navegação anterior/próxima e seleção numérica ficam abaixo da imagem. O editor usa os tokens e botões do tema atual, com ação principal e mensagens fora da imagem. Controles opcionais do player são desativados por parâmetros oficiais; elementos internos que o TikTok mantiver não são manipulados/cortados pelo site. O erro genérico obsoleto onError não é tratado como falha fatal; erro de reprodução de música não cobre foto já confirmada por onImageChange. Falhas modernas continuam visíveis abaixo da prévia.
 
 O @ é derivado do endereço canônico ao abrir o avatar ou adicionar publicação, também no servidor. O @ do diretório é sugerido pelo link quando estiver vazio. Nenhum arquivo de mídia é exportado ou enviado. Verificação visual e dos controles internos no Safari físico permanece pendente.
+
+### Publicações selecionadas, trecho e zoom
+
+Cada publicação do perfil tem “Escolher fotos, trecho e zoom”. O editor permite navegar no carrossel e incluir/remover a foto confirmada pelo player; os chips mostram os índices escolhidos, sem inventar a quantidade real de fotos do post. Aplicar à publicação guarda `presentation` com índices ou início/fim e zoom 0,5–2. Salvar perfil persiste os dados. O player público usa apenas a navegação da lista selecionada; interação direta com o iframe é desativada, e eventos de imagem fora da seleção são redirecionados ao índice escolhido. O link de origem continua abrindo a publicação original completa. Isso não apaga nem altera mídia no TikTok.
+
+Vídeos têm barra de busca, pausa, início/fim numéricos e ações para usar o momento exibido. Buscar pausa antes de enviar seekTo; repetir a busca no mesmo instante envia novo comando. A precisão de reprodução depende do player externo, não é prometida precisão de frame. O avatar também recebe busca e zoom, mantendo limite de 15 segundos do trecho do avatar. Zoom amplia a janela do iframe e pode recortar suas bordas; não altera pixels do arquivo. Controles e créditos permanecem fora da área ampliada.
+
+**Contrato visual adaptado (A):** preservar Plus Jakarta Sans, paleta e tokens do tema ativo; método Skyglass §§4/5/7/10/13 para ritmo 12–24, raios 14/16/24, hierarquia preview → controles → CTA e alvos ≥44. Não trocar a marca para azul nem inserir efeitos editoriais sem função. Ação dominante: Aplicar à publicação, seguida de Salvar perfil. Menus/links de origem preservados.
+
+| Decisão | Origem | Classe | Verificação |
+|---|---|---|---|
+| Prévia acima de controles e seleção | §§7/10 | D/A | Estrutura SSR e código |
+| Cores herdadas do tema, superfícies suaves | §§2/5 + identidade atual | A | CSS; aparência real NÃO VERIFICADA |
+| Navegação/filtros fora da foto, alvos44 | §§4/7/13 | D/A | CSS e estrutura; teclado/contraste renderizado NÃO VERIFICADOS |
+| Faixas compactas e dvh | §11 | A | CSS; screenshots 320/390/430/tablet NÃO VERIFICADOS |
+| Contagem somente de selecionadas | Verdade semântica | D | Teste seis de dez e navegação1/6 |
+| Sem lettering/recortes/motion decorativo | Tela utilitária | N/A | Não contribuem à tarefa |
+
+Checklist: PASS tipos, build e testes direcionados de validação, cadastro/edição de subconjuntos, zoom e estrutura dos controles. NÃO VERIFICADO: renderização visual, contraste composto, zoom do navegador, teclado, movimento e Safari físico. Tentativa de iniciar Playwright confirmou ausência do executável Chromium neste ambiente; nenhum resultado visual foi apresentado como validado.

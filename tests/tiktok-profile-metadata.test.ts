@@ -12,8 +12,8 @@ const server=app.listen(0,'127.0.0.1');await once(server,'listening');const addr
 async function post(route:string,body:any,method='POST'){const r=await fetch(base+route,{method,headers:{Authorization:'Bearer admin','Content-Type':'application/json'},body:JSON.stringify(body)});return {status:r.status,body:await r.json()};}
 try{
  const preview=await post('/api/admin/tiktok-oembed',{url});assert.equal(preview.status,200);assert.equal(preview.body.available,null);assert.equal(preview.body.thumbnail_url,'');
- const input={name:'Creator',username:'creator',bio:'',avatar:'',cover:'',photos:[],videos:[{url,title:''}],socials:{tiktok:'rlk_levada',instagram:'',pinterest:''},tags:[],published:true,featured:false,order:0};
- const created=await post('/api/admin/people',input);assert.equal(created.status,201);assert.equal(created.body.profile.videos[0].is_still_available,null);assert.equal(created.body.profile.videos[0].source_handle,'@rlk_levada');assert.equal(created.body.profile.videos[0].display_mode,'embed');
+ const input={name:'Creator',username:'creator',bio:'',avatar:'',cover:'',photos:[],videos:[{url,title:'',presentation:{kind:'photo',indices:[0,2,4,6,8,9],zoom:1.5}}],socials:{tiktok:'rlk_levada',instagram:'',pinterest:''},tags:[],published:true,featured:false,order:0};
+ const created=await post('/api/admin/people',input);assert.equal(created.status,201);assert.deepEqual(created.body.profile.videos[0].presentation,{kind:'photo',indices:[0,2,4,6,8,9],zoom:1.5});assert.equal(created.body.profile.videos[0].is_still_available,null);assert.equal(created.body.profile.videos[0].source_handle,'@rlk_levada');assert.equal(created.body.profile.videos[0].display_mode,'embed');
  assert.equal((await post('/api/admin/people/'+created.body.profile.id,input,'PUT')).status,200,'saving must also accept absent metadata');
  const status=await (await fetch(base+'/api/people/'+created.body.profile.id+'/video-status/0')).json();assert.equal(status.available,null);
  assert.equal((await post('/api/admin/tiktok-oembed',{url:'https://evil.test/video/123'})).status,400);

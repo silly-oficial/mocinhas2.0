@@ -3,7 +3,7 @@ export interface PersonProfile {
  verified?: boolean;
  mediaSources?: MediaOrigin[];
  id: string; name: string; username: string; bio: string; avatar: string; cover: string;
- photos: string[]; videos: ({url: string; title: string; kind?: 'upload'|'social'; thumbnail?:string; duration?:number} & Partial<MediaOrigin>)[];
+ photos: string[]; videos: ({url: string; title: string; kind?: 'upload'|'social'; thumbnail?:string; duration?:number;presentation?:import('./post-presentation').PostPresentation} & Partial<MediaOrigin>)[];
  socials: {tiktok: string; instagram: string; pinterest: string};
  tags: string[]; published: boolean; featured: boolean; order: number; createdAt: string; updatedAt: string;
 }
