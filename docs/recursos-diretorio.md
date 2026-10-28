@@ -144,3 +144,7 @@ Verificação: TypeScript, build e testes de sessão/seleção/créditos executa
 ### Composição dos créditos e ações
 Adaptação A da identidade existente: no card, autoria compacta seguida de um grupo com perfil como ação principal e origem como ação secundária. No detalhe, remover o identificador duplicado e alinhar TikTok/Créditos em duas colunas; o painel de remoção expande abaixo do grupo, com aria-expanded e aria-controls. O aviso de autoria passa a “Conteúdo do criador original.”, após todas as ações, sem texto intercalado entre botões. Laranja sólido reservado à ação primária e superfície clara com texto forte para a secundária (§§4,7,10,13; D/A). Mudanças somente na apresentação, sem alterar player, seleção ou zoom.
 Validação: TypeScript, renderização estrutural dos grupos e build; screenshots reais de Safari NÃO VERIFICADAS.
+
+
+### Contraste das páginas públicas e preferências
+Correção na origem: páginas legais, rodapé e cookies passam a usar `--theme-text` e `--theme-muted`, os mesmos tokens do tema público, com fallback escuro sobre superfície branca. Os antigos tokens `--text-primary`/`--text-secondary` inexistentes nesses componentes acionavam fallbacks claros. Campos, placeholders, links e botões acompanham os tokens do tema. Cookies recebem título/ações com hierarquia explícita e foco visível. Adaptação A/D dos §§2,7,13; nenhuma mudança no consentimento salvo ou nos formulários. Contraste numérico dos pares do tema Ori verificado; validação física em Safari NÃO VERIFICADA.
