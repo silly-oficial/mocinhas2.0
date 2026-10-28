@@ -1,3 +1,4 @@
+import {authRateLimit,issueRecovery,consumeRecovery,deliverRecovery} from './server/auth-security';
 import {tiktokPost} from './shared/people';
 import {makeTikTokResolver} from './server/tiktok-oembed';
 import {uploadedMediaOrigin} from './server/media-origin';
@@ -243,7 +244,7 @@ app.post('/api/auth/register', (req, res) => {
 
   const selectedAvatar = '/profile-placeholder.svg';
 
-  const passwordHash = bcrypt.hashSync(password, 10);
+  const passwordHash = bcrypt.hashSync(password, 12);
   const isSuperAdmin = false; // Public signup never grants administrator privileges.
 
   const newUser: DBUser = {
@@ -274,9 +275,9 @@ app.post('/api/auth/register', (req, res) => {
   res.json({ token, user: publicUser });
 });
 
-app.post('/api/auth/login', (req, res) => {
+app.post('/api/auth/login', authRateLimit(5,60000,req=>(req.ip||'')+'|'+String(req.body?.identifier||'').trim().toLowerCase()), (req, res) => {
   const { identifier, password } = req.body;
-  if (!identifier || !password) {
+  if (typeof identifier!=='string'||typeof password!=='string'||!identifier||!password||identifier.length>254||password.length>72) {
     return res.status(400).json({ error: 'Informe seu login e senha.' });
   }
 
@@ -314,30 +315,28 @@ app.get('/api/auth/me', (req, res) => {
   res.json({ user: DB.toPublicUser(user, currentUserId) });
 });
 
-app.post('/api/auth/recover', (req, res) => {
-  const { email } = req.body;
-  const user = DB.findUserByEmail(email);
-  if (!user) {
-    return res.status(400).json({ error: 'Nenhum perfil encontrado com esse e-mail.' });
-  }
-  const code = Math.floor(100000 + Math.random() * 900000).toString();
-  DB.updateUser(user.id, { recoveryToken: code });
-  res.json({
-    success: true,
-    message: `Código de recuperação gerado: ${code}  (Use-o para redefinir sua senha)`,
-    demoCode: code
-  });
+app.post('/api/auth/recover', authRateLimit(3,3600000,req=>String(req.body?.email||'').trim().toLowerCase()), async(req,res)=>{
+ const email=typeof req.body.email==='string'?req.body.email.trim().toLowerCase():'';
+ const message='Se houver uma conta com esse e-mail, enviaremos as instruções de recuperação.';
+ const user=DB.findUserByEmail(email);
+ if(!user)return res.json({success:true,message});
+ const {code,state}=issueRecovery();
+ try{
+  if(process.env.NODE_ENV==='production')await deliverRecovery(email,code);
+  DB.updateUser(user.id,state);
+  return res.json({success:true,message,...(process.env.NODE_ENV!=='production'?{demoCode:code}:{})});
+ }catch{return res.status(503).json({error:'Recuperação indisponível. Use o contato público do site.'});}
 });
-
-app.post('/api/auth/reset-password', (req, res) => {
-  const { email, code, newPassword } = req.body;
-  const user = DB.findUserByEmail(email);
-  if (!user || user.recoveryToken !== code) {
-    return res.status(400).json({ error: 'Código de recuperação inválido ou expirado.' });
-  }
-  const passwordHash = bcrypt.hashSync(newPassword, 10);
-  DB.updateUser(user.id, { passwordHash, recoveryToken: undefined });
-  res.json({ success: true, message: 'Senha atualizada com sucesso! ' });
+app.post('/api/auth/reset-password',(req,res)=>{
+ const {email,code,newPassword}=req.body;
+ if(typeof newPassword!=='string'||newPassword.length<8||newPassword.length>72)return res.status(400).json({error:'Use uma senha de 8 a 72 caracteres.'});
+ const user=typeof email==='string'?DB.findUserByEmail(email.trim().toLowerCase()):undefined;
+ if(!user)return res.status(400).json({error:'Código de recuperação inválido ou expirado.'});
+ const state={recoveryToken:user.recoveryToken,recoveryExpiresAt:user.recoveryExpiresAt,recoveryAttempts:user.recoveryAttempts};
+ const accepted=consumeRecovery(state,code);DB.updateUser(user.id,state);
+ if(!accepted)return res.status(400).json({error:'Código de recuperação inválido ou expirado.'});
+ DB.updateUser(user.id,{passwordHash:bcrypt.hashSync(newPassword,12)});
+ return res.json({success:true,message:'Senha atualizada com sucesso!'});
 });
 
 app.post('/api/auth/update-password', requireAuth, (req, res) => {
@@ -349,7 +348,7 @@ app.post('/api/auth/update-password', requireAuth, (req, res) => {
   if (!bcrypt.compareSync(currentPassword, user.passwordHash)) {
     return res.status(400).json({ error: 'Senha atual incorreta.' });
   }
-  const passwordHash = bcrypt.hashSync(newPassword, 10);
+  const passwordHash = bcrypt.hashSync(newPassword, 12);
   DB.updateUser(userId, { passwordHash });
   res.json({ success: true, message: 'Senha alterada com sucesso! ' });
 });

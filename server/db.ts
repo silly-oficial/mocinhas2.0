@@ -34,6 +34,8 @@ export interface DBUser {
   website: string;
   createdAt: string;
   recoveryToken?: string;
+  recoveryExpiresAt?: number;
+  recoveryAttempts?: number;
   acceptedTerms?: boolean;
   acceptedTermsAt?: string;
 }
@@ -204,6 +206,7 @@ export interface DBPaymentCharge {
   status: string; createdAt: number; checkedAt?: number; grantedAt?: number;
 }
 export interface DatabaseSchema {
+  legalAudit?: import('./legal-audit').LegalAuditEntry[];
   directorySettings?: Partial<DirectorySettings>;
   directorySettingsAudit?: {by:string;at:string;settings:DirectorySettings}[];
   directoryEmailOutbox?: EmailJob[];
@@ -741,7 +744,7 @@ export const DB = {
       id: u.id,
       username: u.username,
       displayName: displayText(u.displayName),
-      email: u.email,
+
       avatar: u.avatar,
       gender: u.gender,
       bio: displayText(u.bio),
@@ -825,4 +828,5 @@ export const DB = {
 
 // Auto load DB on module import
 if (!CLOUD) loadDB();
+
 

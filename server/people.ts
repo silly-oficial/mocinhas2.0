@@ -33,7 +33,7 @@ export function validatePerson(input:any, existing?:PersonProfile):PersonProfile
 export function installPeople(app:express.Express,db:typeof DB,admin:express.RequestHandler){
  const all=()=>db.get().peopleProfiles||[];
  const resolveTikTok=makeTikTokResolver(db);
- const publicProfile=(p:PersonProfile)=>({...p,verified:isProfileVerified(db,p)});
+ const publicProfile=(p:PersonProfile)=>({id:p.id,name:p.name,username:p.username,bio:p.bio,avatar:p.avatar,avatarSelection:p.avatarSelection,cover:p.cover,photos:p.photos,videos:p.videos,socials:p.socials,tags:p.tags,published:p.published,featured:p.featured,order:p.order,createdAt:p.createdAt,updatedAt:p.updatedAt,mediaSources:p.mediaSources,verified:isProfileVerified(db,p)});
  app.post('/api/admin/tiktok-link',admin,async(req,res)=>{try{res.json({url:await resolveTikTokLink(req.body?.url)});}catch(e){res.status(400).json({error:e instanceof Error?e.message:'Não foi possível resolver o link.'});}});
  app.post('/api/admin/tiktok-oembed',admin,async(req,res)=>{try{if(typeof req.body?.url!=='string')throw Error('Informe o link.');const url=await resolveTikTokLink(req.body.url);res.json(await optionalTikTokPreview(url,resolveTikTok));}catch(error){res.status(400).json({error:error instanceof Error?error.message:'Falha no TikTok.'});}});
  const sorted=(rows:PersonProfile[])=>[...rows].sort((a,b)=>Number(b.featured)-Number(a.featured)||a.order-b.order||a.name.localeCompare(b.name));

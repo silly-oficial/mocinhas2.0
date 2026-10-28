@@ -1,3 +1,4 @@
+import {appendLegalAudit} from './legal-audit';
 import type express from 'express';
 import {createHash, randomUUID} from 'node:crypto';
 import type {DB} from './db';
@@ -24,7 +25,6 @@ export function validateDirectoryRequest(input: unknown): Omit<DirectoryRequest,
   const observations = field(body.observations ?? '', 3000);
   let documentUrl = field(body.documentUrl ?? '', 2048);
   if (documentUrl) {
-    if (type !== 'reivindicar_perfil' && type !== 'autorizar_oficialmente') throw Error('Termos são recebidos somente em pedidos de reivindicação ou autorização.');
     let url: URL;
     try { url = new URL(documentUrl); } catch { throw Error('Use um link HTTPS válido para o termo.'); }
     if (url.protocol !== 'https:' || url.username || url.password) throw Error('Use um link HTTPS válido para o termo.');
@@ -97,6 +97,22 @@ export function installDirectoryRequests(app: express.Express, db: typeof DB, ad
       return res.status(503).json({error: 'Não foi possível registrar o pedido. Tente novamente.'});
     }
   });
+  app.get('/api/admin/legal-audit',admin,(req,res)=>{
+    const page=Math.max(0,Math.min(100000,Number(req.query.page)||0)|0),audit=db.get().legalAudit||[];
+    res.set('Cache-Control','no-store').json({entries:[...audit].reverse().slice(page*50,(page+1)*50),total:audit.length});
+  });
+  app.post('/api/admin/directory-requests/:id/unpublish',admin,(req,res)=>{
+    res.set('Cache-Control','no-store');
+    const request=rows().find(row=>row.id===req.params.id);
+    if(!request)return res.status(404).json({error:'Pedido não encontrado.'});
+    const profile=db.get().peopleProfiles?.find(row=>row.id===req.body.profileId&&[row.username,row.socials.tiktok].some(handle=>handle.replace(/^@/,'').toLowerCase()===request.handle));
+    if(!profile)return res.status(400).json({error:'Selecione o perfil correspondente ao pedido.'});
+    const before=db.get().peopleProfiles,audit=db.get().legalAudit;
+    db.get().peopleProfiles=before?.map(row=>row.id===profile.id?{...row,published:false,updatedAt:new Date().toISOString()}:row);
+    appendLegalAudit(db,{actor:(req as express.Request&{userId?:string}).userId||'admin',entity:profile.id,field:'published',before:profile.published,after:false,reason:'Retirada imediata pelo pedido '+request.id});
+    try{db.save();}catch{db.get().peopleProfiles=before;db.get().legalAudit=audit;return res.status(503).json({error:'Não foi possível salvar a retirada.'});}
+    return res.json({ok:true,action:'Perfil retirado de publicação. Nenhum arquivo foi apagado.'});
+  });
   app.get('/api/admin/directory-requests', admin, (req, res) => {
     prune();
     const status = typeof req.query.status === 'string' ? req.query.status : 'pending';
@@ -125,12 +141,13 @@ export function installDirectoryRequests(app: express.Express, db: typeof DB, ad
     const now = new Date().toISOString();
     const updated: DirectoryRequest = {...current, status, adminNote, publicResult, updatedAt: now, ...(status === 'resolved' || status === 'rejected' ? {closedAt: now} : {closedAt: undefined})};
     const beforeRequests = db.get().directoryRequests, beforeProfiles = db.get().peopleProfiles;
-    const beforeMail=db.get().directoryEmailOutbox;
+    const beforeMail=db.get().directoryEmailOutbox, beforeAudit=db.get().legalAudit;
     db.get().directoryRequests = rows().map(row => row.id === current.id ? updated : row);
     if (unpublishProfileId !== undefined) db.get().peopleProfiles = profiles.map(profile => profile.id === unpublishProfileId ? {...profile, published: false, updatedAt: now} : profile);
+    if(unpublishProfileId!==undefined)appendLegalAudit(db,{actor:(req as express.Request&{userId?:string}).userId||'admin',entity:unpublishProfileId,field:'published',before:profiles.find(profile=>profile.id===unpublishProfileId)?.published,after:false,reason:'Retirada pelo pedido '+current.id});
     if(['resolved','rejected'].includes(status) && current.status!==status)enqueueEmail(db,'completed-'+current.id+'-'+status,current.email,'request_completed',current.id,{content:'@'+current.handle,result:publicResult||(status==='rejected'?'O pedido foi indeferido após análise. Entre em contato para mais informações.':''),resolved:status==='resolved'});
     try { db.save(); } catch {
-      db.get().directoryEmailOutbox=beforeMail;
+      db.get().directoryEmailOutbox=beforeMail;db.get().legalAudit=beforeAudit;
       db.get().directoryRequests = beforeRequests; db.get().peopleProfiles = beforeProfiles;
       return res.status(503).json({error: 'Não foi possível salvar a análise.'});
     }

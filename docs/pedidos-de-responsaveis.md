@@ -77,3 +77,8 @@ Os testes de integração usam banco temporário, usuários e dados fictícios. 
 - `tests/legal-history.test.ts`
 - `package.json`
 - `docs/pedidos-de-responsaveis.md`
+
+
+## Atualização de segurança e retirada imediata
+
+O painel agora permite retirar o perfil de publicação já durante o recebimento do pedido, sem aguardar conclusão. A ação não apaga arquivos e registra ator, data, campo e motivo em legalAudit. A consulta administrativa da auditoria é paginada e usa no-store. Termos por HTTPS são opcionais em todos os tipos de pedido, e remoção aceita observações vazias. Foi adicionado o tipo contestar_classificacao, mas o fluxo especial de decisão fundamentada/reabertura ainda está pendente; usa por enquanto o atendimento existente. Nenhum prazo novo foi publicado nesta etapa.

@@ -5,15 +5,14 @@
   "type": "module",
   "scripts": {
     "dev": "tsx server.ts",
-    "build": "node scripts/optimize-media-delivery.mjs && vite build && esbuild server.ts --bundle --platform=node --format=cjs --packages=external --sourcemap --outfile=dist/server.cjs",
+    "build": "vite build && esbuild server.ts --bundle --platform=node --format=cjs --packages=external --sourcemap --outfile=dist/server.cjs",
     "start": "NODE_ENV=production node dist/server.cjs",
     "preview": "vite preview",
     "clean": "rm -rf dist server.js",
     "lint": "tsc --noEmit",
-    "test": "node --import tsx tests/usage.test.ts && node tests/access.test.mjs && node --import tsx tests/payments.test.ts && node --import tsx tests/i18n.test.ts && node tests/storage.test.mjs && node tests/cloud.test.mjs && node --import tsx tests/cloud-diagnostics.test.ts && node tests/welcome.test.mjs && node --import tsx tests/media-feed.test.ts && node tests/people.test.mjs && node tests/profile-video.test.mjs && node --import tsx tests/directory-requests.test.ts && node --import tsx tests/legal-history.test.ts && node --import tsx tests/tiktok-profile-metadata.test.ts && node --import tsx tests/tiktok-oembed-minimal.test.ts && node --import tsx tests/tiktok-link.test.ts && node --import tsx tests/avatar-session.test.ts && node --import tsx tests/directory-presentation.test.ts && node --import tsx tests/post-presentation.test.ts && node --import tsx tests/avatar-player.test.ts && node --import tsx tests/profile-avatar.test.ts && node --import tsx tests/tiktok-only.test.ts && node --import tsx tests/tiktok-photo.test.ts && node --import tsx tests/directory-features.test.ts"
+    "test": "node --import tsx tests/auth-security.test.ts && node --import tsx tests/usage.test.ts && node tests/access.test.mjs && node --import tsx tests/payments.test.ts && node --import tsx tests/i18n.test.ts && node tests/storage.test.mjs && node tests/cloud.test.mjs && node --import tsx tests/cloud-diagnostics.test.ts && node tests/welcome.test.mjs && node --import tsx tests/media-feed.test.ts && node tests/people.test.mjs && node tests/profile-video.test.mjs && node --import tsx tests/directory-requests.test.ts && node --import tsx tests/legal-history.test.ts && node --import tsx tests/tiktok-profile-metadata.test.ts && node --import tsx tests/tiktok-oembed-minimal.test.ts && node --import tsx tests/tiktok-link.test.ts && node --import tsx tests/avatar-session.test.ts && node --import tsx tests/directory-presentation.test.ts && node --import tsx tests/post-presentation.test.ts && node --import tsx tests/avatar-player.test.ts && node --import tsx tests/profile-avatar.test.ts && node --import tsx tests/tiktok-only.test.ts && node --import tsx tests/tiktok-photo.test.ts && node --import tsx tests/directory-features.test.ts"
   },
   "dependencies": {
-    "@ffmpeg-installer/ffmpeg": "^1.1.0",
     "@google/genai": "^2.4.0",
     "@mediapipe/tasks-vision": "1.1.0",
     "@supabase/supabase-js": "^2.112.4",
@@ -26,7 +25,6 @@
     "jsonwebtoken": "^9.0.3",
     "lucide-react": "^0.546.0",
     "motion": "^12.23.24",
-    "multer": "^2.3.0",
     "qrcode": "^1.5.4",
     "react": "^19.0.1",
     "react-dom": "^19.0.1",
@@ -37,7 +35,6 @@
     "@types/canvas-confetti": "^1.9.0",
     "@types/express": "^4.17.21",
     "@types/jsonwebtoken": "^9.0.10",
-    "@types/multer": "^2.2.0",
     "@types/node": "^22.14.0",
     "@types/qrcode": "^1.5.6",
     "@types/react": "^19.3.0",
@@ -53,6 +50,3 @@
     "node": ">=22"
   }
 }
-
-
-

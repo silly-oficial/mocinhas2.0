@@ -388,31 +388,23 @@ ALTER TABLE public.blocks ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.mutes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.app_settings ENABLE ROW LEVEL SECURITY;
 
--- Políticas permissivas padrão para acesso transparente da aplicação web
+-- O navegador não acessa contas, mensagens ou dados privados diretamente.
 DO $$
-DECLARE
-  tbl text;
+DECLARE tbl text; p record;
 BEGIN
-  FOR tbl IN 
-    SELECT tablename FROM pg_tables WHERE schemaname = 'public'
+  FOREACH tbl IN ARRAY ARRAY['profiles','categories','posts','post_media','likes','saved_posts','comments','comment_likes','follows','stories','story_views','conversations','conversation_members','messages','notifications','reports','blocks','mutes','app_settings']
   LOOP
-    BEGIN
-      EXECUTE format('DROP POLICY IF EXISTS "Permitir_Leitura_%s" ON public.%I', tbl, tbl);
-      EXECUTE format('CREATE POLICY "Permitir_Leitura_%s" ON public.%I FOR SELECT USING (true)', tbl, tbl);
-
-      EXECUTE format('DROP POLICY IF EXISTS "Permitir_Insercao_%s" ON public.%I', tbl, tbl);
-      EXECUTE format('CREATE POLICY "Permitir_Insercao_%s" ON public.%I FOR INSERT WITH CHECK (true)', tbl, tbl);
-
-      EXECUTE format('DROP POLICY IF EXISTS "Permitir_Atualizacao_%s" ON public.%I', tbl, tbl);
-      EXECUTE format('CREATE POLICY "Permitir_Atualizacao_%s" ON public.%I FOR UPDATE USING (true)', tbl, tbl);
-
-      EXECUTE format('DROP POLICY IF EXISTS "Permitir_Exclusao_%s" ON public.%I', tbl, tbl);
-      EXECUTE format('CREATE POLICY "Permitir_Exclusao_%s" ON public.%I FOR DELETE USING (true)', tbl, tbl);
-    EXCEPTION WHEN OTHERS THEN
-      NULL;
-    END;
+    FOR p IN SELECT policyname FROM pg_policies WHERE schemaname='public' AND tablename=tbl
+    LOOP EXECUTE format('DROP POLICY %I ON public.%I',p.policyname,tbl); END LOOP;
+    EXECUTE format('REVOKE ALL ON public.%I FROM anon, authenticated',tbl);
+    EXECUTE format('GRANT ALL ON public.%I TO service_role',tbl);
   END LOOP;
 END $$;
+GRANT SELECT ON public.categories, public.app_settings TO anon, authenticated;
+CREATE POLICY directory_categories_read ON public.categories FOR SELECT TO anon, authenticated USING (true);
+CREATE POLICY directory_settings_read ON public.app_settings FOR SELECT TO anon, authenticated USING (true);
+-- app_settings deve conter somente configuração pública; segredos ficam no servidor.
+DROP POLICY IF EXISTS "Allow Uploads Mocinhas" ON storage.objects;
 
 -- ==============================================================================
 -- 25. TRIGGER AUTOMÁTICO: SINCRONIZAR AUTH.USERS COM PUBLIC.PROFILES
@@ -448,7 +440,7 @@ BEGIN
     COALESCE(NEW.raw_user_meta_data->>'displayName', base_username),
     COALESCE(NEW.email, NEW.id::text || '@mocinhas.app'),
     COALESCE(NEW.raw_user_meta_data->>'avatar', 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300&h=300&fit=crop'),
-    (NEW.email = 'papaidasia@gmail.com' OR NEW.raw_user_meta_data->>'username' = 'papaidasia'),
+    FALSE,
     TRUE
   )
   ON CONFLICT (id) DO UPDATE SET

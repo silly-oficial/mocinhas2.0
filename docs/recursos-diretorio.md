@@ -153,3 +153,14 @@ Correção na origem: páginas legais, rodapé e cookies passam a usar `--theme-
 ### Redução de controles sobre as mídias
 A configuração oficial de controles foi centralizada e aplicada ao avatar e ao player completo: controls, progress_bar, play_button, volume_control, fullscreen_button, timestamp, description, music_info, closed_caption e native_context_menu em zero. Reprodução/pausa e navegação de fotos ficam fora do quadro no player completo; os trechos selecionados mantêm o controle externo já existente. Autoplay sem som, loop e zoom são preservados. O próximo índice do carrossel é solicitado ao player, que confirma a foto efetiva por onImageChange; não se inventa a quantidade de imagens.
 Limitação: a documentação https://developers.tiktok.com/docs/en/embed-player não publica comando “Limpar tela”. O site não injeta scripts, CSS ou cliques no iframe de outra origem, nem promete remover a identificação e o painel social que o TikTok imponha. Nenhuma extração, download ou upload foi adicionado. Testes estruturais e de parâmetros não substituem validação de reprodução real em Safari.
+
+## Segurança e limpeza de código — etapa em andamento
+
+- Recuperação: código aleatório criptográfico, hash bcrypt 12, validade 15 minutos, uso único e cinco tentativas. Produção não devolve o código e depende de Resend configurado; desenvolvimento preserva demoCode. Códigos legados sem hash deixam de ser aceitos, sem modificar dados em lote.
+- Limites em memória: login 5/minuto por IP+identificador, recuperação 3/hora por e-mail. Reinícios reiniciam esses contadores; não se afirma limite distribuído entre instâncias.
+- toPublicUser deixou de publicar email; senha, recuperação e campos não listados não são expostos. O diretório público também usa lista explícita de campos.
+- Auditoria opcional legalAudit incluída no validador do snapshot. Não foi criado expurgo dessa coleção. Retirada imediata e retirada por conclusão registram o ato, com rollback em falha de gravação.
+- Removidos, após conferir ausência de importadores: server/profile-video.ts, ProfileVideoEditor.tsx, VideoCoverEditor.tsx e FullVideoViewer.tsx. Eliminadas dependências diretas ffmpeg/multer e o script que reescrevia fontes durante o build, pois os ajustes já estavam aplicados. O build agora compila os fontes diretamente. Testes de rotas 410, recuperação e diagnóstico continuam necessários e foram preservados.
+- Nenhum arquivo de dados, credencial, mídia ou recurso de produção foi apagado. Player, zoom, oEmbed e cache não foram alterados. Nem todo código antigo foi removido: componentes ainda importados, contratos legados, assets e rotinas de recuperação exigem avaliação própria.
+
+Esta etapa não representa a conclusão dos doze itens solicitados. Consulte docs/base-juridica.md para as pendências e referências verificadas.

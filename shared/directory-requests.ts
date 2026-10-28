@@ -2,6 +2,7 @@ export const requestTypes = {
   remover_conteudo: 'Remover conteúdo',
   corrigir_idade: 'Corrigir idade',
   corrigir_nome: 'Corrigir nome',
+  contestar_classificacao: 'Contestar classificação',
   reivindicar_perfil: 'Reivindicar perfil',
   autorizar_oficialmente: 'Autorizar oficialmente',
   revogar_autorizacao: 'Revogar autorização',

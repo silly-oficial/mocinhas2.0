@@ -18,7 +18,7 @@ assert.throws(() => validateDirectoryRequest({...input, type: '__proto__'}));
 assert.throws(() => validateDirectoryRequest({...input, handle: 'https://example.invalid'}));
 assert.throws(() => validateDirectoryRequest({...input, responsibleName: 'x'.repeat(121)}));
 assert.throws(() => validateDirectoryRequest({...input, type: 'reivindicar_perfil', documentUrl: 'javascript:alert(1)'}));
-assert.throws(() => validateDirectoryRequest({...input, documentUrl: 'https://example.invalid/termo'}));
+assert.equal(validateDirectoryRequest({...input,observations:'',documentUrl:'https://example.invalid/termo'}).observations,'');
 assert.throws(() => validateDirectoryRequest({...input, type: 'autorizar_oficialmente', documentUrl: 'https://user:pass@example.invalid/termo'}));
 assert.equal(validateDirectoryRequest({...input, type: 'autorizar_oficialmente', documentUrl: 'https://example.invalid/termo'}).documentUrl, 'https://example.invalid/termo');
 const day = 86400000, now = Date.now();
@@ -64,6 +64,8 @@ try {
   assert.equal(list.body.requests[0].email,input.email);
   assert.equal((await call('/api/admin/directory-requests/'+id,'PATCH',{status:'resolved',unpublishProfileId:'other'},true)).status,400);
   assert.equal(state.peopleProfiles[1].published,true);
+  assert.equal((await call('/api/admin/directory-requests/'+id+'/unpublish','POST',{profileId:'target'},true)).status,200);
+  assert.equal(state.peopleProfiles[0].published,false);assert.equal(state.directoryRequests[0].status,'pending');assert.equal(state.legalAudit.at(-1).field,'published');state.peopleProfiles[0].published=true;
   failing = true;
   assert.equal((await call('/api/admin/directory-requests/'+id,'PATCH',{status:'resolved',unpublishProfileId:'target'},true)).status,503);
   assert.equal(state.directoryRequests[0].status,'pending');
@@ -136,3 +138,4 @@ try {
   assert.equal((await fetch(`http://127.0.0.1:${port}/api/admin/directory-requests`)).status,401);
   console.log('Production integration: anonymous pages/form, quota independence, admin authentication and persistence across restart passed.');
 } finally {await stop();fs.rmSync(directory,{recursive:true,force:true});}
+

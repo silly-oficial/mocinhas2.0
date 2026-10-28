@@ -5,7 +5,7 @@ export interface User {
   id: string;
   username: string;
   displayName: string;
-  email: string;
+  email?: string;
   avatar: string;
   gender?: UserGender;
   bio?: string;
@@ -186,4 +186,5 @@ export interface SearchResult {
   hashtags: { tag: string; count: number }[];
   groups?: Conversation[];
 }
+
 
