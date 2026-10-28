@@ -1,10 +1,11 @@
+import {resolveTikTokLink} from './tiktok-link';
 import type {DB} from './db';
 import {socialVideo} from '../shared/people';
 export interface TikTokCache {url:string;thumbnail_url:string;author_name:string;checkedAt:string;available:boolean;}
 export function makeTikTokResolver(db:typeof DB, transport:typeof fetch=fetch) {
   const pending=new Map<string,Promise<TikTokCache>>();
   return async function resolve(raw:string,requireAvailable=true):Promise<TikTokCache> {
-    const source=socialVideo(raw);if(source.platform!=='TikTok')throw Error('Informe um post público do TikTok.');
+    const source=socialVideo(await resolveTikTokLink(raw,transport));if(source.platform!=='TikTok')throw Error('Informe um post público do TikTok.');
     const url=source.canonical;
     const cached=db.get().tiktokOembedCache?.[url];
     const age=cached?Date.now()-Date.parse(cached.checkedAt):Infinity;

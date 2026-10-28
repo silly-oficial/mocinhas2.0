@@ -1,3 +1,4 @@
+import {resolveTikTokLink} from './tiktok-link';
 import {validateProfileAvatar} from '../shared/profile-avatar';
 import type express from 'express';
 import {randomUUID} from 'node:crypto';
@@ -29,6 +30,7 @@ export function installPeople(app:express.Express,db:typeof DB,admin:express.Req
  const all=()=>db.get().peopleProfiles||[];
  const resolveTikTok=makeTikTokResolver(db);
  const publicProfile=(p:PersonProfile)=>({...p,verified:isProfileVerified(db,p)});
+ app.post('/api/admin/tiktok-link',admin,async(req,res)=>{try{res.json({url:await resolveTikTokLink(req.body?.url)});}catch(e){res.status(400).json({error:e instanceof Error?e.message:'Não foi possível resolver o link.'});}});
  app.post('/api/admin/tiktok-oembed',admin,async(req,res)=>{try{if(typeof req.body?.url!=='string')throw Error('Informe o link.');res.json(await resolveTikTok(req.body.url));}catch(error){res.status(400).json({error:error instanceof Error?error.message:'Falha no TikTok.'});}});
  const sorted=(rows:PersonProfile[])=>[...rows].sort((a,b)=>Number(b.featured)-Number(a.featured)||a.order-b.order||a.name.localeCompare(b.name));
  app.get('/api/people',(_req,res)=>res.json({profiles:sorted(all().filter(p=>p.published)).map(publicProfile)}));

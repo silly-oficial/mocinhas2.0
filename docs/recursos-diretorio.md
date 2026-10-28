@@ -67,3 +67,10 @@ Validação: tipos e build; contratos de upload bloqueado (multipart e base64 se
 O editor de perfil aceita `avatarSelection`: link canônico do TikTok e índice da foto (base zero) ou início/fim em segundos de um trecho de até 15 segundos. Salvar não baixa, exporta ou envia mídia e não depende de extrair frames. O player oficial recebe `navigateTo`, `pause`, `seekTo`, `play` e `mute` somente depois de pronto; mensagens são verificadas por origem, janela e marcador TikTok. O trecho volta ao início ao atingir o fim; não há reprodução reversa. A seleção aparece nos cards e no detalhe dos perfis. Players são montados apenas quando visíveis e em primeiro plano, e usam avatar padrão em erro ou timeout. A publicação pode ser aberta pelo crédito externo.
 
 Persistência usa o JSON já existente, sem migração de tabela física. A posição escolhida é uma preferência para o player, não um arquivo de avatar. Índice acima da quantidade real de fotos e duração real dependem do conteúdo servido pelo TikTok. Navegação e repetição em Android/iOS físicos continuam pendentes; testes locais validam dados e integração, sem afirmar validação visual do player real.
+
+
+### Links encurtados no cadastro e avatar
+
+Os botões Adicionar link do TikTok e Abrir publicação resolvem `vt.tiktok.com`/`vm.tiktok.com` no servidor antes de validar o post. `/api/admin/tiktok-link` exige administrador e retorna somente o endereço canônico. Redirecionamentos são manuais, limitados a seis e a oito segundos no total, com HTTPS, sem credenciais/portas e destinos restritos aos domínios e caminhos de compartilhamento TikTok; a resolução para antes de requisitar a página canônica. Não há download ou processamento de arquivos de mídia.
+
+Carregamento e erros aparecem junto do botão, em região de status, em vez de somente no fim do formulário. O editor de avatar pode abrir o player mesmo sem oEmbed; o cadastro da publicação ainda depende dos metadados disponíveis na plataforma. Testes de redirecionamento e destinos inseguros usam transporte simulado. Validação real no iPhone continua pendente.
