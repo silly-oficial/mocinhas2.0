@@ -17,11 +17,13 @@ export function makeTikTokResolver(db:typeof DB, transport:typeof fetch=fetch) {
       let thumbnail=cached?.thumbnail_url||'',author='';
       if(response.ok) {
         const data=await response.json();
-        if(typeof data.thumbnail_url!=='string' || typeof data.author_url!=='string')throw Error('Resposta incompleta do TikTok.');
-        const image=new URL(data.thumbnail_url),owner=new URL(data.author_url);
         const expected=new URL(url).pathname.split('/')[1];
-        if(image.protocol!=='https:' || image.username || image.password || image.href.length>4096 || owner.hostname.replace(/^www\./,'')!=='tiktok.com' || owner.pathname.replace(/\/$/,'').toLowerCase()!=='/'+expected.toLowerCase())throw Error('A origem retornada pelo TikTok não corresponde ao post.');
-        thumbnail=image.href;author=typeof data.author_name==='string'?data.author_name.slice(0,120):'';
+        const id=new URL(url).pathname.split('/').pop();
+        const identified=data.provider_name==='TikTok'&&String(data.embed_product_id||'')===id;
+        if(!identified&&typeof data.author_url!=='string')throw Error('Resposta incompleta do TikTok.');
+        if(data.author_url!==undefined){const owner=new URL(data.author_url);if(owner.protocol!=='https:'||owner.username||owner.password||owner.hostname.replace(/^www\./,'')!=='tiktok.com'||owner.pathname.replace(/\/$/,'').toLowerCase()!=='/'+expected.toLowerCase())throw Error('A origem retornada pelo TikTok não corresponde ao post.');}
+        if(data.thumbnail_url){const image=new URL(data.thumbnail_url);if(image.protocol!=='https:'||image.username||image.password||image.href.length>4096)throw Error('Prévia inválida do TikTok.');thumbnail=image.href;}
+        author=typeof data.author_name==='string'?data.author_name.slice(0,120):'';
       }
       const value:TikTokCache={url,thumbnail_url:thumbnail,author_name:author,checkedAt:new Date().toISOString(),available:response.ok};
       const before=db.get().tiktokOembedCache;

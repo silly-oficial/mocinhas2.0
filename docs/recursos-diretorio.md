@@ -74,3 +74,9 @@ Persistência usa o JSON já existente, sem migração de tabela física. A posi
 Os botões Adicionar link do TikTok e Abrir publicação resolvem `vt.tiktok.com`/`vm.tiktok.com` no servidor antes de validar o post. `/api/admin/tiktok-link` exige administrador e retorna somente o endereço canônico. Redirecionamentos são manuais, limitados a seis e a oito segundos no total, com HTTPS, sem credenciais/portas e destinos restritos aos domínios e caminhos de compartilhamento TikTok; a resolução para antes de requisitar a página canônica. Não há download ou processamento de arquivos de mídia.
 
 Carregamento e erros aparecem junto do botão, em região de status, em vez de somente no fim do formulário. O editor de avatar pode abrir o player mesmo sem oEmbed; o cadastro da publicação ainda depende dos metadados disponíveis na plataforma. Testes de redirecionamento e destinos inseguros usam transporte simulado. Validação real no iPhone continua pendente.
+
+### Resposta oEmbed sem autor/thumbnail e player lento
+
+O link `https://vt.tiktok.com/ZSgbbxQ8F/` foi consultado de verdade durante o diagnóstico. O oEmbed retornou HTTP 200 com `provider_name`, `embed_product_id`, `embed_type` e `html`, mas sem `author_url` e `thumbnail_url`. Esse formato é aceito verificando a identidade do post; campos opcionais presentes continuam validados. Não se inventa thumbnail nem identificação de autor: o crédito utiliza o @ do endereço canônico.
+
+O avatar passa a reconhecer também `onImageChange` e `onCurrentTime` como sinais de resposta, além de `onPlayerReady`. Timeout e erros não desmontam mais o iframe nem o trocam silenciosamente pela silhueta. A prévia mostra mensagem, nova tentativa e link externo. A mesma preservação do player se aplica às publicações. Consulta real de metadados não equivale a validação da renderização no Safari físico.

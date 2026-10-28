@@ -10,11 +10,10 @@ export function SocialVideoPlayer({video,name,profileId,index}:{video:PersonProf
     const timer=setTimeout(()=>{if(source.platform==='TikTok')setFailed(true);},15000);
     const message=(event:MessageEvent)=>{
       if(event.origin!=='https://www.tiktok.com' || event.source!==iframe.current?.contentWindow || event.data?.['x-tiktok-player']!==true)return;
-      if(event.data.type==='onPlayerReady'){clearTimeout(timer);setReady(true);}
+      if(['onPlayerReady','onImageChange','onCurrentTime'].includes(event.data.type)){clearTimeout(timer);setReady(true);}
       if(['onPlayerError','onError'].includes(event.data.type) && (event.data.value?.errorCode??event.data.value)!==3002){clearTimeout(timer);setFailed(true);}
     };
     window.addEventListener('message',message);return()=>{clearTimeout(timer);window.removeEventListener('message',message);};
   },[video.url]);
-  return <div className="social-video-player">{failed?<><img src={video.thumbnail||'/profile-placeholder.svg'} alt={'Prévia de '+name} onError={e=>{e.currentTarget.hidden=true;}}/><p>A publicação não pôde ser carregada. Ele pode estar indisponível ou restrito.</p></>:<iframe ref={iframe} src={source.embed} title={video.title||name} allow="autoplay; encrypted-media; fullscreen; picture-in-picture" allowFullScreen onLoad={()=>{if(source.platform!=='TikTok')setReady(true);}} onError={()=>setFailed(true)}/>}<a href={video.url} target="_blank" rel="noopener noreferrer">Abrir no {source.platform}</a>{!ready&&!failed&&<small>Carregando o player externo…</small>}</div>;
+  return <div className="social-video-player"><iframe ref={iframe} src={source.embed} title={video.title||name} allow="autoplay; encrypted-media; fullscreen; picture-in-picture" allowFullScreen onLoad={()=>{if(source.platform!=='TikTok')setReady(true);}} onError={()=>setFailed(true)}/>{failed&&<p role="status">O TikTok não confirmou a reprodução. O player foi mantido; tente reproduzir nele ou abra a publicação na plataforma original.</p>}<a href={video.url} target="_blank" rel="noopener noreferrer">Abrir no {source.platform}</a>{!ready&&!failed&&<small>Carregando o player externo…</small>}</div>;
 }
-
