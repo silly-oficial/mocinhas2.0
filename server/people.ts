@@ -1,3 +1,4 @@
+import {validateProfileAvatar} from '../shared/profile-avatar';
 import type express from 'express';
 import {randomUUID} from 'node:crypto';
 import {makeTikTokResolver} from './tiktok-oembed';
@@ -22,7 +23,7 @@ export function validatePerson(input:any, existing?:PersonProfile):PersonProfile
  if(typeof input.published!=='boolean'||typeof input.featured!=='boolean'||!Number.isInteger(input.order)||input.order<0||input.order>9999)throw Error('Configuração de publicação ou ordem inválida.');
  const socials={} as PersonProfile['socials'];for(const platform of ['tiktok','instagram','pinterest'] as const){const handle=text(input.socials?.[platform]??'',60).replace(/^@/,'');if(handle&&!/^[a-zA-Z0-9_.]{1,60}$/.test(handle))throw Error(`Informe somente o @ de ${platform}, sem o link.`);socials[platform]=handle;}
  const cleanTags = new Map<string,string>();for(const raw of input.tags){const label=text(raw,30).replace(/\s+/g,' ');if(label&&!cleanTags.has(categoryKey(label)))cleanTags.set(categoryKey(label),label);}
- const now=new Date().toISOString();return {id:existing?.id||randomUUID(),name,username,avatar,cover:legacyImage(input.cover,existing?.cover),bio:text(input.bio??'',1500),photos:input.photos.map((url:unknown)=>{if(typeof url!=='string'||!existing?.photos.includes(url))throw Error('Adicione fotos por links de carrosséis do TikTok.');return url;}),videos:input.videos.map((v:any)=>{const url=text(v?.url,2048),title=text(v?.title??'',100);const previous=existing?.videos.find(old=>old.url===url);if(previous)return {...previous,title};const source=tiktokPost(url);return {url:source.canonical,title,kind:'social' as const};}),tags:[...cleanTags.values()],socials,published:input.published,featured:input.featured,order:input.order,createdAt:existing?.createdAt||now,updatedAt:now};
+ const now=new Date().toISOString();return {id:existing?.id||randomUUID(),name,username,avatarSelection:validateProfileAvatar(input.avatarSelection),avatar,cover:legacyImage(input.cover,existing?.cover),bio:text(input.bio??'',1500),photos:input.photos.map((url:unknown)=>{if(typeof url!=='string'||!existing?.photos.includes(url))throw Error('Adicione fotos por links de carrosséis do TikTok.');return url;}),videos:input.videos.map((v:any)=>{const url=text(v?.url,2048),title=text(v?.title??'',100);const previous=existing?.videos.find(old=>old.url===url);if(previous)return {...previous,title};const source=tiktokPost(url);return {url:source.canonical,title,kind:'social' as const};}),tags:[...cleanTags.values()],socials,published:input.published,featured:input.featured,order:input.order,createdAt:existing?.createdAt||now,updatedAt:now};
 }
 export function installPeople(app:express.Express,db:typeof DB,admin:express.RequestHandler){
  const all=()=>db.get().peopleProfiles||[];
@@ -59,7 +60,7 @@ export function installPeople(app:express.Express,db:typeof DB,admin:express.Req
      }else Object.assign(video,origin(video.url),{source_platform:social?.platform.toLowerCase()||'provided',source_url:social?.canonical||'',display_mode:social?'embed':'reupload'});
      sourceRows.push({...video,url:video.url,source_platform:video.source_platform!,source_url:video.source_url!,source_handle:video.source_handle!,captured_at:video.captured_at!,display_mode:video.display_mode!,last_check_at:video.last_check_at??null,is_still_available:video.is_still_available??null});
    }
-   if(profile.avatar==='/profile-placeholder.svg'){const first=profile.videos.find(v=>v.source_platform==='tiktok'&&v.thumbnail&&v.source_handle?.replace(/^@/,'').toLowerCase()===profile.socials.tiktok.toLowerCase());if(first){profile.avatar=first.thumbnail!;sourceRows.push({...first,url:profile.avatar} as any);}}
+   if(!profile.avatarSelection&&profile.avatar==='/profile-placeholder.svg'){const first=profile.videos.find(v=>v.source_platform==='tiktok'&&v.thumbnail&&v.source_handle?.replace(/^@/,'').toLowerCase()===profile.socials.tiktok.toLowerCase());if(first){profile.avatar=first.thumbnail!;sourceRows.push({...first,url:profile.avatar} as any);}}
    profile.mediaSources=sourceRows;
 if(all().some(p=>p.username===profile.username&&p.id!==profile.id))return res.status(409).json({error:'Esse @usuário já está cadastrado.'});
    if(existing){const current=all().find(p=>p.id===existing.id);if(!current)return res.status(404).json({error:'Perfil removido durante a consulta.'});if(current.updatedAt!==existing.updatedAt)return res.status(409).json({error:'O perfil mudou durante a consulta. Reabra-o antes de salvar.'});}

@@ -60,3 +60,10 @@ O rodapé global tem o texto de autoria solicitado, copyright com ano atual e li
 A conclusão de um pedido de remoção exige a providência pública executada ou a ação explícita de retirar o perfil de publicação. O e-mail usa o assunto “Sobre o seu pedido no Mocinhas”, a descrição da providência e o contato configurado; o registro interno não é incluído. Recusas recebem resultado de análise, sem afirmar remoção. A fila e a configuração Resend existentes continuam necessárias; estes testes não enviam e-mails reais.
 
 Validação: tipos e build; contratos de upload bloqueado (multipart e base64 sem gravação), cadastro TikTok com crédito derivado no servidor, renderização sem players iniciais, rodapé e página de créditos, e-mail com resposta pública, legado, quotas, persistência e pagamentos com provedores simulados. A exibição externa real continua sujeita ao TikTok e à validação em celular físico.
+
+
+### Avatar por seleção de publicação
+
+O editor de perfil aceita `avatarSelection`: link canônico do TikTok e índice da foto (base zero) ou início/fim em segundos de um trecho de até 15 segundos. Salvar não baixa, exporta ou envia mídia e não depende de extrair frames. O player oficial recebe `navigateTo`, `pause`, `seekTo`, `play` e `mute` somente depois de pronto; mensagens são verificadas por origem, janela e marcador TikTok. O trecho volta ao início ao atingir o fim; não há reprodução reversa. A seleção aparece nos cards e no detalhe dos perfis. Players são montados apenas quando visíveis e em primeiro plano, e usam avatar padrão em erro ou timeout. A publicação pode ser aberta pelo crédito externo.
+
+Persistência usa o JSON já existente, sem migração de tabela física. A posição escolhida é uma preferência para o player, não um arquivo de avatar. Índice acima da quantidade real de fotos e duração real dependem do conteúdo servido pelo TikTok. Navegação e repetição em Android/iOS físicos continuam pendentes; testes locais validam dados e integração, sem afirmar validação visual do player real.

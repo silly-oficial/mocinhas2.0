@@ -1,4 +1,5 @@
 export interface PersonProfile {
+ avatarSelection?: import('./profile-avatar').ProfileAvatarSelection;
  verified?: boolean;
  mediaSources?: MediaOrigin[];
  id: string; name: string; username: string; bio: string; avatar: string; cover: string;

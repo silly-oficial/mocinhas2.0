@@ -11,8 +11,8 @@ try{
  const created=await call('/api/admin/people','POST',person);assert.equal(created.status,201);const id=created.body.profile.id;
  assert.equal((await call('/api/people','GET',undefined,'viewer')).body.profiles.length,0,'draft must remain private');
  assert.equal((await call('/api/admin/people','POST',person)).status,409);assert.equal((await call('/api/admin/people/not-found','PUT',person)).status,404);
- const published=await call('/api/admin/people/'+id,'PUT',{...person,published:true});assert.equal(published.status,200);
- assert.equal((await call('/api/people','GET',undefined,'viewer')).body.profiles[0].username,'pessoa.teste');
+ const published=await call('/api/admin/people/'+id,'PUT',{...person,published:true,avatarSelection:{url:'https://www.tiktok.com/@pessoa/photo/7421111111111111111',kind:'photo',imageIndex:2}});assert.equal(published.status,200);
+ assert.equal((await call('/api/people','GET',undefined,'viewer')).body.profiles[0].username,'pessoa.teste');assert.equal((await call('/api/people','GET',undefined,'viewer')).body.profiles[0].avatarSelection.imageIndex,2);
  assert.equal((await call('/api/admin/people/'+id,'PUT',{...person,published:true,videos:[{url:'https://tiktok.com.evil.test/@x/video/6718335390845095173',title:''}]})).status,400);
  assert.equal((await call('/api/admin/people/'+id,'PUT',{...person,published:true,avatar:'javascript:alert(1)'})).status,400);
  assert.equal((await call('/api/admin/people/'+id,'PUT',{...person,published:true,socials:{...person.socials,instagram:'https://evil.test'}})).status,400);
