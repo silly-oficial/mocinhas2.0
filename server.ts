@@ -1,5 +1,12 @@
+import {uploadedMediaOrigin} from './server/media-origin';
 import { installProfileVideo } from './server/profile-video';
 import { installPeople } from './server/people';
+import { installDirectoryRequests } from './server/directory-requests';
+import { installDirectorySettings } from './server/directory-settings';
+import { installVerification } from './server/verification';
+import { startDirectoryMailWorker } from './server/directory-email';
+import { installLegalHistory, recordLegalVersion } from './server/legal-history';
+import { archiveLegalVersionFile } from './server/legal-history-storage';
 import { validateVideoCover } from './shared/video-cover';
 import { validatePhotoFocus } from './shared/photo-focus';
 import { installWelcome } from './server/welcome';
@@ -52,6 +59,7 @@ const storage = multer.diskStorage({
 const upload = multer({ storage: CLOUD ? multer.memoryStorage() : storage, limits: { fileSize: 50 * 1024 * 1024 } });
 
 // Middlewares
+app.use('/api/directory-requests', express.json({ limit: '16kb' }));
 app.use(express.json({ limit: '50mb', verify: (req, _res, buf) => { if (req.url === '/api/syncpay/webhook') (req as any).rawBody = Buffer.from(buf); } }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 // No API acknowledgement is sent before its queued remote snapshot is durable.
@@ -111,6 +119,11 @@ function requireAuth(req: express.Request, res: express.Response, next: express.
 }
 
 installWelcome(app, DB, requireAdmin);
+installDirectoryRequests(app, DB, requireAdmin);
+installDirectorySettings(app, DB, requireAdmin,async()=>{await recordLegalVersion(DB,archiveLegalVersionFile);});
+installVerification(app, DB, requireAdmin);
+const directoryMail = startDirectoryMailWorker(DB, flushCloud);
+installLegalHistory(app, DB);
 installConsumptionPolicy(app, DB, JWT_SECRET, getAuthUserId, requireAdmin);
 installPeople(app, DB, requireAdmin);
 installProfileVideo(app, requireAdmin);
@@ -697,6 +710,7 @@ app.post('/api/posts', requireAdmin, (req, res) => {
     return res.status(400).json({ error: 'Adicione pelo menos uma foto ou vídeo kawaii! ' });
   }
 
+  try {for(const m of media)if(['image','video','gif'].includes(m.type||'image'))uploadedMediaOrigin(m.url,m.source_handle);}catch(error){return res.status(400).json({error:error instanceof Error?error.message:'Informe a origem.'});}
   try { for (const m of media) if (m.focus !== undefined) { if (!['image','gif'].includes(m.type || 'image')) throw new Error('Destaque disponível apenas para fotos.'); validatePhotoFocus(m.focus); } }
   catch (error: any) { return res.status(400).json({ error: error.message }); }
   try { for (const m of media) if (m.coverTime !== undefined) { if (m.type !== 'video') throw new Error('Capa disponível apenas para vídeos.'); validateVideoCover(m); } }
@@ -721,6 +735,7 @@ app.post('/api/posts', requireAdmin, (req, res) => {
     media: media.map((m: any, idx: number) => ({
       id: `m_${Date.now()}_${idx}`,
       url: m.url,
+      ...(['image','video','gif'].includes(m.type||'image')?uploadedMediaOrigin(m.url,m.source_handle):{}),
       type: m.type || 'image',
       filter: m.filter,
       aspectRatio: m.aspectRatio,
@@ -2379,8 +2394,10 @@ async function startServer() {
   });
 }
 
+if (process.env.NODE_ENV === 'production') await recordLegalVersion(DB, archiveLegalVersionFile);
 await flushCloud();
 await startServer();
 }
 bootApplication().catch(error => { console.error(error.message); process.exitCode = 1; });
+
 

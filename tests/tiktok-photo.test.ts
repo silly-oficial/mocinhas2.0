@@ -1,0 +1,33 @@
+import assert from 'node:assert/strict';
+import express from 'express';
+import {once} from 'node:events';
+import {socialVideo} from '../shared/people';
+import {validateWelcome,installWelcome} from '../server/welcome';
+import {makeTikTokResolver} from '../server/tiktok-oembed';
+import type {DB} from '../server/db';
+const photo='https://www.tiktok.com/@creator/photo/7421111111111111111';
+assert.equal(socialVideo(photo+'?slide=2').canonical,photo);
+assert.equal(socialVideo(photo).postType,'photo');
+assert.match(socialVideo(photo).embed,/player\/v1\/7421111111111111111\?/);
+assert.equal(socialVideo(photo.replace('/photo/','/video/')).postType,'video');
+for(const bad of [photo.replace('tiktok.com','tiktok.com.evil.test'),photo.replace('https:','http:'),photo.replace('www.tiktok.com','user:pass@www.tiktok.com'),photo.replace('7421111111111111111','invalid')])assert.throws(()=>socialVideo(bad));
+const config={intervalSeconds:3,slides:[{id:'photo',type:'tiktok',url:photo+'?slide=2',thumbnail:'https://evil.invalid/track',source_handle:'@wrong'}]};
+const validated=validateWelcome(config);
+assert.equal(validated.slides[0].url,photo);assert.equal(validated.slides[0].source_handle,'@creator');assert.equal(validated.slides[0].thumbnail,undefined);
+assert.throws(()=>validateWelcome({...config,slides:[...config.slides,...config.slides]}));
+assert.throws(()=>validateWelcome({...config,slides:[{...config.slides[0],url:'https://www.instagram.com/p/abcdef/'}]}));
+const state:any={};const db={get:()=>state,save:()=>{}} as unknown as typeof DB;
+let requests=0;const transport=(async()=>{requests++;return new Response(JSON.stringify({thumbnail_url:'https://cdn.example.invalid/photo.jpg',author_url:'https://www.tiktok.com/@creator',author_name:'Creator'}));}) as typeof fetch;
+const resolve=makeTikTokResolver(db,transport);
+await resolve(photo);await resolve(photo);assert.equal(requests,1);
+const realFetch=globalThis.fetch;
+globalThis.fetch=((url:any,options:any)=>String(url).startsWith('https://www.tiktok.com/oembed?')?transport(url,options):realFetch(url,options)) as typeof fetch;
+const app=express();app.use(express.json());installWelcome(app,db,(req,res,next)=>req.get('authorization')==='Bearer admin'?next():res.status(403).end());
+const server=app.listen(0,'127.0.0.1');await once(server,'listening');const address=server.address();if(!address||typeof address==='string')throw Error('address');const base='http://127.0.0.1:'+address.port;
+try{
+ const denied=await fetch(base+'/api/admin/welcome',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(config)});assert.equal(denied.status,403);
+ const saved=await fetch(base+'/api/admin/welcome',{method:'PUT',headers:{'Content-Type':'application/json',Authorization:'Bearer admin'},body:JSON.stringify(config)});assert.equal(saved.status,200);
+ const publicConfig=await (await fetch(base+'/api/welcome')).json();assert.equal(publicConfig.slides[0].url,photo);assert.equal(publicConfig.slides[0].source_handle,'@creator');assert.equal(publicConfig.slides[0].thumbnail,'https://cdn.example.invalid/photo.jpg');
+ assert.equal((await fetch(base+'/api/welcome/media/photo')).status,404,'external posts must not enter the uploads proxy');
+ console.log('TikTok photo: URL validation, video compatibility, server-derived credit, cache, admin authorization and public carousel passed. TikTok transport mocked; no device validation.');
+}finally{globalThis.fetch=realFetch;server.close();server.closeAllConnections();}

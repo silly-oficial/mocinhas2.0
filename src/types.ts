@@ -1,3 +1,4 @@
+import type {MediaOrigin} from '../shared/people';
 export type UserGender = 'feminino' | 'masculino' | 'outro';
 
 export interface User {
@@ -29,7 +30,7 @@ export interface User {
   acceptedTermsAt?: string;
 }
 
-export interface PostMedia {
+export interface PostMedia extends Partial<MediaOrigin> {
   id: string;
   url: string;
   type: 'image' | 'video' | 'audio' | 'pdf' | 'gif';
@@ -185,3 +186,4 @@ export interface SearchResult {
   hashtags: { tag: string; count: number }[];
   groups?: Conversation[];
 }
+

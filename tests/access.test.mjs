@@ -24,9 +24,9 @@ try {
  assert.equal((await call('/api/admin/storage','viewer')).status,403);
  assert.equal((await call('/api/admin/storage/export','viewer')).status,403);
  assert.equal((await call('/api/admin/storage/export','owner')).body.users.length,3);
- assert.equal((await call('/api/posts','viewer','POST',{media:[{url:'/test.jpg',type:'image'}]},cookie)).status,403);
- const posted=await call('/api/posts','owner','POST',{caption:'Teste #arte',media:[{url:'/test.jpg',type:'image',focus:{x:25,y:75}}],isTemporary:true});assert.equal(posted.status,200);assert.equal(posted.body.post.isTemporary,false);assert.equal(posted.body.post.user.username,'');
- assert.equal((await call('/api/posts','owner','POST',{media:[{url:'/test.mp4',type:'video',focus:{x:50,y:50}}]})).status,400);
+ assert.equal((await call('/api/posts','viewer','POST',{media:[{url:'/test.jpg',source_handle:'fixture.creator',type:'image'}]},cookie)).status,403);
+ const posted=await call('/api/posts','owner','POST',{caption:'Teste #arte',media:[{url:'/test.jpg',source_handle:'fixture.creator',type:'image',focus:{x:25,y:75}}],isTemporary:true});assert.equal(posted.status,200);assert.equal(posted.body.post.isTemporary,false);assert.equal(posted.body.post.user.username,'');
+ assert.equal((await call('/api/posts','owner','POST',{media:[{url:'/test.mp4',source_handle:'fixture.creator',type:'video',focus:{x:50,y:50}}]})).status,400);
  const id=posted.body.post.id;
  const mediaId=posted.body.post.media[0].id;
  assert.deepEqual(posted.body.post.media[0].focus,{x:25,y:75});
@@ -52,7 +52,7 @@ try {
  assert.equal((await call('/api/posts/'+id,'viewer','DELETE',undefined,cookie)).status,403);
  assert.equal((await call('/api/admin/usage-settings','viewer','PUT',{dailyMinutes:0,bindNetwork:false})).status,403);
  assert.equal((await call('/api/admin/usage-settings','owner','PUT',{dailyMinutes:-1,bindNetwork:false})).status,400);
- const movie=await call('/api/posts','owner','POST',{media:[{url:'/test.mp4',type:'video',thumbnail:'/uploads/frame_initial.jpg',coverTime:0.4}]});assert.equal(movie.status,200);
+ const movie=await call('/api/posts','owner','POST',{media:[{url:'/test.mp4',source_handle:'fixture.creator',type:'video',thumbnail:'/uploads/frame_initial.jpg',coverTime:0.4}]});assert.equal(movie.status,200);
  const movieId=movie.body.post.id,movieMedia=movie.body.post.media[0].id;
  assert.equal((await call('/api/admin/posts/'+movieId+'/cover','viewer','PATCH',{mediaId:movieMedia,thumbnail:'/uploads/frame_selected.jpg',coverTime:1},cookie)).status,403);
  assert.equal((await call('/api/admin/posts/'+movieId+'/cover','owner','PATCH',{mediaId:movieMedia,thumbnail:'javascript:alert(1)',coverTime:1})).status,400);
@@ -72,3 +72,4 @@ try {
  assert.equal((await call('/api/posts/'+id,'owner','DELETE')).status,200);
  console.log('Integration passed: authorization, admin-only publication, hidden identity, disabled routes, permanent posts, quotas, multiple accounts and restart persistence.');
 } finally {if(child && child.exitCode===null)await stop();fs.rmSync(root,{recursive:true,force:true});}
+
