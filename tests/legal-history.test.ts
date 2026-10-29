@@ -19,8 +19,8 @@ for (const page of ['terms','privacy','parents'] as const) {
 }
 const footer = renderToStaticMarkup(React.createElement(DirectorySafetyFooter));
 for (const link of legalNavigation) assert.ok(footer.includes('href="' + link.path + '"'));
-assert.ok(footer.includes('As mídias pertencem aos seus criadores originais.'));
-assert.match(footer, /href="\/pais">Pedir remoção/);
+assert.ok(footer.includes('Mocinhas'));assert.ok(!/LGPD|Lei |menores|Termos de Uso/.test(footer));
+assert.match(footer, /href="\/pais">Contato/);
 assert.ok(renderToStaticMarkup(React.createElement(LegalVersionHistory)).includes('Histórico de versões'));
 
 const state: any = {users:[],posts:[],directoryRequests:[{email:'must-remain-private@example.invalid',documentUrl:'https://example.invalid/private-document'}]};

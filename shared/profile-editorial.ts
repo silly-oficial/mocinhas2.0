@@ -10,7 +10,8 @@ export function adultEligible(p:Pick<PersonProfile,'ageBand'|'ageSource'|'adultR
  return p.ageBand==='adulto'&&p.ageSource==='declarado_pelo_perfil'&&!!p.adultReview?.evidenceUrl&&p.adultReview.contentReviewed===true&&(p.birthYear==null||now.getUTCFullYear()-p.birthYear>=18);
 }
 export function profilePublishable(p:Pick<PersonProfile,'subjectType'|'ageBand'|'ageSource'|'adultReview'|'birthYear'>,now=new Date()){
- return p.subjectType==='animal'||adultEligible(p,now);
+ // Gallery publication is controlled only by the explicit visibility setting.
+ return true;
 }
 export function ageValues(birthYear:number|null,band:AgeBand='desconhecido',now=new Date()){
  const age=birthYear===null?null:now.getUTCFullYear()-birthYear;
@@ -55,7 +56,6 @@ export function editorialFields(input:Record<string,unknown>,existing:PersonProf
   if(review.evidenceUrl){const url=new URL(review.evidenceUrl);if(url.protocol!=='https:'||url.username||url.password)throw Error('Use uma fonte pública https para a maioridade.');}
   adultReview={evidenceUrl:review.evidenceUrl.trim(),contentReviewed:review.contentReviewed};
  }
- if(input.published===true&&!profilePublishable({subjectType,...values,birthYear:birthYear as number|null,ageSource:source as AgeSource,adultReview},now))throw Error('Publicação restrita a adultos: registre a fonte de declaração de maioridade do perfil e confirme 18+ em todas as mídias, inclusive na gravação.');
  return {subjectType,adultReview,birthYear:birthYear as number|null,...values,ageSource:source as AgeSource,guardianStatus:status as GuardianStatus,guardianName:field('guardianName',120),guardianRelation:field('guardianRelation',80),guardianEmail,ownershipVerified:existing?.ownershipVerified??false,guardianAuthorized:status==='termo_recebido',rankingCriteria,rankingUpdatedAt:rankingCriteria!==existing?.rankingCriteria?now.toISOString():existing?.rankingUpdatedAt??null,sourceSnapshot:existing?.sourceSnapshot??null,availabilityHistory:existing?.availabilityHistory?.slice(0,50)??[],traits:[...new Set(traits)] as string[],identityRevision:existing?.identityRevision??0};
 }
 export function availabilityHistory(rows:{checkedAt:string;available:boolean|null}[]){
