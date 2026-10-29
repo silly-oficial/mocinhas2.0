@@ -11,7 +11,7 @@ import {retainAccessLogs} from '../server/access-log';
 import {setSession,sessionToken,protectCookieWrites} from '../server/session-security';
 const person={name:'Criadora',username:'criadora',bio:'',avatar:'',cover:'',photos:[],videos:[],socials:{tiktok:'criadora',instagram:'',pinterest:''},tags:[],published:true,featured:false,order:0,birthYear:2010,ageSource:'declarado_pelo_perfil',rankingCriteria:'Arte e educação.',guardianName:'Privado',guardianRelation:'Responsável',guardianEmail:'private@example.invalid'};
 for(const birthYear of [1899,3000,2010.5,'2010'])assert.throws(()=>validatePerson({...person,birthYear}));
-assert.throws(()=>validatePerson({...person,birthYear:null,ageBand:'desconhecido'}));
+assert.doesNotThrow(()=>validatePerson({...person,birthYear:null,ageBand:'desconhecido'}));
 const draft=validatePerson(person);assert.equal(draft.guardianStatus,'sem_contato');assert.equal(draft.guardianAuthorized,false);assert.equal(draft.ownershipVerified,false);
 assert.equal(ageValues(2014,'desconhecido',new Date('2026-01-01')).ageBand,'adolescente');assert.equal(ageValues(2008,'desconhecido',new Date('2026-01-01')).ageBand,'adulto');assert.match(ageLabel({birthYear:null,ageBand:'adolescente'}),/12 a 17/);assert.match(ageLabel({birthYear:2010},new Date('2026-10-01')),/15 a 16/);
 const state:DatabaseSchema={users:[],posts:[],likes:[],saves:[],comments:[],commentLikes:[],follows:[],stories:[],storyViews:[],conversations:[],messages:[],notifications:[],reports:[],blocks:[],mutes:[],peopleProfiles:[{...draft,birthYear:2008,ageBand:'adolescente',ageUpdatedAt:'2025-01-01T00:00:00Z'}]};

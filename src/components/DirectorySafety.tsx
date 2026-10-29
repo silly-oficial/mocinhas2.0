@@ -20,7 +20,7 @@ export function LegalNavigation({currentPath,versionId = ''}: {currentPath?:stri
 }
 export function DirectorySafetyFooter() {
   const config = usePublicSettings();const email=config.contactEmail;
-  return <footer className="directory-safety-footer"><p>Todo o conteúdo do Mocinhas é de autoria dos criadores originais.<br/>Cada mídia mantém o crédito e o link do perfil de origem.<br/>Encontrou algo seu e quer ajustar ou remover? Fale com a gente: {email?<a href={'mailto:'+email}>{email}</a>:<a href="/pais">Pedir remoção / reclamar</a>}</p><p>© {new Date().getFullYear()} Mocinhas. As mídias pertencem aos seus criadores originais.</p><LegalNavigation/>{config.dpoEmail&&<p>Privacidade: <a href={'mailto:'+config.dpoEmail}>{config.dpoEmail}</a></p>}</footer>;
+  return <footer className="directory-safety-footer"><p>© {new Date().getFullYear()} Mocinhas</p><LegalNavigation/>{email&&<p><a href={'mailto:'+email}>{email}</a></p>}</footer>;
 }
 function LinkedText({text}: {text:string}) {
   return <>{text.split(/(\/(?:termos|privacidade|pais|versoes|creditos|como-funciona))\b/g).map((part,index) => /^\/(termos|privacidade|pais|versoes|creditos|como-funciona)$/.test(part) ? <a key={index} href={part}>{part}</a> : part)}</>;
@@ -58,7 +58,7 @@ function ResponsibleRequestForm() {
       <label>Tipo de pedido<select value={type} onChange={event => setType(event.target.value as DirectoryRequestType)}>{Object.entries(requestTypes).filter(([key])=>key!=='corrigir_idade').map(([key,label]) => <option key={key} value={key}>{label}</option>)}</select></label>
       <label>Observações<textarea name="observations" defaultValue={content} rows={5} maxLength={3000} placeholder="Indique o conteúdo ou a informação a corrigir. Não inclua dados pessoais desnecessários."/></label>
       {(type === 'reivindicar_perfil' || type === 'autorizar_oficialmente') && <label>Link HTTPS do termo assinado (opcional)<input name="documentUrl" type="url" maxLength={2048} placeholder="https://…"/><small>O link é restrito à administração. Compartilhe apenas o termo necessário, com acesso controlado. O envio não gera selo nem autorização automática.</small></label>}
-      <p>Ao enviar, seus dados serão usados para tratar esta solicitação. Consulte a <a href="/privacidade">política de privacidade</a> e os <a href="/termos">Termos de Uso do diretório</a>.</p>
+      <p>Usaremos seu e-mail para responder à solicitação.</p>
       <button type="submit">{busy ? 'Registrando…' : 'Enviar solicitação'}</button>
     </fieldset>{error && <p role="alert">{error}</p>}
   </form>;
@@ -86,7 +86,7 @@ export function DirectorySafetyPage({page = 'parents'}: {page?:LegalPageKey}) {
     {(!versionId || (!loading && !error)) && <>
       {document.sections.map(section => <section key={section.title}><h2>{section.title}</h2>{section.paragraphs.map((paragraph,index) => <p key={index}><LinkedText text={paragraph}/></p>)}</section>)}
       {visibleEmail && <p>Contato da administração: <a href={'mailto:' + visibleEmail}>{visibleEmail}</a>.</p>}
-      {page==='privacy'&&!versionId&&<p>Encarregado/contato de privacidade: {config.dpoEmail?<a href={'mailto:'+config.dpoEmail}>{config.dpoEmail}</a>:<>não informado pela administração. Use <a href="/pais">o canal de direitos</a>.</>}</p>}
+
       {page === 'parents' && !versionId && <><ResponsibleRequestForm/><RequestFollowUp/></>}
     </>}
   </main>;
@@ -105,7 +105,7 @@ export function LegalVersionHistory() {
   },[page,retry]);
   return <main className="directory-safety-page">
     <a href="/" className="directory-back">← Voltar ao aplicativo</a><LegalNavigation currentPath="/versoes"/><h1>Histórico de versões</h1>
-    <p>Consulte os textos dos Termos, da Privacidade e da página de atendimento registrados em produção. Cada alteração desses documentos ou do contato público gera um arquivo datado. Reiniciar o serviço com os mesmos textos não cria uma cópia duplicada.</p>
+    <p>Consulte as versões anteriores das informações do aplicativo.</p>
     <p>Este é o histórico dos documentos, não de todas as alterações do aplicativo. Os pedidos e os documentos enviados por solicitantes não aparecem aqui.</p>
     {loading ? <p role="status">Carregando histórico…</p> : error ? <p role="alert">{error} <button onClick={() => setRetry(value => value + 1)}>Tentar novamente</button></p> : <>
       {!versions.length && <p>Nenhuma versão registrada em produção ainda.</p>}

@@ -5,7 +5,6 @@ import React, { useState, useRef } from 'react';
 import { X, Sparkles, Heart, Eye, EyeOff, User, Lock, Mail, Upload, Image as ImageIcon, ShieldCheck, FileText, Check } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
-import { TermsModal } from './TermsModal';
 
 interface AuthModalProps {
   onClose: () => void;
@@ -26,8 +25,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   const [displayName, setDisplayName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [acceptedTerms, setAcceptedTerms] = useState(false);
-  const [showTermsModal, setShowTermsModal] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [recoverySent,setRecoverySent]=useState(false),[recoveryCode,setRecoveryCode]=useState(''),[newPassword,setNewPassword]=useState('');
@@ -50,10 +47,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         if (!username || !displayName || !email || !password) {
           throw new Error(ui("Preencha todos os campos obrigatórios."));
         }
-        if (!acceptedTerms) {
-          throw new Error(ui("Você precisa ler e aceitar os Termos de Uso e Responsabilidade para criar sua conta."));
-        }
-        await register(username.trim(), displayName.trim(), email.trim(), password, undefined, undefined, undefined, acceptedTerms);
+        await register(username.trim(), displayName.trim(), email.trim(), password, undefined, undefined, undefined, false);
         onClose();
       } else if (mode === 'recovery') {
         if (!email) throw new Error(ui("Digite seu e-mail"));
@@ -213,51 +207,10 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               </div>
             )}
 
-            {mode === 'register' && (
-              <div className="p-3.5 rounded-2xl bg-[#171724] border border-white/10 space-y-2.5">
-                <div className="flex items-start gap-2.5 select-none">
-                  <button
-                    type="button"
-                    role="checkbox"
-                    aria-label={ui("Li e concordo com os")+" "+ui("Termos de Uso e Responsabilidade")}
-                    aria-checked={acceptedTerms}
-                    id="checkbox-terms"
-                    onClick={() => setAcceptedTerms(!acceptedTerms)}
-                    className={`w-5 h-5 rounded-lg mt-0.5 flex items-center justify-center border transition-all shrink-0 cursor-pointer ${
-                      acceptedTerms
-                        ? 'bg-emerald-500 text-black border-emerald-500 shadow-xs'
-                        : 'bg-[#0E0E15] border-white/30 hover:border-white/60'
-                    }`}
-                  >
-                    {acceptedTerms && <Check className="w-3.5 h-3.5 stroke-[3] text-black" />}
-                  </button>
-                  <div className="text-[11px] text-zinc-200 leading-tight pt-0.5">
-                    <span
-                      onClick={() => setAcceptedTerms(!acceptedTerms)}
-                      className="cursor-pointer hover:text-white"
-                    >
-                      {ui("Li e concordo com os")}{' '}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => setShowTermsModal(true)}
-                      className="font-bold text-zinc-300 hover:text-white underline underline-offset-2 inline-flex items-center gap-0.5 cursor-pointer ml-0.5"
-                    >
-                      <span>{ui("Termos de Uso e Responsabilidade")}</span>
-                      <ShieldCheck className="w-3.5 h-3.5 inline text-zinc-400" />
-                    </button>
-                    <span className="text-zinc-400 font-bold ml-1">{ui("*obrigatório")}</span>
-                  </div>
-                </div>
-
-                <p className="text-[10px] text-zinc-400 leading-relaxed border-t border-white/5 pt-2">
-                   <strong>{ui("Aviso legal:")}</strong> {ui("Publicações permanentes da administração. Leia os termos antes de criar sua conta.")}</p>
-              </div>
-            )}
 
             <button
               type="submit"
-              disabled={isLoading || (mode === 'register' && !acceptedTerms)}
+              disabled={isLoading}
               className="w-full py-4 rounded-full bg-emerald-500 text-black font-extrabold text-sm shadow-xl hover:bg-neutral-200 active:scale-95 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed mt-2"
             >
               <span>
@@ -297,13 +250,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         </div>
       </div>
 
-      {showTermsModal && (
-        <TermsModal
-          onClose={() => setShowTermsModal(false)}
-          onAccept={() => setAcceptedTerms(true)}
-          showAcceptButton={true}
-        />
-      )}
+
     </ModalFrame>
   );
 };

@@ -1,15 +1,15 @@
 import type {PersonProfile} from './people';
+import {socialVideo} from './people';
 
-// Only explicitly identified animal records participate in this migration.
-// Persist the choice so restarting the service cannot reveal a hidden profile.
-export function restoreAnimalVisibility(profiles:PersonProfile[]):PersonProfile[]{
- if(!profiles.some(p=>p.subjectType==='animal'&&p.hidden===undefined))return profiles;
- return profiles.map(p=>p.subjectType==='animal'&&p.hidden===undefined?{...p,hidden:false,published:true}:p);
+export function restoreGalleryVisibility(profiles:PersonProfile[]):PersonProfile[]{
+ return profiles.map(profile=>({...profile,hidden:false,published:true,videos:profile.videos.map(video=>{
+  if(video.kind==='upload'||video.url.startsWith('/uploads/'))return {...video,kind:'upload' as const};
+  try{const source=socialVideo(video.url);return {...video,url:source.canonical,kind:'social' as const,source_platform:source.platform.toLowerCase(),source_url:source.canonical,display_mode:'embed' as const};}catch{return video;}
+ })}));
 }
 
 export function publicationInput(input:any,existing?:PersonProfile){
  if(input.hidden!==undefined&&typeof input.hidden!=='boolean')throw Error('Visibilidade inválida.');
  const hidden=input.hidden??existing?.hidden??false;
- const animal=(existing?existing.subjectType:input.subjectType)==='animal';
- return {...input,hidden,published:hidden?false:animal?true:input.published};
+ return {...input,hidden,published:!hidden};
 }

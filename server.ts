@@ -5,7 +5,7 @@ import {authRateLimit,issueRecovery,consumeRecovery,deliverRecovery} from './ser
 import {tiktokPost} from './shared/people';
 import {makeTikTokResolver} from './server/tiktok-oembed';
 import {uploadedMediaOrigin} from './server/media-origin';
-import { refreshProfileAges, installPeople } from './server/people';
+import { installPeople } from './server/people';
 import { installDirectoryRequests } from './server/directory-requests';
 import { installDirectorySettings } from './server/directory-settings';
 import { installVerification } from './server/verification';
@@ -111,8 +111,6 @@ installWelcome(app, DB, requireAdmin);
 installDirectoryRequests(app, DB, requireAdmin);
 installDirectorySettings(app, DB, requireAdmin,async()=>{await recordLegalVersion(DB,archiveLegalVersionFile);});
 installVerification(app, DB, requireAdmin);
-refreshProfileAges(DB);
-const ageTimer=setInterval(()=>{try{refreshProfileAges(DB);}catch{console.warn('[idade] Falha ao atualizar as faixas.');}},86400000);ageTimer.unref();
 const directoryMail = startDirectoryMailWorker(DB, flushCloud);
 installLegalHistory(app, DB);
 installConsumptionPolicy(app, DB, JWT_SECRET, getAuthUserId, requireAdmin);
@@ -203,10 +201,6 @@ app.post('/api/auth/register', (req, res) => {
     return res.status(400).json({ error: 'Por favor preencha todos os campos obrigatórios! ' });
   }
 
-  if (!acceptedTerms) {
-    return res.status(400).json({ error: 'É obrigatório ler e aceitar os Termos de Uso e Responsabilidade para criar sua conta no mocinhas.' });
-  }
-
   const cleanUsername = username.trim().toLowerCase().replace(/[^a-z0-9_.]/g, '');
   if (cleanUsername.length < 3) {
     return res.status(400).json({ error: 'O username deve ter pelo menos 3 caracteres.' });
@@ -241,8 +235,7 @@ app.post('/api/auth/register', (req, res) => {
     themeColor: '#FF69B4',
     website: '',
     createdAt: new Date().toISOString(),
-    acceptedTerms: true,
-    acceptedTermsAt: new Date().toISOString(),
+    acceptedTerms: false,
   };
 
   DB.createUser(newUser);

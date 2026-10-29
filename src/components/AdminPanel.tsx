@@ -1,6 +1,4 @@
-import {LegalAuditAdmin} from './LegalAuditAdmin';
 import {DirectoryConfiguration} from './DirectoryConfiguration';
-import {VerificationAdmin} from './VerificationAdmin';
 import { DirectoryRequestsAdmin } from './DirectoryRequestsAdmin';
 import { WelcomeSettings } from './WelcomeSettings';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
@@ -15,11 +13,11 @@ import { StorageStatus } from './StorageStatus';
 import { UsageSettings } from './UsageSettings';
 import { ModalFrame } from './ModalFrame';
 
-type Tab = 'audit' | 'welcome' | 'stats' | 'poster' | 'moderation' | 'users' | 'usage' | 'syncpay' | 'supabase' | 'requests' | 'configuration' | 'verification';
+type Tab = 'welcome' | 'stats' | 'poster' | 'moderation' | 'users' | 'usage' | 'syncpay' | 'supabase' | 'requests' | 'configuration';
 type Media = Parameters<typeof api.createPost>[0]['media'][number];
 const tabs: { id: Tab; label: string; icon: typeof Plus }[] = [
-  {id:'configuration',label:'Configurações públicas',icon:SettingsIcon},{id:'verification',label:'Verificações',icon:Shield},
-  {id:'requests',label:'Responsáveis',icon:Shield},{id:'audit',label:'Auditoria',icon:FileText},
+  {id:'configuration',label:'Configurações públicas',icon:SettingsIcon},
+  {id:'requests',label:'Atendimento',icon:Shield},
   {id:'stats',label:'Visão geral',icon:BarChart3},{id:'poster',label:'Publicar',icon:Plus},
   {id:'moderation',label:'Publicações',icon:FileText},{id:'users',label:'Contas',icon:Users},
   {id:'welcome',label:'Tela de entrada',icon:ImageIcon},{id:'usage',label:'Limite diário',icon:Clock},{id:'syncpay',label:'Pagamentos',icon:CreditCard},{id:'supabase',label:'Armazenamento',icon:Database}
@@ -73,7 +71,7 @@ export const AdminPanel: React.FC<{onClose:()=>void;onPostCreated?:()=>void}> = 
       <header className="admin-header"><span className="admin-header-icon"><Shield size={22}/></span><div><h2>{ui('Painel Administrativo')}</h2><p>{ui('Conteúdo e configurações do app')}</p></div><button autoFocus className="icon-button" aria-label={ui('Fechar painel administrativo')} disabled={publishing} onClick={closing}><X size={20}/></button></header>
       <nav className="admin-tabs" aria-label={ui('Seções administrativas')}>{tabs.map(t=><button key={t.id} disabled={publishing} aria-current={activeTab===t.id?'page':undefined} onClick={()=>setActiveTab(t.id)}><t.icon size={18}/><span>{ui(t.label)}</span></button>)}</nav>
       <div ref={bodyRef} className="admin-body">
-        {activeTab === 'requests' && <DirectoryRequestsAdmin/>}{activeTab === 'configuration' && <DirectoryConfiguration/>}{activeTab === 'verification' && <VerificationAdmin/>}
+        {activeTab === 'requests' && <DirectoryRequestsAdmin/>}{activeTab === 'configuration' && <DirectoryConfiguration/>}
         {loadError&&<p className="admin-message" role="alert">{loadError}</p>}
         {isLoading&&<div className="admin-loading" role="status"><LoaderCircle size={18} className="animate-spin"/>{ui('Carregando…')}</div>}
         {activeTab==='stats'&&<div className="admin-overview"><div className="admin-intro"><span className="admin-eyebrow">mocinhas</span><h3>{ui('O diretório, em um só lugar.')}</h3><p>{ui('Publique, acompanhe as contas e ajuste o acesso diário.')}</p><button className="admin-primary" onClick={()=>setActiveTab('poster')}><Plus size={19}/>{ui('Nova publicação')}</button></div>
@@ -93,7 +91,6 @@ export const AdminPanel: React.FC<{onClose:()=>void;onPostCreated?:()=>void}> = 
         {activeTab==='moderation'&&<section className="admin-section"><h3>{ui('Publicações')}</h3><label>{ui('Buscar publicações')}<input type="search" value={search} onChange={e=>setSearch(e.target.value)}/></label><div className="admin-content-list">{postsList.filter(p=>(p.caption||'').toLowerCase().includes(search.toLowerCase())).map(p=><article key={p.id}>{p.media[0]&&<div className="admin-content-thumb">{p.media[0].type==='video'&&(!p.media[0].thumbnail||p.media[0].thumbnail===p.media[0].url)?<Video size={26}/>:<img src={p.media[0].thumbnail||p.media[0].url} alt=""/>}</div>}<div><time>{new Date(p.createdAt).toLocaleDateString(language)}</time><p>{p.caption||ui('Sem legenda')}</p><small>{p.media.length} {ui('mídias')}</small></div><button disabled={isLoading} className="admin-danger" aria-label={ui('Excluir publicação')} onClick={()=>removePost(p)}><Trash2 size={18}/></button></article>)}</div>{!postsList.length&&!isLoading&&<p>{ui('Ainda não há publicações.')}</p>}</section>}
         {activeTab==='users'&&<section className="admin-section"><h3>{ui('Contas')}</h3><label>{ui('Buscar contas')}<input type="search" value={search} onChange={e=>setSearch(e.target.value)}/></label><div className="admin-users-list">{usersList.filter(u=>[u.displayName,u.username,u.email].join(' ').toLowerCase().includes(search.toLowerCase())).map(u=><article key={u.id}><div className="admin-user-summary"><span className="admin-monogram">{u.displayName?.slice(0,2).toUpperCase()}</span><div><strong>{u.displayName}</strong><small>{u.email}</small><small>{u.username}</small></div></div><div className="admin-user-actions"><button disabled={isLoading} aria-pressed={!!u.isPremium} onClick={()=>mutateUser(u,'isPremium')}><Crown size={16}/>{ui(u.isPremium?'Remover Premium':'Dar Premium')}</button><button disabled={isLoading||u.id===currentUser?.id} aria-pressed={!!u.isAdmin} onClick={()=>mutateUser(u,'isAdmin')}><Shield size={16}/>{ui(u.isAdmin?'Remover Admin':'Tornar Admin')}</button><details><summary>{ui('Mais opções')}</summary><button disabled={isLoading} onClick={()=>mutateUser(u,'isVerified')}>{ui(u.isVerified?'Remover verificação':'Verificar')}</button>{u.id!==currentUser?.id&&<button className="admin-danger" disabled={isLoading} onClick={()=>removeUser(u)}><Trash2 size={16}/>{ui('Excluir conta')}</button>}</details></div></article>)}</div></section>}
         {activeTab==='welcome'&&<WelcomeSettings/>}
-        {activeTab==='audit'&&<LegalAuditAdmin/>}
         {activeTab==='usage'&&<UsageSettings/>}
         {activeTab==='syncpay'&&<section className="admin-section"><h3>Pagamentos desativados</h3><p>Não há novas cobranças nesta versão. Configurações e registros antigos foram preservados no banco, sem serem usados para iniciar pagamentos.</p></section>}
           {/* TAB: CATEGORIES */}

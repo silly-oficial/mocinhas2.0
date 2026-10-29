@@ -215,6 +215,7 @@ export interface DatabaseSchema {
   directoryRequests?: DirectoryRequest[];
   blueLabLinks?: Record<string,string[]>;
   peopleProfiles?: PersonProfile[];
+  publicGalleryRestoredV1?: boolean;
   engagementRestored?: boolean;
   welcomeCarousel?: WelcomeConfig;
   paymentCharges?: DBPaymentCharge[];
