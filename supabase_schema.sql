@@ -445,3 +445,27 @@ CREATE TRIGGER on_auth_user_created
 -- ==============================================================================
 -- FIM DO SCRIPT - TABELAS E CONFIGURAÇÕES CRIADAS COM SUCESSO! 🌸✨
 -- ==============================================================================
+
+-- 26. VERIFICAÇÃO PÓS-EXECUÇÃO (somente leitura, executar também em produção)
+-- Este arquivo não foi aplicado automaticamente no Supabase de produção.
+-- Primeiro aplicar/revisar supabase/mocinhas_persistence.sql para o banco JSON.
+-- Uma anon key é pública: não protege dados se RLS/permissões estiverem incorretas.
+-- Resultados esperados: rls_enabled=true, browser_can_read/write=false,
+-- browser_can_execute=false e nenhuma política nas duas tabelas privadas.
+SELECT c.relname AS table_name, c.relrowsecurity AS rls_enabled,
+       has_table_privilege('anon', c.oid, 'SELECT') OR
+       has_table_privilege('authenticated', c.oid, 'SELECT') AS browser_can_read,
+       has_table_privilege('anon', c.oid, 'INSERT,UPDATE,DELETE,TRUNCATE,REFERENCES,TRIGGER') OR
+       has_table_privilege('authenticated', c.oid, 'INSERT,UPDATE,DELETE,TRUNCATE,REFERENCES,TRIGGER') AS browser_can_write
+FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace
+WHERE n.nspname='public' AND c.relname IN ('mocinhas_app_state','mocinhas_app_backups');
+-- Exigir duas linhas acima; ausência de uma tabela não é aprovação.
+SELECT tablename, policyname, roles, cmd, qual, with_check FROM pg_policies
+WHERE schemaname='public' AND tablename IN ('mocinhas_app_state','mocinhas_app_backups');
+SELECT p.oid::regprocedure AS function_name,
+       has_function_privilege('anon',p.oid,'EXECUTE') OR
+       has_function_privilege('authenticated',p.oid,'EXECUTE') AS browser_can_execute,
+       has_function_privilege('service_role',p.oid,'EXECUTE') AS server_can_execute
+FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace
+WHERE n.nspname='public' AND p.proname='mocinhas_commit_state';
+-- Exigir a assinatura (bigint,jsonb), browser_can_execute=false e server_can_execute=true.

@@ -188,3 +188,11 @@ Validação: lint, build e suíte completa, incluindo tipos, idade, sigilo, selo
 Teste HTTP isolado do bundle de produção confirmou perfis, ano, origem inicial, despublicação, auditoria e resposta de reabertura após reinício real do processo. O teste de sessão também confirma a validade do código com hash após reinício e seu uso único. As oito seções de /como-funciona, campos dos documentos e as políticas no arquivo SQL têm verificações de regressão. Não houve aplicação de SQL online. A recuperação do formulário está conectada às APIs reais; o provedor foi simulado nos testes.
 
 O SQL de referência também deixa o bucket privado e remove as políticas antigas de leitura/upload anônimo. Essa mudança não foi executada na instalação online; a revisão operacional deve considerar eventuais URLs públicas antigas antes de aplicar o arquivo.
+
+## Complemento de transparência e verificação do banco
+
+- Origem da idade explícita no card e no detalhe: estimativa editorial, declaração do perfil, declaração do responsável ou desconhecida; todas indicam ausência de comprovação/verificação. Links para correção em `/pais`.
+- Descrição padrão de conteúdo compartilhada entre servidor e interface; configurações personalizadas continuam preservadas. Aviso v2 e rodapé esclarecem que a classificação não é certificação oficial do Ministério da Justiça.
+- Privacidade distingue o art. 7º, §3º (finalidade, boa-fé e interesse público da disponibilização) do §4º (dados tornados manifestamente públicos pelo próprio titular). Referência oficial conferida: https://www2.camara.leg.br/legin/fed/lei/2018/lei-13709-14-agosto-2018-787077-normaatualizada-pl.html
+- Seção 26 do schema contém consultas pós-execução para tabelas de persistência, backups e RPC. O script de persistência já contém as revogações; não houve execução SQL online nem confirmação de permissões reais.
+- Lint, build e suíte completa aprovados nesta etapa. Os testes de provedores são simulados; reprodução em aparelho físico e publicação pelo Render não foram verificadas. Player, zoom, oEmbed/cache, selos e lógica de faixa etária permanecem preservados. Nenhum filtro de enquadramento foi acrescentado nesta etapa.

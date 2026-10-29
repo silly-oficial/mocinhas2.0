@@ -41,3 +41,11 @@ Fonte oficial: https://www.planalto.gov.br/ccivil_03/_ato2023-2026/2026/decreto/
 As páginas públicas não inventam e-mail, identidade do encarregado, CNPJ, endereço, foro exclusivo ou certificação oficial de classificação. O contato e a descrição da classificação são configuráveis. A falta desses dados reais não pode ser corrigida com texto fictício.
 
 O código registra logs sensíveis de autenticação/administração/atendimento e os expurga após seis meses; não afirma controlar os logs próprios de todos os provedores. Há políticas SQL no repositório, mas elas não foram executadas no Supabase de produção. Transferências internacionais exigem conferência da instalação e dos contratos pelo operador; a política não declara contratação automática de garantias.
+
+## Verificação de acesso ao banco
+
+As políticas foram escritas no repositório, mas ainda precisam ser executadas e verificadas no Supabase de produção. Até essa conferência, uma anon key pode permitir acesso direto a dados caso existam permissões ou políticas antigas permissivas. Não é possível afirmar isolamento de produção somente com lint ou testes locais.
+
+A persistência atual usa `mocinhas_app_state` e `mocinhas_app_backups`; o script `supabase/mocinhas_persistence.sql` restringe tabelas e `mocinhas_commit_state(bigint,jsonb)` ao servidor. A seção 26 de `supabase_schema.sql` consulta RLS, permissões efetivas das duas funções de usuário do Supabase (`anon` e `authenticated`), políticas e execução da função de gravação. Devem aparecer as duas tabelas com RLS ativo, sem acesso de navegador, nenhuma política nas tabelas privadas e execução da função somente pelo servidor. Ausência de linhas não comprova segurança. Políticas antigas devem ser revisadas, inclusive em tabelas legadas e Storage; não publicar payloads ou segredos durante a conferência.
+
+Os avisos distinguem estimativa editorial, declaração do perfil, declaração do responsável e origem desconhecida. Nenhuma origem equivale a verificação documental. A classificação exibida é editorial e não é certificação oficial do Ministério da Justiça. A versão v2 do aviso reapresenta essa informação mesmo a quem dispensou o aviso anterior. Novas cobranças continuam desativadas e o histórico SyncPay permanece preservado.

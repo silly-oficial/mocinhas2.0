@@ -82,3 +82,25 @@ const {ProfileVideoGrid}=await import('../src/components/ProfileVideos');
 const unavailable=renderToStaticMarkup(React.createElement(ProfileVideoGrid,{items:[{person:draft,index:0,video:{url:'https://www.tiktok.com/@criadora/video/7421111111111111111',title:'',kind:'social',is_still_available:false}}],onProfile:()=>{}}));assert.match(unavailable,/Indisponível na origem/);
 
 const unrelated=renderToStaticMarkup(React.createElement(CreatorCredit,{person:{...draft,ownershipVerified:true,guardianAuthorized:true},handle:'other.creator'}));assert.ok(!unrelated.includes('Autorizado pelo responsável'));assert.ok(!unrelated.includes('Titularidade do TikTok verificada'));
+
+// Origins must remain visible even without a birth year; none implies verified age.
+for(const [ageSource,expected] of [['estimado','Estimativa editorial'],['declarado_por_responsavel','Informada pelo responsável'],['declarado_pelo_perfil','Informada pelo perfil'],['desconhecido','Origem da idade desconhecida']] as const){
+ for(const birthYear of [2010,null]){
+  const label=ageLabel({birthYear,ageBand:'adolescente',ageSource},new Date('2026-10-01'));
+  assert.ok(label.startsWith(expected));assert.match(label,/sem (comprovação|verificação)/);
+  assert.match(label,birthYear===null?/12 a 17/:/15 a 16/);
+ }
+}
+const {DirectoryRating,DirectoryEntryNotice}=await import('../src/components/DirectoryInformation');
+for(const Component of [DirectoryRating,DirectoryEntryNotice]){
+ const markup=renderToStaticMarkup(React.createElement(Component));
+ assert.match(markup,/não é certificação oficial do Ministério da Justiça/);
+ assert.match(markup,/trajes de banho/);assert.match(markup,/decotes/);
+}
+assert.match(fs.readFileSync('src/components/DirectoryInformation.tsx','utf8'),/mocinhas-editorial-notice-v2/);
+assert.match(privacy,/§3º/);assert.match(privacy,/§4º/);
+for(const fragment of ['mocinhas_app_state','mocinhas_app_backups','has_table_privilege','has_function_privilege','pg_policies','browser_can_execute'])assert.ok(sql.includes(fragment),fragment);
+const {directorySettings}=await import('../server/directory-settings');
+const custom='Descrição configurada pela administração.';
+assert.equal(directorySettings({get:()=>({directorySettings:{ageRatingNote:custom}})} as unknown as typeof DB).ageRatingNote,custom);
+console.log('Age origin notices, classification disclaimers, preserved custom settings and SQL verification source passed.');

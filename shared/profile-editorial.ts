@@ -9,10 +9,11 @@ export function ageValues(birthYear:number|null,band:AgeBand='desconhecido',now=
  const age=birthYear===null?null:now.getUTCFullYear()-birthYear;
  return {ageAtCapture:age,ageUpdatedAt:now.toISOString(),ageBand:age===null?band:age<12?'crianca' as const:age<18?'adolescente' as const:'adulto' as const};
 }
-export function ageLabel(p:Pick<PersonProfile,'birthYear'|'ageBand'|'ageUpdatedAt'>,now=new Date()){
- if(p.birthYear==null)return ageBands[p.ageBand||'desconhecido'];
+export function ageLabel(p:Pick<PersonProfile,'birthYear'|'ageBand'|'ageUpdatedAt'|'ageSource'>,now=new Date()){
+ const origin=p.ageSource==='estimado'?'Estimativa editorial, sem comprovação':p.ageSource==='declarado_por_responsavel'?'Informada pelo responsável, sem verificação documental':p.ageSource==='declarado_pelo_perfil'?'Informada pelo perfil, sem verificação documental':'Origem da idade desconhecida, sem verificação';
+ if(p.birthYear==null)return `${origin} · ${ageBands[p.ageBand||'desconhecido']}`;
  const upper=now.getUTCFullYear()-p.birthYear;
- return `Idade aproximada: ${Math.max(0,upper-1)} a ${upper} anos · em ${now.toLocaleDateString('pt-BR',{month:'2-digit',year:'numeric',timeZone:'UTC'})}`;
+ return `${origin} · Idade aproximada: ${Math.max(0,upper-1)} a ${upper} anos · em ${now.toLocaleDateString('pt-BR',{month:'2-digit',year:'numeric',timeZone:'UTC'})}`;
 }
 export function editorialFields(input:Record<string,unknown>,existing:PersonProfile|undefined,now=new Date()){
  const birthYear=input.birthYear===undefined?existing?.birthYear??null:input.birthYear;

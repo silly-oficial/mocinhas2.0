@@ -1,10 +1,10 @@
 import type express from 'express';
 import type {DB} from './db';
-import {emailPattern, type DirectorySettings} from '../shared/directory-settings';
+import {emailPattern, defaultAgeRatingNote, type DirectorySettings} from '../shared/directory-settings';
 export function directorySettings(db: typeof DB): DirectorySettings {
   const stored = db.get().directorySettings || {};
   const email = (value:string|undefined) => value && emailPattern.test(value) && !/[\[\]]/.test(value) ? value : '';
-  return {siteName:stored.siteName||'Mocinhas',organizationName:stored.organizationName||'',websiteUrl:stored.websiteUrl||'',responseBusinessDays:stored.responseBusinessDays||5,ageRating:stored.ageRating||'L',ageRatingNote:stored.ageRatingNote??'Conteúdo sem nudez. Podem aparecer traje de banho, roupa de praia e roupas justas.',contactEmail:email(stored.contactEmail??process.env.CONTACT_EMAIL),dpoEmail:email(stored.dpoEmail??process.env.DPO_EMAIL)};
+  return {siteName:stored.siteName||'Mocinhas',organizationName:stored.organizationName||'',websiteUrl:stored.websiteUrl||'',responseBusinessDays:stored.responseBusinessDays||5,ageRating:stored.ageRating||'L',ageRatingNote:stored.ageRatingNote??defaultAgeRatingNote,contactEmail:email(stored.contactEmail??process.env.CONTACT_EMAIL),dpoEmail:email(stored.dpoEmail??process.env.DPO_EMAIL)};
 }
 export function installDirectorySettings(app:express.Express,db:typeof DB,admin:express.RequestHandler,onChanged?:()=>Promise<void>) {
   app.get('/api/directory-settings',(_req,res)=>res.set('Cache-Control','no-store').json(directorySettings(db)));

@@ -1,3 +1,4 @@
+import {defaultAgeRatingNote,classificationNotice} from '../../shared/directory-settings';
 import {RequestFollowUp} from './RequestFollowUp';
 import {creditsSections} from '../../shared/credits';
 import React, {useEffect, useState} from 'react';
@@ -5,7 +6,7 @@ import {requestTypes, type DirectoryRequestType} from '../../shared/directory-re
 import {legalDocuments, legalNavigation, legalNotice, type LegalDocumentVersion, type LegalPageKey, type LegalVersionSummary} from '../../shared/legal-documents';
 
 export function usePublicSettings() {
-  const [settings,setSettings] = useState({contactEmail:'',dpoEmail:'',siteName:'Mocinhas',organizationName:'',websiteUrl:'',responseBusinessDays:5,ageRating:'L',ageRatingNote:'Conteúdo sem nudez. Podem aparecer traje de banho, roupa de praia e roupas justas.'});
+  const [settings,setSettings] = useState({contactEmail:'',dpoEmail:'',siteName:'Mocinhas',organizationName:'',websiteUrl:'',responseBusinessDays:5,ageRating:'L',ageRatingNote:defaultAgeRatingNote});
   useEffect(() => {
     const controller = new AbortController();
     const load=()=>fetch('/api/directory-settings',{signal:controller.signal}).then(r=>r.ok?r.json():null).then(data=>{if(data)setSettings(data);}).catch(()=>{});
@@ -19,7 +20,7 @@ export function LegalNavigation({currentPath,versionId = ''}: {currentPath?:stri
 }
 export function DirectorySafetyFooter() {
   const config = usePublicSettings();const email=config.contactEmail;
-  return <footer className="directory-safety-footer"><p>Todo o conteúdo do Mocinhas é de autoria dos criadores originais.<br/>Cada mídia mantém o crédito e o link do perfil de origem.<br/>Encontrou algo seu e quer ajustar ou remover? Fale com a gente: {email?<a href={'mailto:'+email}>{email}</a>:<a href="/pais">Pedir remoção / reclamar</a>}</p><p>© {new Date().getFullYear()} Mocinhas. As mídias pertencem aos seus criadores originais.</p><p>Classificação informada pela curadoria: <strong>{config.ageRating}</strong> · {config.ageRatingNote} <a href="/como-funciona">Como funciona</a></p><LegalNavigation/>{config.dpoEmail&&<p>Privacidade: <a href={'mailto:'+config.dpoEmail}>{config.dpoEmail}</a></p>}</footer>;
+  return <footer className="directory-safety-footer"><p>Todo o conteúdo do Mocinhas é de autoria dos criadores originais.<br/>Cada mídia mantém o crédito e o link do perfil de origem.<br/>Encontrou algo seu e quer ajustar ou remover? Fale com a gente: {email?<a href={'mailto:'+email}>{email}</a>:<a href="/pais">Pedir remoção / reclamar</a>}</p><p>© {new Date().getFullYear()} Mocinhas. As mídias pertencem aos seus criadores originais.</p><p>Classificação informada pela curadoria: <strong>{config.ageRating}</strong> · {config.ageRatingNote} {classificationNotice} <a href="/como-funciona">Como funciona</a></p><LegalNavigation/>{config.dpoEmail&&<p>Privacidade: <a href={'mailto:'+config.dpoEmail}>{config.dpoEmail}</a></p>}</footer>;
 }
 function LinkedText({text}: {text:string}) {
   return <>{text.split(/(\/(?:termos|privacidade|pais|versoes|creditos|como-funciona))\b/g).map((part,index) => /^\/(termos|privacidade|pais|versoes|creditos|como-funciona)$/.test(part) ? <a key={index} href={part}>{part}</a> : part)}</>;
