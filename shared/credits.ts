@@ -7,8 +7,8 @@ export const creditsSections = [
  ]},
  {title:'Navegação, fotos e vídeos',paragraphs:[
   'Eu organizo o conteúdo em páginas e componentes próprios para perfis, publicações, galerias e vídeos. O visitante pode abrir um perfil e visualizar suas mídias.',
-  'Novas mídias são cadastradas somente por links do TikTok. O painel aceita links completos de vídeos (/video/) e carrosséis de fotos (/photo/), inclusive para a apresentação da tela inicial. As fotos e os vídeos continuam hospedados no TikTok; o aplicativo não importa cada imagem para uma galeria própria.',
-  'A estrutura preserva a leitura de referências antigas. Novas mídias usam apenas o player do TikTok; os editores de arquivos e o processador de vídeo sem uso foram removidos.',
+  'Os perfis aceitam links do TikTok e arquivos de fotos e vídeos enviados pela administração com direito de publicação. O painel aceita links completos de vídeos (/video/) e carrosséis de fotos (/photo/), inclusive para a apresentação da tela inicial. Os links continuam hospedados no TikTok. Os uploads dos perfis ficam no armazenamento do aplicativo, com progresso por lote no painel.',
+  'A estrutura preserva referências antigas para revisão. Fotos enviadas podem ser usadas no avatar; vídeos enviados são reproduzidos no aplicativo. Os controles de enquadramento e vídeo como avatar por embed continuam disponíveis.',
   'Rotinas de diagnóstico, recuperação e testes são preservadas mesmo quando não aparecem na interface.'
  ]},
  {title:'Crédito aos criadores',paragraphs:[
@@ -25,7 +25,7 @@ export const creditsSections = [
  ]},
  {title:'Registro da origem das mídias',paragraphs:[
   'Eu mantenho um registro técnico da origem das mídias identificadas: plataforma e endereço original, identificação do criador, data de captura dos metadados, modo de exibição, data da última verificação e informação de disponibilidade, quando conhecida.',
-  'Novas publicações usam embed. Registros antigos podem indicar arquivo enviado. Esse registro permite acompanhar de onde veio cada mídia. Ele não substitui uma autorização.'
+  'Publicações por link usam embed; uploads de perfis indicam arquivo enviado. Esse registro permite acompanhar de onde veio cada mídia. Ele não substitui uma autorização.'
  ]},
  {title:'Verificação manual de perfis',paragraphs:[
   'Eu disponibilizo um fluxo de solicitação de verificação. Um pedido novo começa como recebido e não concede selo automaticamente.',

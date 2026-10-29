@@ -39,7 +39,7 @@ export const legalDocuments: Record<LegalPageKey, LegalDocument> = {
       {
         "title": "4. Conteúdo e propriedade intelectual",
         "paragraphs": [
-          "Novas publicações são exibidas por links no player oficial do TikTok, com crédito e acesso à origem. Não baixamos, reenviamos nem processamos essas mídias. Referências antigas ainda presentes podem exigir tratamento individual pela administração. As mídias e os direitos de terceiros não pertencem ao Mocinhas.",
+          "Publicações por link são exibidas no player oficial do TikTok, sem extração. Os perfis também aceitam fotos e vídeos enviados pela administração, armazenados pelo aplicativo; o envio exige direito de publicação e revisão de maioridade. Todas as mídias mantêm crédito e canal de remoção. Referências antigas ainda presentes podem exigir tratamento individual pela administração. As mídias e os direitos de terceiros não pertencem ao Mocinhas.",
           "Conteúdo público, crédito, link ou incorporação não constituem, sozinhos, autorização geral de uso. Mocinhas é independente do TikTok. O selo de titularidade e o de autorização documentada são diferentes; nenhum deles comprova a idade ou oferece garantia geral de regularidade."
         ]
       },
@@ -102,7 +102,7 @@ export const legalDocuments: Record<LegalPageKey, LegalDocument> = {
       {
         "title": "4. Compartilhamento e transferência internacional",
         "paragraphs": [
-          "Supabase pode guardar o documento JSON e arquivos históricos; Render hospeda a aplicação; Resend recebe o endereço e o conteúdo das mensagens necessárias ao atendimento e recuperação quando configurado. O player do TikTok é uma integração externa e pode tratar dados de conexão conforme suas próprias regras.",
+          "Supabase pode guardar o documento JSON, fotos e vídeos enviados e arquivos históricos; Render hospeda a aplicação; Resend recebe o endereço e o conteúdo das mensagens necessárias ao atendimento e recuperação quando configurado. O player do TikTok é uma integração externa e pode tratar dados de conexão conforme suas próprias regras.",
           "Esses provedores podem operar fora do Brasil. A administração deve verificar a localização e as garantias contratuais de cada operação, adotando mecanismo permitido pelo art. 33 da LGPD quando houver transferência internacional. O código não confirma automaticamente contratação de cláusulas-padrão, países de destino ou adequação de todos os contratos."
         ]
       },

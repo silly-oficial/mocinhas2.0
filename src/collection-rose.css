@@ -1,0 +1,140 @@
+/* A: user reference takes precedence over Skyglass blue. Real controls only. */
+:root[data-theme=orix] {
+ --rose-50:#fff5f9;--rose-100:#fbe1eb;--rose-200:#f3bfd2;--rose-600:#b62961;--rose-800:#802347;
+ --canvas-bg:var(--rose-100);--surface-card:#fff8fb;--surface-elevated:#fff;
+ --orix-orange:var(--rose-600);--orix-strong:var(--rose-800);--orix-night:#a72c5b;
+ --ink-950:#90234e;--ink-900:#4e2435;--ink-700:#643548;--ink-100:#f8e9f0;--ink-200:#edc9d8;
+ --sg-muted:#7c4e61;--blue-50:var(--rose-50);--blue-100:var(--rose-100);--blue-200:var(--rose-200);--blue-500:var(--rose-600);--blue-600:var(--rose-600);--blue-700:var(--rose-800);
+ --theme-text:var(--ink-900);--theme-muted:var(--sg-muted);--theme-border:var(--ink-200);--theme-choice:var(--rose-50);--theme-selected:var(--rose-600);
+ --sky-wash:linear-gradient(160deg,#ffeef5,#fbe1eb);--uni-node-bg:var(--rose-600);
+ --uni-node-shadow:0 4px 18px #90234e26;--uni-node-focus-shadow:0 0 0 3px #b62961,0 8px 24px #b6296130;--uni-label:var(--ink-900);
+ --collection-radius:28px;--collection-shadow:0 8px 24px #80234714;
+ color-scheme:light;
+}
+html[data-theme=orix],[data-theme=orix] body {background:var(--canvas-bg);color:var(--ink-900)}
+[data-theme=orix] .app-shell{max-width:1100px;padding:0 16px calc(112px + env(safe-area-inset-bottom))}
+[data-theme=orix] .app-header{padding: max(20px,env(safe-area-inset-top)) 0 16px;background:var(--canvas-bg)}
+[data-theme=orix] .app-topbar{background:transparent;padding:0;min-height:56px}
+[data-theme=orix] .collection-brand{min-width:0}
+[data-theme=orix] .ori-public-brand{display:block;font-size:28px;line-height:1.2;font-weight:650;letter-spacing:-1.2px;color:var(--ink-900);text-align:left}
+[data-theme=orix] .collection-brand p{font-size:12px;line-height:1.5;color:var(--sg-muted);margin-top:6px;max-width:28ch}
+[data-theme=orix] .orix-top-controls{gap:12px;align-items:center}
+[data-theme=orix] .orix-head-menu>summary,[data-theme=orix] .orix-profile{width:44px;height:44px;min-width:44px;border-radius:50%;border:1px solid #ffffff70;background:#ffffff70;color:var(--rose-800);box-shadow:none}
+[data-theme=orix] .orix-head-menu>div{background:var(--surface-card);border-color:var(--theme-border);color:var(--ink-900);box-shadow:var(--collection-shadow)}
+[data-theme=orix] .orix-head-menu button:hover{background:var(--rose-100)}
+[data-theme=orix] .people-section{max-width:880px;margin:8px auto 28px}
+[data-theme=orix] .people-heading{gap:12px;align-items:center;margin-bottom:16px}
+[data-theme=orix] .people-heading>div:first-child{flex:1 1 140px}
+[data-theme=orix] .people-heading>div:last-child{flex:0 1 auto}
+[data-theme=orix] .people-heading h2{font-size:20px;font-weight:650;line-height:1.3;margin-top:4px}
+[data-theme=orix] .people-heading h2>svg{display:none}
+[data-theme=orix] .people-heading span{font-size:11px;letter-spacing:.02em;text-transform:none;color:var(--sg-muted)}
+[data-theme=orix] .people-heading .people-secondary{border:0;background:transparent;font-size:12px;padding:8px;color:var(--rose-800)}
+[data-theme=orix] .people-section>p{font-size:11px;line-height:1.6;color:var(--sg-muted);margin:0 0 14px}
+[data-theme=orix] .people-section>p>a{text-decoration:underline}
+[data-theme=orix] :is(.people-search,.people-admin-search){background:#fff8fb;border:1px solid var(--theme-border);border-radius:999px}
+[data-theme=orix] .people-search{margin-top:16px}
+[data-theme=orix] .people-filters{gap:8px;flex-wrap:nowrap;margin:12px 0 18px;padding-bottom:4px}
+[data-theme=orix] :is(.people-filters button,.tag-chip){min-height:44px;padding:8px 18px;border:0;border-radius:999px;background:#ffffff65;color:var(--sg-muted);font-size:12px}
+[data-theme=orix] :is(.people-filters button[aria-pressed=true],.tag-chip.selected){background:#fff8fb;color:var(--rose-800);box-shadow:0 2px 8px #80234710}
+[data-theme=orix] .people-cards,[data-theme=orix] .people-compact .people-cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px;overflow:visible;scroll-snap-type:none;padding:0}
+[data-theme=orix] .people-card{position:relative;border:0;border-radius:var(--collection-radius);background:var(--surface-card);box-shadow:var(--collection-shadow);min-width:0}
+[data-theme=orix] .collection-card-visual{position:relative;isolation:isolate;border-radius:var(--collection-radius);overflow:hidden;aspect-ratio:4/5;background:#e5b2c6}
+[data-theme=orix] .people-card-photo{position:absolute;inset:0;aspect-ratio:auto;height:100%;width:100%;border-radius:inherit}
+[data-theme=orix] .people-card-photo::after{content:'';position:absolute;inset:0;pointer-events:none;background:linear-gradient(180deg,#592338e6 0%,#592338cc 18%,transparent 48%,transparent 58%,#59233880)}
+[data-theme=orix] .people-card-photo .profile-link-avatar{background:#edc9d8;border-radius:inherit}
+[data-theme=orix] .collection-card-title{position:absolute;inset:16px 72px auto 18px;pointer-events:none;color:#fff;z-index:1;min-width:0}
+[data-theme=orix] .collection-card-title h3{font-size:19px;line-height:1.3;font-weight:650;overflow-wrap:anywhere;color:#fff;text-shadow:0 1px 4px #59233844}
+[data-theme=orix] .collection-card-title>span{display:block;font-size:12px;margin-top:3px;overflow-wrap:anywhere;color:#fff}
+[data-theme=orix] .collection-open,[data-theme=orix] .collection-card-meta>button{display:grid;place-items:center;width:44px;height:44px;min-width:44px;border-radius:50%;background:var(--rose-800);color:#fff;border:1px solid #ffffff50}
+[data-theme=orix] .collection-open{position:absolute;top:16px;right:14px;z-index:2}
+[data-theme=orix] .collection-card-meta{position:absolute;bottom:12px;left:12px;right:12px;display:flex;gap:12px;align-items:center;padding:8px 8px 8px 14px;border-radius:999px;background:#802347c9;color:#fff;border:1px solid #ffffff5c;backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)}
+[data-theme=orix] .collection-card-meta>span{flex:1;min-width:0}
+[data-theme=orix] .collection-card-meta small{display:block;margin:0 0 2px;font-size:11px;line-height:1.3;color:#fff}
+[data-theme=orix] .collection-card-meta strong{display:block;font-size:13px;font-weight:650;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-variant-numeric:tabular-nums}
+[data-theme=orix] .collection-card-meta>button{background:#fff2;color:#fff;flex-shrink:0}
+[data-theme=orix] .people-card .people-card-body{padding:10px 16px 16px}
+[data-theme=orix] .collection-profile-info{font-size:11px;color:var(--sg-muted)}
+[data-theme=orix] .collection-profile-info summary{min-height:44px;display:flex;align-items:center;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+[data-theme=orix] .people-card .credit-layout{padding:0!important;gap:8px!important}
+[data-theme=orix] .people-card .credit-identity>a{min-height:44px}
+[data-theme=orix] .people-card .credit-actions{grid-template-columns:1fr 1fr;gap:8px}
+[data-theme=orix] .people-card .credit-actions>:is(a,button){font-size:11px;padding:8px;min-height:44px;border-radius:999px}
+[data-theme=orix] .people-card .credit-caption{font-size:11px!important}
+[data-theme=orix] .app-bottom-nav{left:16px;right:16px;bottom:max(16px,env(safe-area-inset-bottom));width:auto;max-width:440px;padding:6px;gap:2px;border:1px solid #ffffff80;border-radius:999px;background:#fff8fbeb;box-shadow:0 8px 28px #80234726;backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);justify-content:space-between;isolation:auto}
+[data-theme=orix] .app-bottom-nav::before{content:none}
+[data-theme=orix] .app-bottom-nav>button{flex:0 1 44px;min-width:44px;min-height:48px;padding:0;gap:6px;border-radius:999px;color:var(--sg-muted)}
+[data-theme=orix] .app-bottom-nav>button[aria-current]{order:0;flex:1 1 auto;margin:0;justify-content:center;background:var(--rose-800);color:#fff}
+[data-theme=orix] .app-bottom-nav .nav-icon{background:transparent;width:36px;height:44px;min-width:24px;display:grid;place-items:center;color:inherit}
+[data-theme=orix] .app-bottom-nav button[aria-current] .nav-icon{background:transparent;color:#fff}
+[data-theme=orix] .app-bottom-nav .nav-label{font-size:12px;animation:none}
+[data-theme=orix] .app-bottom-nav button:not([aria-current]){color:var(--sg-muted)}
+[data-theme=orix] .app-sidebar nav{background:var(--surface-card);border-color:var(--theme-border);box-shadow:var(--collection-shadow)}
+[data-theme=orix] .app-sidebar button[aria-current]{color:var(--rose-800);background:var(--rose-50)}
+[data-theme=orix] :is(.niuniu-card,.niuniu-card-elevated,.glass-card,.glass-card-dark){background:var(--surface-card);color:var(--ink-900);border-color:var(--theme-border);box-shadow:var(--collection-shadow)}
+[data-theme=orix] .feed-toolbar{max-width:880px;background:transparent}
+[data-theme=orix] .feed-toolbar h1{font-size:20px;font-weight:650}
+[data-theme=orix] :is(.sky-publication,.orix-video){background:var(--orix-night);border-radius:var(--collection-radius)}
+[data-theme=orix] :is(.publication-media,.video-shell,.profile-reel-stage,.people-uploaded-video){background:#9c2b59}
+[data-theme=orix] .sky-action-rail>button,[data-theme=orix] .orix-video-toggle{background:var(--rose-800);color:#fff}
+[data-theme=orix] .sky-card-top .orix-category{background:var(--rose-50);color:var(--rose-800)}
+[data-theme=orix] .orix-gallery{gap:16px}
+[data-theme=orix] :is(.people-admin-dialog,.people-dialog,.profile-reel-dialog){background:var(--surface-card);border-color:var(--theme-border);border-radius:28px}
+[data-theme=orix] .people-admin-header{background:var(--surface-card);border-bottom:1px solid var(--theme-border);padding-bottom:16px}
+[data-theme=orix] .people-admin-header h2{font-size:22px}
+[data-theme=orix] .people-form section{padding:16px;border:1px solid var(--theme-border);border-radius:20px;background:var(--rose-50)}
+[data-theme=orix] .people-form section h3{margin:0}
+[data-theme=orix] .people-form section>p{font-size:12px;line-height:1.6;margin:8px 0 12px;color:var(--sg-muted)}
+[data-theme=orix] .people-primary{background:var(--rose-600);color:#fff;border-radius:999px}
+[data-theme=orix] .people-form .people-check{min-height:44px;align-items:flex-start;gap:10px;line-height:1.6}
+[data-theme=orix] .people-check input{flex-shrink:0;margin-top:4px}
+[data-theme=orix] .people-admin-row.selected{background:var(--rose-100);border-color:var(--rose-600)}
+[data-theme=orix] .people-admin-row small{font-size:11px}
+[data-theme=orix] .people-admin-photos{grid-template-columns:repeat(auto-fill,minmax(100px,1fr));margin-top:16px}
+[data-theme=orix] .people-admin-photos button{min-height:44px;font-size:11px}
+[data-theme=orix] .people-upload{border-color:var(--rose-200);background:#fff;min-height:64px;gap:8px;border-radius:16px;color:var(--rose-800)}
+[data-theme=orix] .people-upload:focus-within{outline:3px solid var(--rose-600);outline-offset:3px}
+.upload-section-heading{display:flex;gap:10px;align-items:flex-start}
+.upload-section-heading>svg{flex-shrink:0;margin-top:3px}
+.upload-section-heading p{font-size:12px;line-height:1.6;color:var(--people-muted);margin-top:4px}
+.profile-upload-progress{margin-top:16px;font-size:12px;line-height:1.6}
+.profile-upload-progress>div{display:flex;justify-content:space-between;gap:12px}
+.profile-upload-progress strong{font-size:20px;font-variant-numeric:tabular-nums}
+.profile-upload-progress progress{display:block;width:100%;height:12px;margin:8px 0;accent-color:var(--people-accent);border:0;border-radius:999px;overflow:hidden}
+.profile-upload-progress progress::-webkit-progress-bar{background:var(--rose-200);border-radius:999px}
+.profile-upload-progress progress::-webkit-progress-value{background:var(--rose-600);border-radius:999px}
+.profile-upload-progress p{overflow-wrap:anywhere}.upload-errors{font-size:12px;color:#ad1643;overflow-wrap:anywhere}
+.upload-avatar-preview{display:flex;gap:12px;align-items:center;margin-top:12px}
+[data-theme=orix] .profile-reel-tile>video{width:100%;height:100%;object-fit:cover}
+[data-theme=orix] .profile-reel-card{background:var(--surface-card);border-color:var(--theme-border);border-radius:24px}
+[data-theme=orix] .directory-entry-notice{margin-top:0;background:var(--surface-card)}
+[data-theme=orix] .directory-safety-footer{background:transparent;color:var(--sg-muted);padding-bottom:112px}
+[data-theme=orix] :is(button,a,summary,input,textarea,select):focus-visible{outline:3px solid var(--rose-600);outline-offset:3px}
+@media(max-width:599px){
+ [data-theme=orix] .app-shell{max-width:462px}
+ [data-theme=orix] .people-cards,[data-theme=orix] .people-compact .people-cards{grid-template-columns:minmax(0,1fr);gap:20px}
+ [data-theme=orix] .collection-card-visual{aspect-ratio:4/4.5}
+ [data-theme=orix] .people-heading>div:last-child{gap:0}
+ [data-theme=orix] .people-admin{padding:16px}
+ [data-theme=orix] .people-admin-header{gap:12px}
+ [data-theme=orix] .people-admin-header h2{font-size:18px}
+ [data-theme=orix] .people-admin-dialog{width:calc(100vw - 16px);max-height:calc(100dvh - 16px)}
+ [data-theme=orix] .people-admin-layout>aside{max-height:180px}
+ [data-theme=orix] .people-admin-layout>aside>.people-primary{flex-shrink:0}
+ [data-theme=orix] .people-form section{padding:12px}
+}
+@media(max-width:359px){
+ [data-theme=orix] .app-shell{padding-inline:12px}
+ [data-theme=orix] .ori-public-brand{font-size:25px}
+ [data-theme=orix] .orix-top-right{gap:4px}
+ [data-theme=orix] .collection-brand p{font-size:11px}
+ [data-theme=orix] .people-heading{flex-wrap:wrap}
+ [data-theme=orix] .people-heading>div:last-child{width:auto}
+ [data-theme=orix] .app-bottom-nav{left:10px;right:10px;gap:0}
+ [data-theme=orix] .app-bottom-nav .nav-label{font-size:11px}
+ [data-theme=orix] .app-bottom-nav .nav-icon{width:24px}
+}
+@media(min-width:600px) and (max-width:1023px){[data-theme=orix] .app-shell{max-width:880px;padding-inline:24px}}
+@media(min-width:1024px){[data-theme=orix] .app-bottom-nav{display:none}[data-theme=orix] .app-header{padding-block:24px}[data-theme=orix] .app-sidebar{width:176px}[data-theme=orix] .app-sidebar .nav-icon{background:transparent;color:inherit}}
+@supports not (backdrop-filter:blur(1px)){[data-theme=orix] .collection-card-meta{background:var(--rose-800)}[data-theme=orix] .app-bottom-nav{background:var(--surface-card)}}
+@media(prefers-reduced-motion:reduce){[data-theme=orix] :is(.collection-open,.collection-card-meta button,.app-bottom-nav .nav-label){animation:none;transition:none}}

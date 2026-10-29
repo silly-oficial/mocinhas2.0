@@ -1,3 +1,4 @@
+import {installProfileUploads} from './server/profile-uploads';
 import {installAccessLog} from './server/access-log';
 import {sessionToken,setSession,protectCookieWrites} from './server/session-security';
 import {authRateLimit,issueRecovery,consumeRecovery,deliverRecovery} from './server/auth-security';
@@ -43,7 +44,7 @@ const JWT_SECRET = process.env.JWT_SECRET || DB.get().authSecret || randomBytes(
 if (!process.env.JWT_SECRET && !DB.get().authSecret) { DB.get().authSecret = JWT_SECRET; DB.save(); }
 if(process.env.TRUST_PROXY)app.set('trust proxy',/^\d+$/.test(process.env.TRUST_PROXY)?Number(process.env.TRUST_PROXY):process.env.TRUST_PROXY);else if(process.env.RENDER==='true')app.set('trust proxy',1);
 
-// Keep legacy media paths readable; new uploads are disabled.
+// Profile uploads reuse the configured private media storage.
 if(!fs.existsSync(UPLOADS_DIR))fs.mkdirSync(UPLOADS_DIR,{recursive:true});
 
 // Middlewares
@@ -116,6 +117,7 @@ const directoryMail = startDirectoryMailWorker(DB, flushCloud);
 installLegalHistory(app, DB);
 installConsumptionPolicy(app, DB, JWT_SECRET, getAuthUserId, requireAdmin);
 installPeople(app, DB, requireAdmin);
+installProfileUploads(app,requireAdmin);
 app.post('/api/admin/people/prepare-video',requireAdmin,(_req,res)=>res.status(410).json({error:'Uploads desativados. Use links do TikTok.'}));
 app.use('/uploads', async (req, res, next) => {
   if (!CLOUD) return next();

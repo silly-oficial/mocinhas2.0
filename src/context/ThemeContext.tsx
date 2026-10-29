@@ -13,7 +13,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     document.documentElement.dataset.theme = theme;
     document.documentElement.classList.toggle('dark', theme === 'original');
     document.body.classList.toggle('dark', theme === 'original');
-    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', theme === 'gymnastics' ? '#FAF7F4' : theme === 'orix' ? '#FFFFFF' : theme === 'skyglass' ? '#EAF3FD' : theme === 'orely' ? '#E8DDFB' : theme === 'lilac' ? '#E8DEFF' : '#09090E');
+    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', theme === 'gymnastics' ? '#FAF7F4' : theme === 'orix' ? '#fbe1eb' : theme === 'skyglass' ? '#EAF3FD' : theme === 'orely' ? '#E8DDFB' : theme === 'lilac' ? '#E8DEFF' : '#09090E');
   }, [theme]);
   useEffect(() => {
     const sync = (event: StorageEvent) => {

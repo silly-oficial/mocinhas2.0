@@ -46,3 +46,5 @@ import "./profile-reels.css";
 import "./directory-polish.css";
 
 
+
+import './collection-rose.css';

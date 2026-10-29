@@ -16,7 +16,8 @@ const uploaded=(video:Item['video'])=>video.kind==='upload'||video.url.startsWit
 function Cover({item}:{item:Item}){
  const v=item.video;
  if(!v.presentation&&!uploaded(v)){try{const source=socialVideo(v.url);if(source.platform==='TikTok')return <ProfileAvatar selection={source.postType==='photo'?{url:source.canonical,kind:'photo',imageIndex:0}:{url:source.canonical,kind:'video',start:0,end:2}} alt={v.title||'Publicação do TikTok'}/>;}catch{}}
- if(v.presentation){const p=v.presentation;return <ProfileAvatar selection={p.kind==='photo'?{url:v.url,kind:'photo',imageIndex:p.indices[0],zoom:p.zoom}:{url:v.url,kind:'video',start:p.start,end:p.end,zoom:p.zoom}} alt={v.title||'Prévia selecionada'}/>;}
+ if(v.presentation&&!uploaded(v)){const p=v.presentation;return <ProfileAvatar selection={p.kind==='photo'?{url:v.url,kind:'photo',imageIndex:p.indices[0],zoom:p.zoom}:{url:v.url,kind:'video',start:p.start,end:p.end,zoom:p.zoom}} alt={v.title||'Prévia selecionada'}/>;}
+ if(uploaded(v))return <video src={v.url+'#t=0.1'} muted playsInline preload="metadata" aria-label={v.title||'Prévia do vídeo enviado'}/>;
  return <img src={v.thumbnail||item.person.cover||item.person.avatar||'/profile-placeholder.svg'} alt="" loading="lazy" onError={e=>{e.currentTarget.src='/profile-placeholder.svg';}}/>;
 }
 export function ProfileVideoGrid({items,onProfile,active=true}:{items:Item[];onProfile:(person:PersonProfile)=>void;active?:boolean}){
