@@ -1,4 +1,4 @@
-import {defaultAgeRatingNote,classificationNotice} from '../../shared/directory-settings';
+import {defaultAgeRatingNote} from '../../shared/directory-settings';
 import {RequestFollowUp} from './RequestFollowUp';
 import {creditsSections} from '../../shared/credits';
 import React, {useEffect, useState} from 'react';
@@ -20,7 +20,7 @@ export function LegalNavigation({currentPath,versionId = ''}: {currentPath?:stri
 }
 export function DirectorySafetyFooter() {
   const config = usePublicSettings();const email=config.contactEmail;
-  return <footer className="directory-safety-footer"><p>Todo o conteúdo do Mocinhas é de autoria dos criadores originais.<br/>Cada mídia mantém o crédito e o link do perfil de origem.<br/>Encontrou algo seu e quer ajustar ou remover? Fale com a gente: {email?<a href={'mailto:'+email}>{email}</a>:<a href="/pais">Pedir remoção / reclamar</a>}</p><p>© {new Date().getFullYear()} Mocinhas. As mídias pertencem aos seus criadores originais.</p><p>Classificação informada pela curadoria: <strong>{config.ageRating}</strong> · {config.ageRatingNote} {classificationNotice} <a href="/como-funciona">Como funciona</a></p><LegalNavigation/>{config.dpoEmail&&<p>Privacidade: <a href={'mailto:'+config.dpoEmail}>{config.dpoEmail}</a></p>}</footer>;
+  return <footer className="directory-safety-footer"><p>Todo o conteúdo do Mocinhas é de autoria dos criadores originais.<br/>Cada mídia mantém o crédito e o link do perfil de origem.<br/>Encontrou algo seu e quer ajustar ou remover? Fale com a gente: {email?<a href={'mailto:'+email}>{email}</a>:<a href="/pais">Pedir remoção / reclamar</a>}</p><p>© {new Date().getFullYear()} Mocinhas. As mídias pertencem aos seus criadores originais.</p><LegalNavigation/>{config.dpoEmail&&<p>Privacidade: <a href={'mailto:'+config.dpoEmail}>{config.dpoEmail}</a></p>}</footer>;
 }
 function LinkedText({text}: {text:string}) {
   return <>{text.split(/(\/(?:termos|privacidade|pais|versoes|creditos|como-funciona))\b/g).map((part,index) => /^\/(termos|privacidade|pais|versoes|creditos|como-funciona)$/.test(part) ? <a key={index} href={part}>{part}</a> : part)}</>;
@@ -33,7 +33,7 @@ function ResponsibleRequestForm() {
   const handle=params.get('handle')?.replace(/^@/,'').slice(0,60)||'';
   const content=params.get('conteudo')?.slice(0,2048)||'';
   const [busy,setBusy] = useState(false), [error,setError] = useState(''), [receipt,setReceipt] = useState(''),[accessToken,setAccessToken]=useState(''),[dueAt,setDueAt]=useState('');
-  const [type,setType] = useState<DirectoryRequestType>(()=>params.get('tipo')==='corrigir_idade'?'corrigir_idade':'remover_conteudo');
+  const [type,setType] = useState<DirectoryRequestType>(()=>'remover_conteudo');
   async function submit(event:React.FormEvent<HTMLFormElement>) {
     event.preventDefault(); if(busy) return;
     const form = event.currentTarget, data = new FormData(form);
@@ -52,10 +52,10 @@ function ResponsibleRequestForm() {
   return receipt ? <section className="directory-receipt" role="status" aria-live="polite"><h2>Pedido registrado</h2><p>Protocolo: <strong>{receipt}</strong></p><p>Chave privada: <strong>{accessToken}</strong>. Guarde com o protocolo; ela permite consultar e reabrir o pedido.</p>{dueAt&&<p>Prazo: {new Date(dueAt).toLocaleString('pt-BR',{timeZone:'America/Belem'})} (Belém).</p>}<a href={'/pais?protocolo='+encodeURIComponent(receipt)+'#chave='+encodeURIComponent(accessToken)}>Consultar ou reabrir o mesmo protocolo</a><p>Acompanhe o e-mail informado. Este protocolo confirma o recebimento, não a conclusão da análise.</p><button onClick={() => {setReceipt('');setType('remover_conteudo');}}>Enviar outro pedido</button></section> : <form onSubmit={submit}>
     <fieldset disabled={busy}>
       <legend>Enviar uma solicitação</legend>
-      <label>Seu nome (criador, titular ou responsável)<input name="responsibleName" autoComplete="name" required maxLength={120}/></label>
+      <label>Seu nome<input name="responsibleName" autoComplete="name" required maxLength={120}/></label>
       <label>E-mail para resposta<input name="email" type="email" autoComplete="email" required maxLength={254}/></label>
       <label>@ do perfil<input name="handle" defaultValue={handle} required maxLength={60} placeholder="@usuario" autoCapitalize="none" spellCheck={false}/></label>
-      <label>Tipo de pedido<select value={type} onChange={event => setType(event.target.value as DirectoryRequestType)}>{Object.entries(requestTypes).map(([key,label]) => <option key={key} value={key}>{label}</option>)}</select></label>
+      <label>Tipo de pedido<select value={type} onChange={event => setType(event.target.value as DirectoryRequestType)}>{Object.entries(requestTypes).filter(([key])=>key!=='corrigir_idade').map(([key,label]) => <option key={key} value={key}>{label}</option>)}</select></label>
       <label>Observações<textarea name="observations" defaultValue={content} rows={5} maxLength={3000} placeholder="Indique o conteúdo ou a informação a corrigir. Não inclua dados pessoais desnecessários."/></label>
       {(type === 'reivindicar_perfil' || type === 'autorizar_oficialmente') && <label>Link HTTPS do termo assinado (opcional)<input name="documentUrl" type="url" maxLength={2048} placeholder="https://…"/><small>O link é restrito à administração. Compartilhe apenas o termo necessário, com acesso controlado. O envio não gera selo nem autorização automática.</small></label>}
       <p>Ao enviar, seus dados serão usados para tratar esta solicitação. Consulte a <a href="/privacidade">política de privacidade</a> e os <a href="/termos">Termos de Uso do diretório</a>.</p>
@@ -105,8 +105,8 @@ export function LegalVersionHistory() {
   },[page,retry]);
   return <main className="directory-safety-page">
     <a href="/" className="directory-back">← Voltar ao aplicativo</a><LegalNavigation currentPath="/versoes"/><h1>Histórico de versões</h1>
-    <p>Consulte os textos dos Termos, da Privacidade e da página de responsáveis registrados em produção. Cada alteração desses documentos ou do contato público gera um arquivo datado. Reiniciar o serviço com os mesmos textos não cria uma cópia duplicada.</p>
-    <p>Este é o histórico dos documentos, não de todas as alterações do aplicativo. Os pedidos e os documentos enviados por responsáveis não aparecem aqui.</p>
+    <p>Consulte os textos dos Termos, da Privacidade e da página de atendimento registrados em produção. Cada alteração desses documentos ou do contato público gera um arquivo datado. Reiniciar o serviço com os mesmos textos não cria uma cópia duplicada.</p>
+    <p>Este é o histórico dos documentos, não de todas as alterações do aplicativo. Os pedidos e os documentos enviados por solicitantes não aparecem aqui.</p>
     {loading ? <p role="status">Carregando histórico…</p> : error ? <p role="alert">{error} <button onClick={() => setRetry(value => value + 1)}>Tentar novamente</button></p> : <>
       {!versions.length && <p>Nenhuma versão registrada em produção ainda.</p>}
       {versions.map((version,index) => <article className="directory-request-row" key={version.id}>
@@ -120,3 +120,4 @@ export function LegalVersionHistory() {
 
 
 export function CreditsPage(){const config=usePublicSettings();return <main className="directory-safety-page"><a className="directory-back" href="/">← Voltar ao aplicativo</a><LegalNavigation currentPath="/creditos"/><h1>Créditos e Remoção</h1><p>As mídias pertencem aos criadores originais. <a href="/pais">Pedir remoção / reclamar</a></p>{config.contactEmail&&<p>Contato: <a href={'mailto:'+config.contactEmail}>{config.contactEmail}</a></p>}{creditsSections.map(section=><section key={section.title}><h2>{section.title}</h2>{section.paragraphs.map((text,index)=><p key={index}><LinkedText text={text}/></p>)}</section>)}</main>;}
+

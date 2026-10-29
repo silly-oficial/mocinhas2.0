@@ -30,12 +30,12 @@ export const creditsSections = [
  {title:'Verificação manual de perfis',paragraphs:[
   'Eu disponibilizo um fluxo de solicitação de verificação. Um pedido novo começa como recebido e não concede selo automaticamente.',
   'No painel administrativo, eu posso colocar o pedido em análise, conferir a representação do solicitante, registrar o link do termo e aprovar ou recusar.',
-  'O selo “Perfil verificado” identifica titularidade; “Autorizado pelo responsável” indica termo aprovado. São independentes. O sistema registra quem analisou e quando a decisão aconteceu. O selo não é uma promessa geral de autorização dos pais para todas as mídias.',
-  'Eu também posso revogar a aprovação, retirando o selo. Mudar nome, ano de nascimento ou identificador do TikTok invalida os selos do vínculo anterior.'
+  'O selo “Perfil verificado” identifica titularidade; “Uso autorizado” indica termo aprovado. São independentes. O sistema registra quem analisou e quando a decisão aconteceu. A autorização se limita ao vínculo e ao documento analisados.',
+  'Eu também posso revogar a aprovação, retirando o selo. Mudar nome, identificador do TikTok invalida os selos do vínculo anterior.'
  ]},
- {title:'Atendimento de responsáveis e criadores',paragraphs:[
+ {title:'Atendimento de criadores e titulares',paragraphs:[
   'Eu disponibilizo a página /pais para receber solicitações relacionadas aos perfis e conteúdos. Criadores e titulares também podem pedir remoção ou correção por esse canal.',
-  'Os pedidos são registrados com protocolo, status e prazo de atendimento. Eu acompanho o andamento na seção Responsáveis, dentro do painel administrativo.',
+  'Os pedidos são registrados com protocolo, status e prazo de atendimento. Eu acompanho o andamento na seção Atendimento, dentro do painel administrativo.',
   'O sistema prepara uma confirmação para o solicitante e um aviso para a administração. Ao concluir o atendimento, ele prepara uma mensagem com o resultado registrado pela administração.',
   'O encerramento de um pedido não significa, por si só, que arquivos foram apagados permanentemente. A resposta precisa corresponder à ação realmente executada.'
  ]},
@@ -57,7 +57,7 @@ export const creditsSections = [
   'O atendimento é gratuito e não exige Premium. Questões sobre pagamentos antigos podem ser encaminhadas pelo contato público.'
  ]},
  {title:'Documentos e histórico',paragraphs:[
-  'Eu disponibilizo páginas de Termos, Privacidade, Créditos e Remoção e atendimento aos responsáveis, com links no rodapé.',
+  'Eu disponibilizo páginas de Termos, Privacidade, Créditos e Remoção e atendimento aos titulares, com links no rodapé.',
   'A página /versoes permite consultar os registros dos documentos de atendimento publicados. Os registros preservam versões anteriores quando o sistema identifica alterações. A página Créditos e Remoção descreve a versão atual do aplicativo.'
  ]},
  {title:'Como o aplicativo funciona tecnicamente',paragraphs:[
@@ -69,3 +69,4 @@ export const creditsSections = [
 export function removalEmailText({content,result,email,siteName='Mocinhas',resolved=true}:{content:string;result:string;email:string;siteName?:string;resolved?:boolean}){
  return `Olá!\n\nRecebemos o seu pedido sobre o conteúdo "${content}".\n\n${resolved?'Já tomamos a providência: ':'Resultado da análise: '}${result}\n\nSe precisar de mais alguma coisa, é só responder este e-mail.\n\nObrigado!\n\nEquipe ${siteName}${email?'\n'+email:''}`;
 }
+

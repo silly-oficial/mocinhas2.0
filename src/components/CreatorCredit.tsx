@@ -16,9 +16,10 @@ export function MediaCredit({handle,sourceUrl,verified=false,authorized=false,sh
    {showRights&&<button type="button" className="credit-rights-button" aria-expanded={expanded} aria-controls={panelId} onClick={()=>setExpanded(value=>!value)}>Créditos e remoção</button>}
   </div>
   {showRights&&<div className="credit-rights-panel" id={panelId} hidden={!expanded}><p>{creditNotice}</p><a className="creator-removal" href={'/pais?handle='+encodeURIComponent(original)+(sourceUrl?'&conteudo='+encodeURIComponent(sourceUrl):'')}>Pedir remoção / reclamar</a></div>}
-  <small className="credit-caption"><Copyright size={13} aria-hidden="true"/>{authorized?<strong className="guardian-badge" aria-label="Autorização documentada do responsável">Autorizado pelo responsável</strong>:<>Conteúdo do criador original.</>}</small>
+  <small className="credit-caption"><Copyright size={13} aria-hidden="true"/>{authorized?<strong className="guardian-badge" aria-label="Autorização documentada">Uso autorizado</strong>:<>Conteúdo do criador original.</>}</small>
  </div>;
 }
 export function CreatorCredit({person,handle,showRights=false,profileAction}:{person:PersonProfile;handle?:string;showRights?:boolean;profileAction?:React.ReactNode}) {
  return <MediaCredit authorized={person.guardianAuthorized===true&&(!handle||handle.replace(/^@/,'').toLowerCase()===person.socials.tiktok.toLowerCase())} showRights={showRights} profileAction={profileAction} handle={handle||person.socials.tiktok} sourceUrl={person.avatarSelection?.url} verified={!!(person.ownershipVerified??person.verified)&&(!handle||handle.replace(/^@/,'').toLowerCase()===person.socials.tiktok.toLowerCase())}/>;
 }
+

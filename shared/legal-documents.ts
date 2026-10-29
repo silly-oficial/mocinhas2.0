@@ -11,8 +11,7 @@ export const legalNavigation = [
   {path: '/versoes', label: 'Histórico de versões'},
 ] as const;
 
-// These notices describe the implemented reporting channel, not an authorization
-// to catalogue or monetize children's profiles. Do not add unsupported guarantees.
+// Current notices describe the application and its reporting channel.
 export const legalDocuments: Record<LegalPageKey, LegalDocument> = {
   "terms": {
     "path": "/termos",
@@ -21,7 +20,7 @@ export const legalDocuments: Record<LegalPageKey, LegalDocument> = {
       {
         "title": "1. Objeto e natureza editorial",
         "paragraphs": [
-          "Mocinhas é um diretório editorial de perfis adultos (18+), organizado manualmente. A inclusão, o destaque e a ordem seguem critérios subjetivos da curadoria. Não são avaliações objetivas das pessoas nem resultado de votação pública. Os critérios informados aparecem em cada perfil e em /como-funciona."
+          "Mocinhas é um aplicativo voltado a perfis, fotos e vídeos de animais, organizado manualmente pela administração. Os perfis são apresentados em ordem alfabética. Registros anteriores são preservados e continuam sujeitos aos controles de publicação."
         ]
       },
       {
@@ -33,20 +32,20 @@ export const legalDocuments: Record<LegalPageKey, LegalDocument> = {
       {
         "title": "3. Informações e limitações",
         "paragraphs": [
-          "Nome e apresentação podem estar incompletos ou errados. A publicação exige fonte de declaração de maioridade e revisão manual de que as pessoas eram adultas em cada mídia. Idade incerta impede publicação. Essa revisão não é verificação documental. Use /pais para corrigir informações."
+          "Nome, apresentação e links podem estar incompletos ou incorretos. Use /pais para solicitar correções ou remoção. Salvar um perfil de animal o torna visível, salvo quando a administração escolher ocultá-lo. Ocultar não apaga os dados ou as mídias."
         ]
       },
       {
         "title": "4. Conteúdo e propriedade intelectual",
         "paragraphs": [
-          "Publicações por link são exibidas no player oficial do TikTok, sem extração. Os perfis também aceitam fotos e vídeos enviados pela administração, armazenados pelo aplicativo; o envio exige direito de publicação e revisão de maioridade. Todas as mídias mantêm crédito e canal de remoção. Referências antigas ainda presentes podem exigir tratamento individual pela administração. As mídias e os direitos de terceiros não pertencem ao Mocinhas.",
+          "Publicações por link são exibidas no player oficial do TikTok, sem extração. Os perfis também aceitam fotos e vídeos enviados pela administração, armazenados pelo aplicativo; o envio exige direito de publicação. Todas as mídias mantêm crédito e canal de remoção. Referências antigas ainda presentes podem exigir tratamento individual pela administração. As mídias e os direitos de terceiros não pertencem ao Mocinhas.",
           "Conteúdo público, crédito, link ou incorporação não constituem, sozinhos, autorização geral de uso. Mocinhas é independente do TikTok. O selo de titularidade e o de autorização documentada são diferentes; nenhum deles comprova a idade ou oferece garantia geral de regularidade."
         ]
       },
       {
         "title": "5. Uso adequado",
         "paragraphs": [
-          "Não se passe por outra pessoa, ameace, persiga ou tente obter dados privados dos perfis e responsáveis. Não envie senhas ou documentos de identidade no formulário de atendimento. É proibido tentar contornar restrições do TikTok, acessar contas privadas ou explorar falhas do aplicativo."
+          "Não se passe por outra pessoa, ameace, persiga ou tente obter dados privados dos perfis e solicitantes. Não envie senhas ou documentos de identidade no formulário de atendimento. É proibido tentar contornar restrições do TikTok, acessar contas privadas ou explorar falhas do aplicativo."
         ]
       },
       {
@@ -86,7 +85,7 @@ export const legalDocuments: Record<LegalPageKey, LegalDocument> = {
       {
         "title": "2. Dados e finalidades",
         "paragraphs": [
-          "@, nome público, bio, links, critérios editoriais e temas servem para apresentar e organizar os perfis. O ano de nascimento, quando conhecido, serve somente para estimar a idade e informar a faixa; não guardamos a data completa neste cadastro.",
+          "@, nome público, apresentação, links e temas servem para apresentar e organizar os perfis. Dados adicionais de cadastros anteriores podem permanecer em registros legados restritos, sujeitos a correção, retenção e atendimento de direitos.",
           "E-mail de conta e senha com hash servem para autenticação e recuperação de acesso. A recuperação guarda hash do código, validade de 15 minutos e tentativas, sem publicar o código em produção. Nome, e-mail, observações e links opcionais de termos dos pedidos servem para atendimento e análise.",
           "IP, user-agent, horário, método, caminho sem query e status da API servem para segurança e diagnóstico. Senhas, corpos de requisição, tokens e chaves de protocolo não são incluídos deliberadamente no log de acesso. Preferências locais e cookies essenciais permitem sessão, limites técnicos, escolhas de interface e registro das preferências opcionais."
         ]
@@ -95,7 +94,7 @@ export const legalDocuments: Record<LegalPageKey, LegalDocument> = {
         "title": "3. Hipóteses legais e oposição",
         "paragraphs": [
           "O diretório não faz captação ativa de autorização nem usa um consentimento geral como fundamento para catalogar perfis. O art. 7º, §3º da LGPD exige considerar a finalidade, a boa-fé e o interesse público que justificaram a disponibilização dos dados de acesso público, e o §4º dispensa o consentimento para dados tornados manifestamente públicos pelo próprio titular, resguardados os direitos do titular e os princípios da LGPD. A eventual dispensa não elimina os demais deveres legais nem autoriza automaticamente a inclusão no diretório.",
-          "O legítimo interesse do art. 7º, IX, exige avaliação documentada de finalidade, necessidade e equilíbrio com direitos e expectativas; a proteção do titular e o melhor interesse de crianças e adolescentes devem prevalecer. Publicar esta política não prova que todo perfil atende a esses requisitos. A curadoria deve avaliar cada caso e receber oposição em /pais.",
+          "O legítimo interesse do art. 7º, IX, exige avaliação documentada de finalidade, necessidade e equilíbrio com direitos e expectativas; os direitos e as expectativas dos titulares devem ser respeitados. Publicar esta política não prova que todo perfil atende a esses requisitos. A curadoria deve avaliar cada caso e receber oposição em /pais.",
           "Dados de conta também atendem à prestação do acesso solicitado; registros de segurança e atendimento podem atender a obrigações legais e exercício de direitos. As escolhas opcionais de cookies são separadas e não autorizam uso da imagem de terceiros."
         ]
       },
@@ -123,10 +122,10 @@ export const legalDocuments: Record<LegalPageKey, LegalDocument> = {
         ]
       },
       {
-        "title": "7. Crianças e adolescentes",
+        "title": "7. Registros legados e documentos privados",
         "paragraphs": [
-          "O melhor interesse deve orientar a curadoria e cada tratamento, com minimização e linguagem simples. Guardamos apenas o ano quando informado; não realizamos verificação documental de idade. Oposição e correção são acessíveis em /pais.",
-          "Os dados privados de responsáveis e os termos não são publicados. O selo de titularidade não substitui autorização documentada; a ausência de um selo não resolve, por si só, a análise jurídica de um caso. Não há filtros ou sugestões de classificação sexualizada de menores."
+          "A atualização da proposta do aplicativo não apaga cadastros, fotos, vídeos ou protocolos anteriores. A existência de um registro não significa que ele esteja disponível publicamente.",
+          "Dados de contato, documentos de atendimento e registros internos não são publicados. Pedidos de correção, oposição e remoção podem ser enviados pelo canal /pais."
         ]
       },
       {
@@ -153,13 +152,13 @@ export const legalDocuments: Record<LegalPageKey, LegalDocument> = {
   },
   "parents": {
     "path": "/pais",
-    "title": "Para pais, responsáveis e titulares",
+    "title": "Remoção e atendimento",
     "sections": [
       {
         "title": "1. Remover, corrigir ou contestar",
         "paragraphs": [
           "O atendimento é gratuito, identificado por nome e e-mail, sem login ou Premium. A ação padrão é remover conteúdo. Para remoção, não exigimos justificativa, termo ou documento. Basta indicar o @ e, quando possível, o que deve ser retirado.",
-          "Também é possível corrigir idade ou nome, contestar a classificação e reivindicar um perfil. A apresentação de termo e a revogação de autorização são opções de atendimento, não uma captação ativa."
+          "Também é possível corrigir informações ou nome, contestar a classificação e reivindicar um perfil. A apresentação de termo e a revogação de autorização são opções de atendimento, não uma captação ativa."
         ]
       },
       {
@@ -180,13 +179,13 @@ export const legalDocuments: Record<LegalPageKey, LegalDocument> = {
         "title": "4. Documentos e selos",
         "paragraphs": [
           "Documentos por link HTTPS são opcionais em todos os tipos de pedido; o servidor não abre o link automaticamente. Não envie identidade, selfie ou dados desnecessários.",
-          "“Perfil verificado” trata do vínculo com o @. “Autorizado pelo responsável” exige termo aprovado. Um pedido não concede nenhum selo automaticamente. A administração pode revogar aprovações; mudar a identidade vinculada invalida os selos anteriores."
+          "“Perfil verificado” trata do vínculo com o @. “Uso autorizado” exige termo aprovado. Um pedido não concede nenhum selo automaticamente. A administração pode revogar aprovações; mudar a identidade vinculada invalida os selos anteriores."
         ]
       },
       {
         "title": "5. Privacidade e contato",
         "paragraphs": [
-          "Pedidos e dados de responsáveis ficam restritos à administração. Leia /privacidade e /termos. Contatos reais são publicados quando configurados; sem e-mail informado, o formulário continua sendo o canal disponível."
+          "Pedidos e dados dos solicitantes ficam restritos à administração. Leia /privacidade e /termos. Contatos reais são publicados quando configurados; sem e-mail informado, o formulário continua sendo o canal disponível."
         ]
       }
     ]
@@ -204,4 +203,5 @@ export interface LegalDocumentVersion {
   documents: Record<LegalPageKey, LegalDocument>;
 }
 export type LegalVersionSummary = Pick<LegalDocumentVersion, 'id'|'recordedAt'|'digest'|'commit'>;
+
 

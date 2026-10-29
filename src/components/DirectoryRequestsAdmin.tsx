@@ -33,7 +33,7 @@ function RequestRow({request, profiles, onUpdated}: {request: DirectoryRequest; 
   return <article className="directory-request-row">
     <h4>{requestTypes[request.type]} · @{request.handle}</h4>
     <p>{request.dueAt&&<>Prazo: {new Date(request.dueAt).toLocaleString('pt-BR')} · </>}<strong>{request.decision?(request.decision==='procedente'?'Procedente':'Improcedente'):statusLabels[request.status]}</strong> · {new Date(request.createdAt).toLocaleString('pt-BR')} · protocolo {request.id}</p>
-    <p>Responsável: {request.responsibleName}<br/>Contato: <a href={'mailto:' + request.email}>{request.email}</a></p>
+    <p>Solicitante: {request.responsibleName}<br/>Contato: <a href={'mailto:' + request.email}>{request.email}</a></p>
     <p className="directory-observations">{request.observations || 'Sem observações.'}</p>
     {request.documentUrl && <p><a href={request.documentUrl} target="_blank" rel="noopener noreferrer" referrerPolicy="no-referrer">Abrir termo enviado (link externo)</a></p>}
     {matching.some(profile=>profile.published)&&<button type="button" disabled={busy} onClick={async()=>{setBusy(true);setError('');try{await adminRequest('directory-requests/'+request.id+'/unpublish','POST',{profileId:matching.find(profile=>profile.published)!.id});window.dispatchEvent(new Event('mocinhas:people-updated'));onUpdated();}catch(error){setError(error instanceof Error?error.message:'Falha na retirada.');}finally{setBusy(false);}}}>Retirar de publicação imediatamente</button>}
@@ -45,7 +45,7 @@ function RequestRow({request, profiles, onUpdated}: {request: DirectoryRequest; 
       {request.type==='contestar_classificacao'&&['resolved','rejected'].includes(status)&&<label>Fundamentação da decisão (mínimo 80 caracteres)<textarea minLength={80} maxLength={3000} required value={fundamentacao} onChange={e=>setFundamentacao(e.target.value)}/></label>}
       {request.replies?.map(reply=><p key={reply.at}>Resposta do solicitante em {new Date(reply.at).toLocaleString('pt-BR')}: {reply.message}</p>)}
       <label>Registro interno da análise<textarea value={note} onChange={event => setNote(event.target.value)} maxLength={3000} rows={3}/></label>
-      <p>Verifique a representação quando necessário e responda ao e-mail do responsável antes de concluir. O sistema registra os avisos em fila de e-mail; o envio depende do provedor configurado. Reivindicações e termos não concedem selo ou autorização automática.</p>
+      <p>Verifique a representação quando necessário e responda ao e-mail do solicitante antes de concluir. O sistema registra os avisos em fila de e-mail; o envio depende do provedor configurado. Reivindicações e termos não concedem selo ou autorização automática.</p>
       <button type="submit">{busy ? 'Salvando…' : 'Salvar análise'}</button>
     </fieldset>{error && <p role="alert">{error}</p>}</form>
   </article>;
@@ -62,7 +62,7 @@ export function DirectoryRequestsAdmin() {
     return () => {disposed = true;};
   }, [filter, page, revision]);
   return <section className="directory-requests-admin">
-    <h3>Pedidos de responsáveis</h3><p>Remoção: 48 horas úteis; demais pedidos: 5 dias úteis. A contagem pausa aos fins de semana. Dados pessoais e documentos são restritos à administração.</p>
+    <h3>Pedidos de atendimento</h3><p>Remoção: 48 horas úteis; demais pedidos: 5 dias úteis. A contagem pausa aos fins de semana. Dados pessoais e documentos são restritos à administração.</p>
     <label>Mostrar<select value={filter} onChange={event => {setFilter(event.target.value); setPage(0);}}>{Object.entries(statusLabels).map(([key, label]) => <option key={key} value={key}>{label}</option>)}<option value="all">Todos</option></select></label>
     <button disabled={loading} onClick={() => setRevision(value => value + 1)}>Atualizar fila</button>
     {loading ? <p role="status">Carregando pedidos…</p> : error ? <p role="alert">{error}</p> : <>
@@ -72,4 +72,5 @@ export function DirectoryRequestsAdmin() {
     </>}
   </section>;
 }
+
 
