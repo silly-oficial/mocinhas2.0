@@ -1,5 +1,6 @@
 export interface PersonProfile {
  subjectType?: 'animal';
+ hidden?: boolean;
  adultReview?: {evidenceUrl:string;contentReviewed:boolean};
  birthYear?:number|null; ageAtCapture?:number|null; ageUpdatedAt?:string|null;
  ageSource?:import('./profile-editorial').AgeSource; ageBand?:import('./profile-editorial').AgeBand;
@@ -44,3 +45,4 @@ export function tiktokPost(url:string) {
  if(source.platform!=='TikTok')throw Error('Use somente links de publicações do TikTok (/video/ ou /photo/).');
  return source;
 }
+

@@ -1,3 +1,4 @@
+import {profileFeed} from '../media/profile-feed';
 import {CuratedPostPlayer} from './CuratedPostPlayer';
 import {ProfileAvatar} from './ProfileAvatar';
 import {useEffect,useRef,useState} from 'react';
@@ -34,9 +35,10 @@ export function ProfileVideosFeed({active,onActiveChange}:{active:boolean;onActi
  const load=()=>api.getPeople().then(result=>{setProfiles(result.profiles);setError('');}).catch(e=>setError(e.message)).finally(()=>setLoading(false));
  useEffect(()=>{let alive=true;const update=()=>{if(alive)load();};update();window.addEventListener('mocinhas:people-updated',update);return()=>{alive=false;window.removeEventListener('mocinhas:people-updated',update);};},[]);
  useEffect(()=>{onActiveChange(!!person);return()=>onActiveChange(false);},[person,onActiveChange]);
- const items=profiles.flatMap(person=>person.videos.map((video,index)=>({person,video,index})));
+ const items=profileFeed(profiles).videos;
  if(person)return <PersonModal person={person} asPage onClose={()=>{setPerson(null);requestAnimationFrame(()=>window.scrollTo(0,position.current));}}/>;
  return <section className="people-section profile-videos-feed"><div className="people-heading"><div><span>Conheça quem está por trás de cada vídeo</span><h2>Vídeos dos perfis</h2></div></div>{loading?<p role="status">Carregando vídeos…</p>:error?<p role="alert">{error} <button className="people-secondary" onClick={load}>Tentar novamente</button></p>:<ProfileVideoGrid items={items} active={active} onProfile={profile=>{position.current=window.scrollY;setPerson(profile);window.scrollTo(0,0);}}/>}</section>;
 }
+
 
 

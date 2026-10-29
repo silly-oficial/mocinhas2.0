@@ -1,0 +1,13 @@
+import assert from 'node:assert/strict';
+import {profileFeed} from '../src/media/profile-feed';
+import type {PersonProfile} from '../shared/people';
+const profile={id:'cat',published:true,photos:['/uploads/cat.jpg'],videos:[{url:'https://www.tiktok.com/@cat/video/1234567890123456789',kind:'social'},{url:'https://www.tiktok.com/@cat/photo/1234567890123456790',kind:'social'},{url:'/uploads/cat.mp4',kind:'upload'}]} as PersonProfile;
+const profiles=[profile,{...profile,id:'hidden',hidden:true},{...profile,id:'draft',published:false}];
+const before=JSON.stringify(profiles);
+const feed=profileFeed(profiles);
+assert.deepEqual(feed.photos.map(p=>[p.person.id,p.url]),[['cat','/uploads/cat.jpg']]);
+assert.deepEqual(feed.carousels.map(p=>[p.person.id,p.index]),[['cat',1]]);
+assert.deepEqual(feed.videos.map(p=>[p.person.id,p.index]),[['cat',0],['cat',2]],'video status retains source indices after separating carousels');
+assert.equal(JSON.stringify(profiles),before,'home navigation preserves stored media');
+assert.deepEqual(profileFeed([]),{photos:[],carousels:[],videos:[]});
+console.log('Profile feed passed: uploaded photos, official carousels, uploaded videos, hidden profiles and source indices.');
