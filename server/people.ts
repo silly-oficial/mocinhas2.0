@@ -1,4 +1,4 @@
-import {editorialFields,ageValues,availabilityHistory} from '../shared/profile-editorial';
+import {editorialFields,ageValues,availabilityHistory,adultEligible} from '../shared/profile-editorial';
 import {appendLegalAudit} from './legal-audit';
 import {validatePostPresentation} from '../shared/post-presentation';
 import {optionalTikTokPreview} from './tiktok-preview';
@@ -29,23 +29,30 @@ export function validatePerson(input:any, existing?:PersonProfile):PersonProfile
  const socials={} as PersonProfile['socials'];for(const platform of ['tiktok','instagram','pinterest'] as const){const handle=text(input.socials?.[platform]??'',60).replace(/^@/,'');if(handle&&!/^[a-zA-Z0-9_.]{1,60}$/.test(handle))throw Error(`Informe somente o @ de ${platform}, sem o link.`);socials[platform]=handle;}
  const linkedSource=input.avatarSelection?.url||input.videos.find((v:any)=>v?.kind!=='upload'&&typeof v?.url==='string')?.url;
  if(linkedSource){try{socials.tiktok=new URL(tiktokPost(linkedSource).canonical).pathname.split('/')[1].slice(1);}catch{/* Legacy entries preserve their known handle. */}}
+ for(const url of [input.avatarSelection?.url,...input.videos.filter((v:any)=>v.kind!=='upload').map((v:any)=>v.url)].filter(Boolean)){
+  const handle=new URL(tiktokPost(url).canonical).pathname.split('/')[1].slice(1);
+  if(handle.toLowerCase()!==socials.tiktok.toLowerCase())throw Error('Todas as publicações e o avatar devem pertencer ao mesmo criador.');
+ }
  const cleanTags = new Map<string,string>();for(const raw of input.tags){const label=text(raw,30).replace(/\s+/g,' ');if(label&&!cleanTags.has(categoryKey(label)))cleanTags.set(categoryKey(label),label);}
  const now=new Date().toISOString();const editorial=editorialFields(input,existing);
+ const reviewChanged=!!existing&&(existing.name!==name||existing.socials.tiktok!==socials.tiktok||JSON.stringify(existing.videos.map(v=>v.url))!==JSON.stringify(input.videos.map((v:any)=>v.url))||existing.avatarSelection?.url!==input.avatarSelection?.url);
+ if(reviewChanged&&input.adultReview?.contentReviewed!==true){editorial.adultReview={evidenceUrl:editorial.adultReview?.evidenceUrl||'',contentReviewed:false};if(input.published)throw Error('Revise a maioridade após alterar a identidade ou as mídias.');}
  const identityChanged=!!existing&&(existing.birthYear!==editorial.birthYear&&!(existing.birthYear===undefined&&editorial.birthYear===null)||existing.name!==name||existing.socials.tiktok.toLowerCase()!==socials.tiktok.toLowerCase());
  if(identityChanged){editorial.identityRevision++;editorial.ownershipVerified=false;editorial.guardianAuthorized=false;editorial.guardianStatus='sem_contato';}
  return {...editorial,id:existing?.id||randomUUID(),name,username,avatarSelection:validateProfileAvatar(input.avatarSelection),avatar,cover:legacyImage(input.cover,existing?.cover),bio:text(input.bio??'',1500),photos:input.photos.map((url:unknown)=>{if(typeof url!=='string'||!existing?.photos.includes(url))throw Error('Adicione fotos por links de carrosséis do TikTok.');return url;}),videos:input.videos.map((v:any)=>{const url=text(v?.url,2048),title=text(v?.title??'',100);const previous=existing?.videos.find(old=>old.url===url);if(previous)return {...previous,title,presentation:validatePostPresentation(v.presentation,url)};const source=tiktokPost(url);return {url:source.canonical,title,kind:'social' as const,presentation:validatePostPresentation(v.presentation,source.canonical)};}),tags:[...cleanTags.values()],socials,published:input.published,featured:input.featured,order:input.order,createdAt:existing?.createdAt||now,updatedAt:now};
 }
 export function installPeople(app:express.Express,db:typeof DB,admin:express.RequestHandler){
  const all=()=>db.get().peopleProfiles||[];
+ const visible=(p:PersonProfile)=>p.published&&adultEligible(p)&&!p.photos.length&&!p.cover&&(!!p.avatarSelection||!p.avatar||p.avatar==='/profile-placeholder.svg')&&p.videos.every(v=>v.kind==='social'&&v.display_mode==='embed'&&v.source_platform==='tiktok');
  const resolveTikTok=makeTikTokResolver(db);
  const publicProfile=(p:PersonProfile)=>({id:p.id,name:p.name,username:p.username,bio:p.bio,avatar:p.avatar,avatarSelection:p.avatarSelection,cover:p.cover,photos:p.photos,videos:p.videos,socials:p.socials,tags:p.tags,published:p.published,featured:p.featured,order:p.order,createdAt:p.createdAt,updatedAt:p.updatedAt,mediaSources:p.mediaSources,verified:isProfileVerified(db,p),ownershipVerified:isProfileVerified(db,p),guardianAuthorized:p.guardianStatus==='termo_recebido',birthYear:p.birthYear??null,...ageValues(p.birthYear??null,p.ageBand),ageSource:p.ageSource??'desconhecido',rankingCriteria:p.rankingCriteria??'',rankingUpdatedAt:p.rankingUpdatedAt??null,traits:p.traits??[]});
  app.post('/api/admin/tiktok-link',admin,async(req,res)=>{try{res.json({url:await resolveTikTokLink(req.body?.url)});}catch(e){res.status(400).json({error:e instanceof Error?e.message:'Não foi possível resolver o link.'});}});
  app.post('/api/admin/tiktok-oembed',admin,async(req,res)=>{try{if(typeof req.body?.url!=='string')throw Error('Informe o link.');const url=await resolveTikTokLink(req.body.url);res.json(await optionalTikTokPreview(url,resolveTikTok));}catch(error){res.status(400).json({error:error instanceof Error?error.message:'Falha no TikTok.'});}});
  const sorted=(rows:PersonProfile[])=>[...rows].sort((a,b)=>Number(b.featured)-Number(a.featured)||a.order-b.order||a.name.localeCompare(b.name));
- app.get('/api/directory-editorial',(_req,res)=>res.set('Cache-Control','no-store').json({profiles:sorted(all().filter(p=>p.published)).map(p=>({id:p.id,name:p.name,rankingCriteria:p.rankingCriteria??'',rankingUpdatedAt:p.rankingUpdatedAt??null}))}));
- app.get('/api/people',(_req,res)=>res.json({profiles:sorted(all().filter(p=>p.published)).map(publicProfile)}));
+ app.get('/api/directory-editorial',(_req,res)=>res.set('Cache-Control','no-store').json({profiles:sorted(all().filter(visible)).map(p=>({id:p.id,name:p.name,rankingCriteria:p.rankingCriteria??'',rankingUpdatedAt:p.rankingUpdatedAt??null}))}));
+ app.get('/api/people',(_req,res)=>res.set('Cache-Control','no-store').json({profiles:sorted(all().filter(visible)).map(publicProfile)}));
  app.get('/api/people/:id/video-status/:index',async(req,res)=>{
-  const profile=all().find(p=>p.id===req.params.id&&p.published),index=Number(req.params.index);
+  const profile=all().find(p=>p.id===req.params.id&&visible(p)),index=Number(req.params.index);
   if(!profile||!Number.isInteger(index)||!profile.videos[index])return res.status(404).json({error:'Vídeo não encontrado.'});
   const video=profile.videos[index];
   try{
@@ -60,6 +67,7 @@ export function installPeople(app:express.Express,db:typeof DB,admin:express.Req
  const write=async(req:express.Request,res:express.Response,update:boolean)=>{
   try {const existing=update?all().find(p=>p.id===req.params.id):undefined;if(update&&!existing)return res.status(404).json({error:'Perfil não encontrado.'});
    const profile=validatePerson(req.body,existing);
+   if(profile.published&&(profile.photos.length||profile.cover||(!profile.avatarSelection&&profile.avatar!=='/profile-placeholder.svg')||profile.videos.some(v=>v.kind!=='social')))throw Error('Remova mídias antigas antes de publicar. Use apenas embeds do TikTok.');
    if(profile.published&&!profile.socials.tiktok)throw Error('Informe o @ original do TikTok antes de publicar o perfil.');
    const now=new Date().toISOString();
    const origin=(url:string,embed=false)=>existing?.mediaSources?.find(m=>m.url===url)||(profile.socials.tiktok?{...uploadedMediaOrigin(url,profile.socials.tiktok,now),...(embed?{source_url:url,display_mode:'embed' as const}:{})}:({url,source_platform:'unknown',source_url:'',source_handle:'',captured_at:now,display_mode:embed?'embed' as const:'reupload' as const,last_check_at:null,is_still_available:null}));
@@ -73,7 +81,7 @@ export function installPeople(app:express.Express,db:typeof DB,admin:express.Req
      }else Object.assign(video,origin(video.url),{source_platform:social?.platform.toLowerCase()||'provided',source_url:social?.canonical||'',display_mode:social?'embed':'reupload'});
      sourceRows.push({...video,url:video.url,source_platform:video.source_platform!,source_url:video.source_url!,source_handle:video.source_handle!,captured_at:video.captured_at!,display_mode:video.display_mode!,last_check_at:video.last_check_at??null,is_still_available:video.is_still_available??null});
    }
-   if(!profile.avatarSelection&&profile.avatar==='/profile-placeholder.svg'){const first=profile.videos.find(v=>v.source_platform==='tiktok'&&v.thumbnail&&v.source_handle?.replace(/^@/,'').toLowerCase()===profile.socials.tiktok.toLowerCase());if(first){profile.avatar=first.thumbnail!;sourceRows.push({...first,url:profile.avatar} as any);}}
+   // Avatar is an official embedded selection or the local placeholder; no media extraction.
    profile.mediaSources=sourceRows;
    if(profile.guardianStatus==='termo_recebido'&&!(db.get().verificationRequests||[]).some(row=>row.profileId===profile.id&&row.purpose==='guardian'&&row.status==='aprovado'&&row.termDocUrl&&row.boundIdentityRevision===(profile.identityRevision??0)))throw Error('A autorização exige termo aprovado na seção Verificações.');
    if(!profile.sourceSnapshot){const media=profile.videos.find(v=>v.source_platform==='tiktok');const url=profile.avatarSelection?.url||media?.url;if(url){profile.sourceSnapshot={capturedAt:now,canonicalUrl:url,handle:new URL(url).pathname.split('/')[1],oembedOkAt:media?.url===url&&media?.is_still_available===true?media.last_check_at??null:null,publiclyAccessible:media?.url===url&&media?.is_still_available===true?true:null};}}

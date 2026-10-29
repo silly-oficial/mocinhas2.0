@@ -1,4 +1,5 @@
 export interface PersonProfile {
+ adultReview?: {evidenceUrl:string;contentReviewed:boolean};
  birthYear?:number|null; ageAtCapture?:number|null; ageUpdatedAt?:string|null;
  ageSource?:import('./profile-editorial').AgeSource; ageBand?:import('./profile-editorial').AgeBand;
  guardianStatus?:import('./profile-editorial').GuardianStatus;

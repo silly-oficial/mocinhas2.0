@@ -16,7 +16,7 @@ Fontes oficiais:
 
 O cadastro guarda somente o ano, quando informado. Ano de referência menos ano de nascimento é a idade completada naquele ano; antes do aniversário ela pode ser um ano menor. A interface mostra esse intervalo e informa que a idade/faixa não foi verificada. A faixa derivada usa o ano de referência, não prova a idade em uma data específica. Sem ano, mostra somente a faixa informada. A ausência de verificação documental é uma decisão de minimização deste cadastro, não uma declaração de dispensa legal para todos os serviços ou conteúdos.
 
-Novos cadastros/edições publicados exigem ano ou faixa. Não houve migração para preencher idades fictícias ou despublicar perfis antigos em lote. Registros antigos sem informação precisam de revisão administrativa. Não foram implementadas classificações ou filtros sexualizados de menores; os temas disponíveis são arte, esporte, música, educação, humor e viagem.
+A versão 18+ exige fonte pública de declaração de maioridade e revisão administrativa da idade também na gravação das mídias. O embed não confirma idade, e o ano isolado não satisfaz essa revisão. Perfis antigos sem revisão ou com mídia legada ficam ocultos nas rotas públicas, preservando os registros administrativos. Não são preenchidas idades fictícias. Categorias livres são definidas no painel; filtros etários e temas fixos foram retirados da interface. Essa revisão manual não é verificação documental nem comprovação de autorização comercial.
 
 ## Registro inicial da origem
 

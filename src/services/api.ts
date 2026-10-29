@@ -51,7 +51,7 @@ export const api = {
 
   resolveTikTokLink:(url:string)=>request<{url:string}>('/admin/tiktok-link',{method:'POST',body:JSON.stringify({url})}),
 
-  resolveTikTok:(url:string)=>request<{thumbnail_url:string;available:boolean|null}>('/admin/tiktok-oembed',{method:'POST',body:JSON.stringify({url})}),
+  resolveTikTok:(url:string)=>request<{thumbnail_url:string;author_name?:string;available:boolean|null}>('/admin/tiktok-oembed',{method:'POST',body:JSON.stringify({url})}),
 
   getPeople: (admin = false) => request<{profiles: PersonProfile[]}>(admin ? '/admin/people' : '/people'),
 

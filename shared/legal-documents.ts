@@ -7,7 +7,7 @@ export const legalNavigation = [
   {path: '/creditos', label: 'Créditos e Remoção'},
   {path: '/termos', label: 'Termos de Uso'},
   {path: '/privacidade', label: 'Privacidade'},
-  {path: '/pais', label: 'Para pais e responsáveis'},
+  {path: '/pais', label: 'Remoção e atendimento'},
   {path: '/versoes', label: 'Histórico de versões'},
 ] as const;
 
@@ -21,7 +21,7 @@ export const legalDocuments: Record<LegalPageKey, LegalDocument> = {
       {
         "title": "1. Objeto e natureza editorial",
         "paragraphs": [
-          "Mocinhas é um diretório editorial de perfis, organizado manualmente. A inclusão, o destaque e a ordem seguem critérios subjetivos da curadoria. Não são avaliações objetivas das pessoas nem resultado de votação pública. Os critérios informados aparecem em cada perfil e em /como-funciona."
+          "Mocinhas é um diretório editorial de perfis adultos (18+), organizado manualmente. A inclusão, o destaque e a ordem seguem critérios subjetivos da curadoria. Não são avaliações objetivas das pessoas nem resultado de votação pública. Os critérios informados aparecem em cada perfil e em /como-funciona."
         ]
       },
       {
@@ -33,7 +33,7 @@ export const legalDocuments: Record<LegalPageKey, LegalDocument> = {
       {
         "title": "3. Informações e limitações",
         "paragraphs": [
-          "Nome, apresentação, ano de nascimento e faixa etária podem estar incompletos ou errados. Só o ano não permite determinar a idade em anos completos: o aplicativo informa um intervalo aproximado. Não fazemos verificação de idade com documento, selfie ou provedor externo. Use /pais para corrigir informações."
+          "Nome e apresentação podem estar incompletos ou errados. A publicação exige fonte de declaração de maioridade e revisão manual de que as pessoas eram adultas em cada mídia. Idade incerta impede publicação. Essa revisão não é verificação documental. Use /pais para corrigir informações."
         ]
       },
       {

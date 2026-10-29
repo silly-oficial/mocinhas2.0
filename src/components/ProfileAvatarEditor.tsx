@@ -1,6 +1,6 @@
 import {ZoomControl} from './ZoomControl';
 import {api} from '../services/api';
-import React,{useState} from 'react';
+import React,{useState,useEffect} from 'react';
 import {ChevronLeft,ChevronRight,Check,Link as LinkIcon} from 'lucide-react';
 import {tiktokPost} from '../../shared/people';
 import {validateProfileAvatar,type ProfileAvatarSelection} from '../../shared/profile-avatar';
@@ -8,7 +8,7 @@ import {ProfileAvatar} from './ProfileAvatar';
 import {MediaCredit} from './CreatorCredit';
 export function ProfileAvatarEditor({value,onChange,onSource}:{value?:ProfileAvatarSelection;onChange:(v:ProfileAvatarSelection|undefined)=>void;onSource?:(handle:string)=>void}){
  const [link,setLink]=useState(value?.url||''),[draft,setDraft]=useState(value),[error,setError]=useState(''),[position,setPosition]=useState<number|null>(null),[opening,setOpening]=useState(false),[duration,setDuration]=useState(0),[seek,setSeek]=useState<number>(),[seekToken,setSeekToken]=useState(0);
- async function open(){if(opening)return;setOpening(true);setError('Abrindo link do TikTok…');try{setPosition(null);const resolved=await api.resolveTikTokLink(link.trim());const source=tiktokPost(resolved.url);setDraft(source.postType==='photo'?{url:source.canonical,kind:'photo',imageIndex:0}:{url:source.canonical,kind:'video',start:0,end:2});onSource?.(new URL(source.canonical).pathname.split('/')[1].slice(1));setError('');}catch(e:any){setError(e.message);}finally{setOpening(false);}}
+ useEffect(()=>{setDraft(value);setLink(value?.url||'');setPosition(null);},[value]); async function open(){if(opening)return;setOpening(true);setError('Abrindo link do TikTok…');try{setPosition(null);const resolved=await api.resolveTikTokLink(link.trim());const source=tiktokPost(resolved.url);setDraft(source.postType==='photo'?{url:source.canonical,kind:'photo',imageIndex:0}:{url:source.canonical,kind:'video',start:0,end:2});onSource?.(new URL(source.canonical).pathname.split('/')[1].slice(1));setError('');}catch(e:any){setError(e.message);}finally{setOpening(false);}}
  function apply(){if(!draft)return;try{if(draft.kind==='video'&&duration&&draft.end>duration)throw Error('O fim ultrapassa a duração do vídeo.');const selected=validateProfileAvatar(draft.kind==='photo'?{...draft,imageIndex:position??draft.imageIndex}:draft);setDraft(selected);onChange(selected);setError('Avatar selecionado. Clique em Salvar perfil para gravar.');}catch(e:any){setError(e.message);}}
  function move(delta:number){if(draft?.kind!=='photo')return;setDraft({...draft,imageIndex:Math.min(999,Math.max(0,(position??draft.imageIndex)+delta))});setPosition(null);setError('');}
  return <section className="avatar-link-editor"><header className="avatar-editor-heading"><span><LinkIcon size={20}/></span><div><h3>Avatar do perfil</h3><p>Escolha uma foto ou um trecho pelo link do TikTok.</p></div></header>

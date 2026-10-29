@@ -5,6 +5,10 @@ export type AgeSource='declarado_por_responsavel'|'declarado_pelo_perfil'|'estim
 export type GuardianStatus='sem_contato'|'ciencia_declarada'|'termo_recebido'|'recusado'|'revogado';
 export const editorialTraits=['arte','esporte','musica','educacao','humor','viagem'] as const;
 export interface SourceSnapshot {capturedAt:string;canonicalUrl:string;handle:string;oembedOkAt:string|null;publiclyAccessible:true|null}
+// Never infer adulthood from appearance, an embed or a year-only calculation.
+export function adultEligible(p:Pick<PersonProfile,'ageBand'|'ageSource'|'adultReview'|'birthYear'>,now=new Date()){
+ return p.ageBand==='adulto'&&p.ageSource==='declarado_pelo_perfil'&&!!p.adultReview?.evidenceUrl&&p.adultReview.contentReviewed===true&&(p.birthYear==null||now.getUTCFullYear()-p.birthYear>=18);
+}
 export function ageValues(birthYear:number|null,band:AgeBand='desconhecido',now=new Date()){
  const age=birthYear===null?null:now.getUTCFullYear()-birthYear;
  return {ageAtCapture:age,ageUpdatedAt:now.toISOString(),ageBand:age===null?band:age<12?'crianca' as const:age<18?'adolescente' as const:'adulto' as const};
@@ -35,8 +39,17 @@ export function editorialFields(input:Record<string,unknown>,existing:PersonProf
  if(!Array.isArray(traits)||traits.some(t=>typeof t!=='string'||!editorialTraits.includes(t as typeof editorialTraits[number])))throw Error('Use somente os temas editoriais disponíveis.');
  const rankingCriteria=field('rankingCriteria',1000);
  const values=ageValues(birthYear as number|null,band as AgeBand,now);
- if(input.published===true&&birthYear===null&&values.ageBand==='desconhecido')throw Error('Informe o ano ou a faixa etária antes de publicar.');
- return {birthYear:birthYear as number|null,...values,ageSource:source as AgeSource,guardianStatus:status as GuardianStatus,guardianName:field('guardianName',120),guardianRelation:field('guardianRelation',80),guardianEmail,ownershipVerified:existing?.ownershipVerified??false,guardianAuthorized:status==='termo_recebido',rankingCriteria,rankingUpdatedAt:rankingCriteria!==existing?.rankingCriteria?now.toISOString():existing?.rankingUpdatedAt??null,sourceSnapshot:existing?.sourceSnapshot??null,availabilityHistory:existing?.availabilityHistory?.slice(0,50)??[],traits:[...new Set(traits)] as string[],identityRevision:existing?.identityRevision??0};
+ const rawReview=input.adultReview;
+ let adultReview=existing?.adultReview;
+ if(rawReview!==undefined){
+  if(!rawReview||typeof rawReview!=='object')throw Error('Revisão de maioridade inválida.');
+  const review=rawReview as Record<string,unknown>;
+  if(typeof review.evidenceUrl!=='string'||review.evidenceUrl.length>2048||typeof review.contentReviewed!=='boolean')throw Error('Informe a fonte da maioridade e revise as mídias.');
+  if(review.evidenceUrl){const url=new URL(review.evidenceUrl);if(url.protocol!=='https:'||url.username||url.password)throw Error('Use uma fonte pública https para a maioridade.');}
+  adultReview={evidenceUrl:review.evidenceUrl.trim(),contentReviewed:review.contentReviewed};
+ }
+ if(input.published===true&&!adultEligible({...values,birthYear:birthYear as number|null,ageSource:source as AgeSource,adultReview},now))throw Error('Publicação restrita a adultos: registre a fonte de declaração de maioridade do perfil e confirme 18+ em todas as mídias, inclusive na gravação.');
+ return {adultReview,birthYear:birthYear as number|null,...values,ageSource:source as AgeSource,guardianStatus:status as GuardianStatus,guardianName:field('guardianName',120),guardianRelation:field('guardianRelation',80),guardianEmail,ownershipVerified:existing?.ownershipVerified??false,guardianAuthorized:status==='termo_recebido',rankingCriteria,rankingUpdatedAt:rankingCriteria!==existing?.rankingCriteria?now.toISOString():existing?.rankingUpdatedAt??null,sourceSnapshot:existing?.sourceSnapshot??null,availabilityHistory:existing?.availabilityHistory?.slice(0,50)??[],traits:[...new Set(traits)] as string[],identityRevision:existing?.identityRevision??0};
 }
 export function availabilityHistory(rows:{checkedAt:string;available:boolean|null}[]){
  const unique=new Map<string,{checkedAt:string;available:boolean|null}>();
