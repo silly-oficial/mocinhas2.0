@@ -15,9 +15,22 @@ create table if not exists public.mocinhas_app_backups (
 );
 alter table public.mocinhas_app_state enable row level security;
 alter table public.mocinhas_app_backups enable row level security;
+-- Remove policies left by older/manual installations, including permissive ones.
+do $$
+declare p record; col record;
+begin
+ for p in select tablename,policyname from pg_policies
+   where schemaname='public' and tablename in ('mocinhas_app_state','mocinhas_app_backups')
+ loop execute format('drop policy %I on public.%I',p.policyname,p.tablename); end loop;
+ -- Table REVOKE does not remove explicit grants on individual columns.
+ for col in select table_name,column_name from information_schema.columns
+   where table_schema='public' and table_name in ('mocinhas_app_state','mocinhas_app_backups')
+ loop execute format('revoke all privileges (%I) on public.%I from public, anon, authenticated',col.column_name,col.table_name); end loop;
+end $$;
 revoke all on public.mocinhas_app_state, public.mocinhas_app_backups from public, anon, authenticated;
 grant select,insert,update on public.mocinhas_app_state to service_role;
 grant select,insert on public.mocinhas_app_backups to service_role;
+revoke all on sequence public.mocinhas_app_backups_id_seq from public, anon, authenticated;
 grant usage,select on sequence public.mocinhas_app_backups_id_seq to service_role;
 create or replace function public.mocinhas_commit_state(expected_revision bigint,next_payload jsonb)
 returns bigint language plpgsql security invoker set search_path = '' as $$

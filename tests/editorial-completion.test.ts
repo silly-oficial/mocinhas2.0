@@ -84,10 +84,10 @@ const unavailable=renderToStaticMarkup(React.createElement(ProfileVideoGrid,{ite
 const unrelated=renderToStaticMarkup(React.createElement(CreatorCredit,{person:{...draft,ownershipVerified:true,guardianAuthorized:true},handle:'other.creator'}));assert.ok(!unrelated.includes('Autorizado pelo responsável'));assert.ok(!unrelated.includes('Titularidade do TikTok verificada'));
 
 // Origins must remain visible even without a birth year; none implies verified age.
-for(const [ageSource,expected] of [['estimado','Estimativa editorial'],['declarado_por_responsavel','Informada pelo responsável'],['declarado_pelo_perfil','Informada pelo perfil'],['desconhecido','Origem da idade desconhecida']] as const){
+for(const [ageSource,expected] of [['estimado','Idade estimada pela curadoria'],['declarado_por_responsavel','Informada pelo responsável'],['declarado_pelo_perfil','Informada pelo perfil'],['desconhecido','Origem da idade desconhecida']] as const){
  for(const birthYear of [2010,null]){
   const label=ageLabel({birthYear,ageBand:'adolescente',ageSource},new Date('2026-10-01'));
-  assert.ok(label.startsWith(expected));assert.match(label,/sem (comprovação|verificação)/);
+  assert.ok(label.startsWith(expected));if(ageSource==='estimado')assert.match(label,/pode estar errada/);assert.match(label,/sem (comprovação|verificação)/);
   assert.match(label,birthYear===null?/12 a 17/:/15 a 16/);
  }
 }
@@ -104,3 +104,17 @@ const {directorySettings}=await import('../server/directory-settings');
 const custom='Descrição configurada pela administração.';
 assert.equal(directorySettings({get:()=>({directorySettings:{ageRatingNote:custom}})} as unknown as typeof DB).ageRatingNote,custom);
 console.log('Age origin notices, classification disclaimers, preserved custom settings and SQL verification source passed.');
+
+// Corrections must be directly reachable from the age, with the request type selected.
+const peopleSource=fs.readFileSync('src/components/PeopleProfiles.tsx','utf8');
+for(const variable of ['person','p'])assert.ok(peopleSource.includes(`{ageLabel(${variable})} · <a href={'/pais?tipo=corrigir_idade&handle='+encodeURIComponent(${variable}.username)}`));
+assert.match(how,/<a href="\/pais\?tipo=corrigir_idade">Pedir correção da idade<\/a>/);
+assert.ok(!fs.readFileSync('src/components/DirectoryInformation.tsx','utf8').includes('mocinhas-editorial-notice-v1'));
+assert.match(privacy,/§3º[^.]*§4º[^.]*resguardados os direitos do titular/);
+const privateSql=fs.readFileSync('supabase/mocinhas_persistence.sql','utf8');
+const privateBlock=privateSql.slice(privateSql.indexOf('begin;'),privateSql.indexOf('insert into storage.buckets'))+'commit;\n';
+assert.ok(sql.includes(privateBlock),'both entry points apply identical JSON persistence protection');
+const verification=sql.slice(sql.indexOf('-- 26. VERIFICAÇÃO PÓS-EXECUÇÃO'));
+assert.ok(verification.split('\n').every(line=>!line.trim()||line.startsWith('--')),'verification must be opt-in comments');
+for(const fragment of ['drop policy %I','revoke all privileges (%I)','from public, anon, authenticated','revoke all on sequence','revoke all on function'])assert.ok(privateSql.includes(fragment),fragment);
+console.log('Direct age correction links and matching private SQL entry points passed.');

@@ -7,6 +7,67 @@
 -- 3. Clique em '+ New query', cole todo o código abaixo e clique em 'Run' (ou Ctrl+Enter)
 -- ==============================================================================
 
+-- 0. PERSISTÊNCIA ATUAL: DOCUMENTO JSON E BACKUPS PRIVADOS
+-- Mesmo bloqueio de supabase/mocinhas_persistence.sql; executar não apaga payloads.
+-- O servidor precisa de SUPABASE_SERVICE_ROLE_KEY. A anon key permanece pública.
+begin;
+create table if not exists public.mocinhas_app_state (
+ id text primary key check (id = 'main'),
+ revision bigint not null default 0 check (revision >= 0),
+ payload jsonb not null check (jsonb_typeof(payload->'users')='array' and jsonb_typeof(payload->'posts')='array'),
+ updated_at timestamptz not null default now()
+);
+create table if not exists public.mocinhas_app_backups (
+ id bigint generated always as identity primary key,
+ revision bigint not null,
+ payload jsonb not null,
+ created_at timestamptz not null default now()
+);
+alter table public.mocinhas_app_state enable row level security;
+alter table public.mocinhas_app_backups enable row level security;
+-- Remove policies left by older/manual installations, including permissive ones.
+do $$
+declare p record; col record;
+begin
+ for p in select tablename,policyname from pg_policies
+   where schemaname='public' and tablename in ('mocinhas_app_state','mocinhas_app_backups')
+ loop execute format('drop policy %I on public.%I',p.policyname,p.tablename); end loop;
+ -- Table REVOKE does not remove explicit grants on individual columns.
+ for col in select table_name,column_name from information_schema.columns
+   where table_schema='public' and table_name in ('mocinhas_app_state','mocinhas_app_backups')
+ loop execute format('revoke all privileges (%I) on public.%I from public, anon, authenticated',col.column_name,col.table_name); end loop;
+end $$;
+revoke all on public.mocinhas_app_state, public.mocinhas_app_backups from public, anon, authenticated;
+grant select,insert,update on public.mocinhas_app_state to service_role;
+grant select,insert on public.mocinhas_app_backups to service_role;
+revoke all on sequence public.mocinhas_app_backups_id_seq from public, anon, authenticated;
+grant usage,select on sequence public.mocinhas_app_backups_id_seq to service_role;
+create or replace function public.mocinhas_commit_state(expected_revision bigint,next_payload jsonb)
+returns bigint language plpgsql security invoker set search_path = '' as $$
+declare old_row public.mocinhas_app_state%rowtype;
+begin
+ select * into old_row from public.mocinhas_app_state where id='main' for update;
+ if not found or old_row.revision<>expected_revision then
+  raise exception 'Revision conflict' using errcode='40001';
+ end if;
+ if jsonb_typeof(next_payload->'users') is distinct from 'array' or jsonb_typeof(next_payload->'posts') is distinct from 'array' then
+  raise exception 'Invalid payload';
+ end if;
+ -- Snapshot the previous revision at most once per day, plus before content deletion.
+ -- Backup removal is manual; no post or backup is automatically deleted.
+ if not exists(select 1 from public.mocinhas_app_backups where created_at > now()-interval '1 day')
+    or exists(select 1 from jsonb_array_elements(old_row.payload->'posts') old_post
+       where not exists(select 1 from jsonb_array_elements(next_payload->'posts') new_post where new_post->>'id'=old_post->>'id')) then
+   insert into public.mocinhas_app_backups(revision,payload) values(old_row.revision,old_row.payload);
+ end if;
+ update public.mocinhas_app_state set payload=next_payload,revision=expected_revision+1,updated_at=now() where id='main';
+ return expected_revision+1;
+end;
+$$;
+revoke all on function public.mocinhas_commit_state(bigint,jsonb) from public,anon,authenticated;
+grant execute on function public.mocinhas_commit_state(bigint,jsonb) to service_role;
+commit;
+
 -- 1. HABILITAR EXTENSÕES ESSENCIAIS
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";
@@ -448,24 +509,30 @@ CREATE TRIGGER on_auth_user_created
 
 -- 26. VERIFICAÇÃO PÓS-EXECUÇÃO (somente leitura, executar também em produção)
 -- Este arquivo não foi aplicado automaticamente no Supabase de produção.
--- Primeiro aplicar/revisar supabase/mocinhas_persistence.sql para o banco JSON.
+-- A seção 0 aplica a proteção do banco JSON; selecione as consultas abaixo
+-- separadamente para verificar produção. Não consulte o payload.
 -- Uma anon key é pública: não protege dados se RLS/permissões estiverem incorretas.
 -- Resultados esperados: rls_enabled=true, browser_can_read/write=false,
 -- browser_can_execute=false e nenhuma política nas duas tabelas privadas.
-SELECT c.relname AS table_name, c.relrowsecurity AS rls_enabled,
-       has_table_privilege('anon', c.oid, 'SELECT') OR
-       has_table_privilege('authenticated', c.oid, 'SELECT') AS browser_can_read,
-       has_table_privilege('anon', c.oid, 'INSERT,UPDATE,DELETE,TRUNCATE,REFERENCES,TRIGGER') OR
-       has_table_privilege('authenticated', c.oid, 'INSERT,UPDATE,DELETE,TRUNCATE,REFERENCES,TRIGGER') AS browser_can_write
-FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace
-WHERE n.nspname='public' AND c.relname IN ('mocinhas_app_state','mocinhas_app_backups');
+-- SELECT c.relname AS table_name, c.relrowsecurity AS rls_enabled,
+--        has_any_column_privilege('anon', c.oid, 'SELECT') OR
+--        has_any_column_privilege('authenticated', c.oid, 'SELECT') AS browser_can_read,
+--        has_table_privilege('anon', c.oid, 'INSERT,UPDATE,DELETE,TRUNCATE,REFERENCES,TRIGGER') OR
+--        has_table_privilege('authenticated', c.oid, 'INSERT,UPDATE,DELETE,TRUNCATE,REFERENCES,TRIGGER') OR
+--        has_any_column_privilege('anon', c.oid, 'INSERT,UPDATE,REFERENCES') OR
+--        has_any_column_privilege('authenticated', c.oid, 'INSERT,UPDATE,REFERENCES') AS browser_can_write
+-- FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace
+-- WHERE n.nspname='public' AND c.relname IN ('mocinhas_app_state','mocinhas_app_backups');
 -- Exigir duas linhas acima; ausência de uma tabela não é aprovação.
-SELECT tablename, policyname, roles, cmd, qual, with_check FROM pg_policies
-WHERE schemaname='public' AND tablename IN ('mocinhas_app_state','mocinhas_app_backups');
-SELECT p.oid::regprocedure AS function_name,
-       has_function_privilege('anon',p.oid,'EXECUTE') OR
-       has_function_privilege('authenticated',p.oid,'EXECUTE') AS browser_can_execute,
-       has_function_privilege('service_role',p.oid,'EXECUTE') AS server_can_execute
-FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace
-WHERE n.nspname='public' AND p.proname='mocinhas_commit_state';
+-- SELECT tablename, policyname, roles, cmd, qual, with_check FROM pg_policies
+-- WHERE schemaname='public' AND tablename IN ('mocinhas_app_state','mocinhas_app_backups');
+-- SELECT p.oid::regprocedure AS function_name,
+--        has_function_privilege('anon',p.oid,'EXECUTE') OR
+--        has_function_privilege('authenticated',p.oid,'EXECUTE') AS browser_can_execute,
+--        has_function_privilege('service_role',p.oid,'EXECUTE') AS server_can_execute
+-- FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace
+-- WHERE n.nspname='public' AND p.proname='mocinhas_commit_state';
 -- Exigir a assinatura (bigint,jsonb), browser_can_execute=false e server_can_execute=true.
+-- SELECT has_sequence_privilege('anon','public.mocinhas_app_backups_id_seq','USAGE,SELECT,UPDATE') OR
+--        has_sequence_privilege('authenticated','public.mocinhas_app_backups_id_seq','USAGE,SELECT,UPDATE') AS browser_can_use_sequence;
+-- Esperado: browser_can_use_sequence=false.

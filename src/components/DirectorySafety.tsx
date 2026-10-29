@@ -33,7 +33,7 @@ function ResponsibleRequestForm() {
   const handle=params.get('handle')?.replace(/^@/,'').slice(0,60)||'';
   const content=params.get('conteudo')?.slice(0,2048)||'';
   const [busy,setBusy] = useState(false), [error,setError] = useState(''), [receipt,setReceipt] = useState(''),[accessToken,setAccessToken]=useState(''),[dueAt,setDueAt]=useState('');
-  const [type,setType] = useState<DirectoryRequestType>('remover_conteudo');
+  const [type,setType] = useState<DirectoryRequestType>(()=>params.get('tipo')==='corrigir_idade'?'corrigir_idade':'remover_conteudo');
   async function submit(event:React.FormEvent<HTMLFormElement>) {
     event.preventDefault(); if(busy) return;
     const form = event.currentTarget, data = new FormData(form);
