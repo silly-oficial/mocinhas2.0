@@ -1,5 +1,5 @@
 import React from 'react';
 import {ModalFrame} from './ModalFrame';
 export function SyncpayModal({onClose}:{onClose:()=>void;onSuccess?:()=>void}){
- return <ModalFrame onClose={onClose} label="Pagamentos desativados" className="people-dialog"><section className="people-admin"><h2>Pagamentos desativados</h2><p>O diretório não recebe novas cobranças nesta versão. Não é preciso pagar para acessar o canal de direitos.</p><p>Registros anteriores foram preservados. Para tratar um pagamento antigo, use o contato público.</p><a className="people-secondary" href="/pais">Atendimento</a><button type="button" className="people-primary" onClick={onClose}>Fechar</button></section></ModalFrame>;
+ return <ModalFrame onClose={onClose} label="Pagamentos desativados" className="people-dialog"><section className="people-admin"><h2>Pagamentos desativados</h2><p>O diretório não recebe novas cobranças nesta versão. </p><button type="button" className="people-primary" onClick={onClose}>Fechar</button></section></ModalFrame>;
 }

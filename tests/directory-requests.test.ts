@@ -1,11 +1,6 @@
 import assert from 'node:assert/strict';
 import {once} from 'node:events';
 import express from 'express';
-import fs from 'node:fs';
-import os from 'node:os';
-import path from 'node:path';
-import {spawn, type ChildProcess} from 'node:child_process';
-import jwt from 'jsonwebtoken';
 import {installDirectoryRequests, validateDirectoryRequest, retainDirectoryRequests} from '../server/directory-requests';
 import type {DB} from '../server/db';
 import type {DirectoryRequest} from '../shared/directory-requests';
@@ -96,46 +91,4 @@ try {
   server.close(); server.closeAllConnections();
 }
 
-// Exercise the real middleware order and durable JSON persistence using the production bundle.
-const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'mocinhas-requests-'));
-const secret = 'directory-requests-integration-only';
-fs.writeFileSync(path.join(directory, 'db.json'), JSON.stringify({users:[{id:'admin',username:'admin',isAdmin:true}],posts:[],usageSettings:{dailyMinutes:1,bindNetwork:false}}));
-const port = 3079;
-let child: ChildProcess | undefined;
-async function start() {
-  child = spawn(process.execPath, ['dist/server.cjs'], {env:{...process.env,NODE_ENV:'production',STORAGE_BACKEND:'local',DATA_DIR:directory,PORT:String(port),JWT_SECRET:secret,CONTACT_EMAIL:'contato@example.invalid'},stdio:'ignore'});
-  for(let i=0;i<100;i++) {
-    if (child.exitCode !== null) throw Error('Integration server exited.');
-    try { const response = await fetch(`http://127.0.0.1:${port}/api/directory-contact`); if(response.ok) return; } catch {}
-    await new Promise(resolve => setTimeout(resolve,50));
-  }
-  throw Error('Integration server unavailable.');
-}
-async function stop() {if(child && child.exitCode === null) {const exited = once(child,'exit'); child.kill(); await exited;} child=undefined;}
-try {
-  await start();
-  for(const route of ['/pais','/privacidade','/termos','/versoes']) assert.equal((await fetch(`http://127.0.0.1:${port}${route}`)).status,200);
-  const history = await (await fetch(`http://127.0.0.1:${port}/api/legal-history`)).json();
-  assert.equal(history.total,1);
-  const versionId = history.current.id;
-  const archiveFile = path.join(directory,'legal-versions',`documentos_${versionId}.json`);
-  const archiveBefore = fs.readFileSync(archiveFile,'utf8');
-  assert.equal(JSON.parse(archiveBefore).documents.terms.path,'/termos');
-  const response = await fetch(`http://127.0.0.1:${port}/api/directory-requests`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(input)});
-  assert.equal(response.status,201,'anonymous requests must bypass login and usage quota');
-  const {id} = await response.json();
-  assert.equal(JSON.parse(fs.readFileSync(path.join(directory,'db.json'),'utf8')).directoryRequests[0].id,id);
-  await stop(); await start();
-  const afterRestart = await (await fetch(`http://127.0.0.1:${port}/api/legal-history`)).json();
-  assert.equal(afterRestart.total,1,'restart must not duplicate legal document versions');
-  assert.equal(afterRestart.current.id,versionId);
-  assert.equal(fs.readFileSync(archiveFile,'utf8'),archiveBefore,'dated file must remain unchanged');
-  const downloaded = await fetch(`http://127.0.0.1:${port}/api/legal-history/${versionId}/file`);
-  assert.equal(downloaded.status,200);assert.equal(await downloaded.text(),archiveBefore);
-  const response2 = await fetch(`http://127.0.0.1:${port}/api/admin/directory-requests`,{headers:{Authorization:'Bearer '+jwt.sign({userId:'admin'},secret)}});
-  assert.equal(response2.status,200);
-  assert.equal((await response2.json()).requests[0].id,id,'request must survive process restart');
-  assert.equal((await fetch(`http://127.0.0.1:${port}/api/admin/directory-requests`)).status,401);
-  console.log('Production integration: anonymous pages/form, quota independence, admin authentication and persistence across restart passed.');
-} finally {await stop();fs.rmSync(directory,{recursive:true,force:true});}
-
+// Public route retirement is covered by retired-pages and gallery-production tests.

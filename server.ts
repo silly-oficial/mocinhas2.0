@@ -1,3 +1,4 @@
+import {installRetiredPages} from './server/retired-pages';
 import {installProfileUploads} from './server/profile-uploads';
 import {installAccessLog} from './server/access-log';
 import {sessionToken,setSession,protectCookieWrites} from './server/session-security';
@@ -6,12 +7,6 @@ import {tiktokPost} from './shared/people';
 import {makeTikTokResolver} from './server/tiktok-oembed';
 import {uploadedMediaOrigin} from './server/media-origin';
 import { installPeople } from './server/people';
-import { installDirectoryRequests } from './server/directory-requests';
-import { installDirectorySettings } from './server/directory-settings';
-import { installVerification } from './server/verification';
-import { startDirectoryMailWorker } from './server/directory-email';
-import { installLegalHistory, recordLegalVersion } from './server/legal-history';
-import { archiveLegalVersionFile } from './server/legal-history-storage';
 import { validateVideoCover } from './shared/video-cover';
 import { validatePhotoFocus } from './shared/photo-focus';
 import { installWelcome } from './server/welcome';
@@ -35,6 +30,7 @@ import { checkSupabaseConnection, isSupabaseConfigured, updateSupabaseCredential
 async function bootApplication() {
 if (CLOUD) { await hydrateCloudDatabase(); loadDB(); }
 const app = express();
+installRetiredPages(app);
 if (!DB.get().engagementRestored) {
   DB.get().posts.forEach(p => { p.allowComments = true; });
   DB.get().engagementRestored = true; DB.save();
@@ -48,7 +44,6 @@ if(process.env.TRUST_PROXY)app.set('trust proxy',/^\d+$/.test(process.env.TRUST_
 if(!fs.existsSync(UPLOADS_DIR))fs.mkdirSync(UPLOADS_DIR,{recursive:true});
 
 // Middlewares
-app.use('/api/directory-requests', express.json({ limit: '16kb' }));
 app.use(express.json({ limit: '50mb', verify: (req, _res, buf) => { if (req.url === '/api/syncpay/webhook') (req as any).rawBody = Buffer.from(buf); } }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 app.use(protectCookieWrites);
@@ -108,11 +103,6 @@ function requireAuth(req: express.Request, res: express.Response, next: express.
 }
 
 installWelcome(app, DB, requireAdmin);
-installDirectoryRequests(app, DB, requireAdmin);
-installDirectorySettings(app, DB, requireAdmin,async()=>{await recordLegalVersion(DB,archiveLegalVersionFile);});
-installVerification(app, DB, requireAdmin);
-const directoryMail = startDirectoryMailWorker(DB, flushCloud);
-installLegalHistory(app, DB);
 installConsumptionPolicy(app, DB, JWT_SECRET, getAuthUserId, requireAdmin);
 installPeople(app, DB, requireAdmin);
 installProfileUploads(app,requireAdmin);
@@ -1310,7 +1300,6 @@ async function startServer() {
   });
 }
 
-if (process.env.NODE_ENV === 'production') await recordLegalVersion(DB, archiveLegalVersionFile);
 await flushCloud();
 await startServer();
 }

@@ -8,10 +8,10 @@ async function call(route,method='GET',body,who='owner'){const res=await fetch(`
 const person={name:'Pessoa Teste',username:'pessoa.teste',bio:'Bio do perfil',avatar:'',cover:'',photos:[],videos:[],socials:{tiktok:'pessoa',instagram:'pessoa',pinterest:'pessoa'},tags:['Música'],birthYear:2000,published:false,featured:false,order:10};
 try{
  await start();assert.equal((await call('/api/people','GET',undefined,'')).status,401);assert.equal((await call('/api/admin/people','GET',undefined,'viewer')).status,403);assert.equal((await call('/api/admin/people','POST',person,'viewer')).status,403);
- const created=await call('/api/admin/people','POST',person);assert.equal(created.status,201);const id=created.body.profile.id;
+ const created=await call('/api/admin/people','POST',{...person,hidden:true});assert.equal(created.status,201);const id=created.body.profile.id;
  assert.equal((await call('/api/people','GET',undefined,'viewer')).body.profiles.length,0,'draft must remain private');
  assert.equal((await call('/api/admin/people','POST',person)).status,409);assert.equal((await call('/api/admin/people/not-found','PUT',person)).status,404);
- const published=await call('/api/admin/people/'+id,'PUT',{...person,published:true,avatarSelection:{url:'https://www.tiktok.com/@pessoa/photo/7421111111111111111',kind:'photo',imageIndex:2}});assert.equal(published.status,200);
+ const published=await call('/api/admin/people/'+id,'PUT',{...person,hidden:false,published:true,avatarSelection:{url:'https://www.tiktok.com/@pessoa/photo/7421111111111111111',kind:'photo',imageIndex:2}});assert.equal(published.status,200);
  assert.equal((await call('/api/people','GET',undefined,'viewer')).body.profiles[0].username,'pessoa.teste');assert.equal((await call('/api/people','GET',undefined,'viewer')).body.profiles[0].avatarSelection.imageIndex,2);
  assert.equal((await call('/api/admin/people/'+id,'PUT',{...person,published:true,videos:[{url:'https://tiktok.com.evil.test/@x/video/6718335390845095173',title:''}]})).status,400);
  assert.equal((await call('/api/admin/people/'+id,'PUT',{...person,published:true,avatar:'javascript:alert(1)'})).status,400);

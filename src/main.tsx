@@ -1,16 +1,13 @@
-import {HowItWorksPage} from './components/DirectoryInformation';
-import {CookiePreferences} from './components/CookiePreferences';
 import {StrictMode} from 'react';
 import {createRoot} from 'react-dom/client';
 import App from './App.tsx';
-import {DirectorySafetyFooter, DirectorySafetyPage, LegalVersionHistory, CreditsPage} from './components/DirectorySafety';
 import { ErrorBoundary } from './components/ErrorBoundary.tsx';
 import './index.css';
 import './skyglass.css';
 import './skyglass-reference.css';
 import './orix.css';
 import './people.css';
-import './directory-safety.css';
+import './media-players.css';
 
 if ('serviceWorker' in navigator) {
   if (import.meta.env.PROD) {
@@ -28,12 +25,10 @@ if ('serviceWorker' in navigator) {
   }
 }
 
-const publicPath = window.location.pathname.replace(/\/+$/, '');
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <ErrorBoundary>
-      {publicPath === '/como-funciona' ? <HowItWorksPage/> : publicPath === '/creditos' ? <CreditsPage/> : publicPath === '/pais' ? <DirectorySafetyPage/> : publicPath === '/privacidade' ? <DirectorySafetyPage page="privacy"/> : publicPath === '/termos' ? <DirectorySafetyPage page="terms"/> : publicPath === '/versoes' ? <LegalVersionHistory/> : <App />}
-      <DirectorySafetyFooter/><CookiePreferences/>
+      <App />
     </ErrorBoundary>
   </StrictMode>,
 );

@@ -1,6 +1,4 @@
-import {DirectoryEntryNotice} from './components/DirectoryInformation';
 import {TikTokPostCard} from './components/TikTokPostCard';
-import {MediaCredit} from './components/CreatorCredit';
 import { ProfileVideosFeed } from './components/ProfileVideos';
 import { PeopleProfiles } from './components/PeopleProfiles';
 import { PeopleAdmin } from './components/PeopleAdmin';
@@ -90,11 +88,11 @@ function Publication({ post, admin, onDeleted, onUpdate, onComments, onNotice, d
         {!cleanVideo && post.media.length > 1 && <div className="sky-media-pager"><button disabled={mediaIndex === 0} aria-label={ui('Mídia anterior')} onClick={() => { pauseMedia(); setMediaIndex(i => i - 1); }}><ChevronLeft size={20}/></button><button disabled={mediaIndex === post.media.length - 1} aria-label={ui('Próxima mídia')} onClick={() => { pauseMedia(); setMediaIndex(i => i + 1); }}><ChevronRight size={20}/></button></div>}
         {theme === 'orix' && m?.type === 'video' && !cleanVideo && <button className="orix-video-toggle" disabled={disabled || !mediaActive} aria-label={ui(videoPlaying ? 'Pausar vídeo' : 'Reproduzir vídeo')} onClick={() => { const video = orixVideo.current; if (!video) return; if (video.paused) video.play().catch(() => onNotice(ui('Toque novamente para reproduzir.'))); else video.pause(); }}>{videoPlaying ? <Pause size={24} fill="currentColor"/> : <Play size={24} fill="currentColor"/>}</button>}
         {fullImage && visual && !fullPhoto && <button className="media-full-close publication-full-close" aria-label={ui('Fechar tela cheia')} onClick={e=>{e.stopPropagation();setFullImage(false);}}><X size={21}/></button>}
-        {fullPhoto && <FullPhotoViewer handle={m.source_handle} src={m.url} alt={displayCaption || ui('Publicação')} onClose={() => setFullImage(false)}/>}
+        {fullPhoto && <FullPhotoViewer src={m.url} alt={displayCaption || ui('Publicação')} onClose={() => setFullImage(false)}/>}
 
         {displayCaption && !cleanVideo && !(fullImage && m?.type === 'video') && <div className={`sky-card-caption ${expanded ? 'expanded' : ''}`}><div><AutoTranslatedText text={displayCaption} renderTransformed={theme === 'orix' ? text => withoutTags ? text.replace(/#[a-zA-Z0-9_À-ÿ]+/g, '').replace(/[ \t]{2,}/g, ' ').trim() : text : undefined} contentClassName={theme === 'orix' && !expanded ? 'orix-caption-text' : undefined}/></div>{displayCaption.length > 95 && <button onClick={() => setExpanded(v => !v)}>{ui(expanded ? 'Ver menos' : 'Ver mais')}</button>}</div>}
       </div>
-    </article><MediaCredit handle={post.media[Math.min(mediaIndex,post.media.length-1)]?.source_handle}/></div>;
+    </article></div>;
   }
   return <div className="publication-credit-wrap"><article onContextMenu={e=>e.preventDefault()} className="publication niuniu-card overflow-hidden">
     <div className="flex items-center justify-between p-4 text-xs text-zinc-400"><time>{new Date(post.createdAt).toLocaleDateString(language)}</time>
@@ -108,7 +106,7 @@ function Publication({ post, admin, onDeleted, onUpdate, onComments, onNotice, d
       {post.allowComments !== false && <button disabled={disabled} aria-label={ui("Comentários")} className="flex items-center gap-2 text-sm text-zinc-400 disabled:opacity-40" onClick={() => onComments(post)}><MessageCircle size={20} />{post.commentsCount || 0}</button>}
       <button disabled={disabled || !!busy} aria-label={post.isSaved ? ui("Remover dos salvos") : ui("Salvar publicação")} aria-pressed={!!post.isSaved} className={`ml-auto disabled:opacity-40 ${post.isSaved ? 'text-emerald-400' : 'text-zinc-400'}`} onClick={() => interact('save')}><Bookmark size={20} fill={post.isSaved ? 'currentColor' : 'none'} /></button>
     </div>
-  </article><MediaCredit handle={post.media[0]?.source_handle}/></div>;
+  </article></div>;
 
 }
 function MainApp() {
@@ -185,7 +183,6 @@ function MainApp() {
         {isAdmin && <button aria-label={ui("Admin")} className="header-admin icon-button items-center gap-2 p-2" onClick={() => setModal('admin')}><ShieldCheck size={19} /><span className="hidden sm:block">{ui("Admin")}</span></button>}
         {!user && <button className="flex items-center gap-2" onClick={() => setModal('auth')}><LogIn size={19} />{ui("Entrar")}</button>}
       </div></div><TranslationStatus /></header>
-    <DirectoryEntryNotice/>
     <div className="app-layout flex gap-6"><aside className="app-sidebar hidden lg:block w-52 shrink-0"><nav className="niuniu-card p-3 sticky top-24 space-y-2">{nav.map(n => <button aria-label={n.label} key={n.id} data-destination={n.id} aria-current={view === n.id ? "page" : undefined} onClick={() => navigate(n.id)} className={`w-full flex items-center gap-3 p-3 rounded-2xl ${view === n.id ? 'bg-emerald-500/15 text-emerald-300' : 'text-zinc-400 hover:bg-white/5'}`}><span className="nav-icon"><n.icon size={20} /></span>{n.label}</button>)}{isAdmin && theme !== "skyglass" && theme !== "orix" && <button className="w-full flex gap-3 p-3 text-zinc-400" onClick={() => navigate('universe')}><Orbit size={20} />{ui("Universo")}</button>}</nav></aside>
     <main className="min-w-0 flex-1">
       <div>
@@ -202,7 +199,7 @@ function MainApp() {
         
         {view === 'feed' && <PeopleProfiles compact admin={isAdmin} onManage={() => setModal('people-admin')} onSeeAll={() => navigate('people')} onActiveChange={setPersonOpen} resetKey={personReset}/>}
         {(view === 'feed' || view === 'saved') && <div hidden={personOpen} className={`feed-toolbar relative z-10 bg-[var(--canvas-bg)] py-3 transition-[transform,opacity] duration-200 `}>{<h1 className="font-bold text-xl mb-3">{view === 'saved' ? ui("Publicações salvas") : ui("As melhores fotos")}</h1>}<div className="tag-scroll flex gap-2 overflow-x-auto pb-2"><button aria-pressed={!tags.length} className={`tag-chip ${!tags.length ? 'selected' : ''}`} onClick={() => setTags([])}>{theme === "skyglass" && <span className="sky-filter-icon"><Layers size={18}/></span>}<span>{ui("Todos")}</span></button>{allTags.map((t,index) => <button aria-pressed={tags.includes(t)} title={"#"+t} key={t} className={`tag-chip ${tags.includes(t) ? 'selected' : ''}`} onClick={() => setTags(prev => prev.includes(t) ? prev.filter(v => v !== t) : [...prev, t])}>{theme === "skyglass" && <span className="sky-filter-icon" data-color={index % 5}><Tag size={18}/></span>}<span>#{t}</span></button>)}</div></div>}
-        {view === 'people' ? <PeopleProfiles admin={isAdmin} onManage={() => setModal('people-admin')} onSeeAll={() => navigate('people')} onActiveChange={setPersonOpen} resetKey={personReset}/> : view === 'videos' ? <ProfileVideosFeed active={leaseValid && !modal} onActiveChange={setPersonOpen}/> : view === 'universe' ? <UniverseFeed posts={posts} isLoading={loading} paused={!!selected || !!modal || !!commentsPost || personOpen || !leaseValid} onSelectPost={setSelected} onSwitchToList={() => navigate('feed')} /> : <div hidden={personOpen}><PublicationGallery key={view} orix={theme === 'orix'} videos={view === 'videos'}>{loading && !posts.length ? <LoaderCircle className="animate-spin mx-auto" /> : shown.map((p, index) => <Publication sequenceIndex={index} mediaActive={!modal && !selected && !commentsPost && !personOpen} key={p.id} post={p} admin={isAdmin} {...engagement} onDeleted={load} />)}{!loading && !shown.length && (view !== 'feed' || tags.length > 0) && <p className="niuniu-card p-8 text-center text-zinc-400">{tags.length ? ui("Nenhuma publicação com as hashtags selecionadas.") : ui("Ainda não há publicações.")}</p>}</PublicationGallery></div>}
+        {view === 'people' ? <PeopleProfiles admin={isAdmin} onManage={() => setModal('people-admin')} onSeeAll={() => navigate('people')} onActiveChange={setPersonOpen} resetKey={personReset}/> : view === 'videos' ? <ProfileVideosFeed active={leaseValid && !modal}/> : view === 'universe' ? <UniverseFeed posts={posts} isLoading={loading} paused={!!selected || !!modal || !!commentsPost || personOpen || !leaseValid} onSelectPost={setSelected} onSwitchToList={() => navigate('feed')} /> : <div hidden={personOpen}><PublicationGallery key={view} orix={theme === 'orix'} videos={view === 'videos'}>{loading && !posts.length ? <LoaderCircle className="animate-spin mx-auto" /> : shown.map((p, index) => <Publication sequenceIndex={index} mediaActive={!modal && !selected && !commentsPost && !personOpen} key={p.id} post={p} admin={isAdmin} {...engagement} onDeleted={load} />)}{!loading && !shown.length && (view !== 'feed' || tags.length > 0) && <p className="niuniu-card p-8 text-center text-zinc-400">{tags.length ? ui("Nenhuma publicação com as hashtags selecionadas.") : ui("Ainda não há publicações.")}</p>}</PublicationGallery></div>}
       </>}
       </div>
     </main></div>

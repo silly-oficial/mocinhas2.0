@@ -1,5 +1,3 @@
-import {DirectoryConfiguration} from './DirectoryConfiguration';
-import { DirectoryRequestsAdmin } from './DirectoryRequestsAdmin';
 import { WelcomeSettings } from './WelcomeSettings';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Settings as SettingsIcon, BarChart3, Plus, Users, FileText, Clock, CreditCard, Database, X, Trash2, Image as ImageIcon, Video, Tag, Shield, Crown, RefreshCw, CheckCircle2, AlertTriangle, Key, ExternalLink, Copy, LoaderCircle } from 'lucide-react';
@@ -13,11 +11,9 @@ import { StorageStatus } from './StorageStatus';
 import { UsageSettings } from './UsageSettings';
 import { ModalFrame } from './ModalFrame';
 
-type Tab = 'welcome' | 'stats' | 'poster' | 'moderation' | 'users' | 'usage' | 'syncpay' | 'supabase' | 'requests' | 'configuration';
+type Tab = 'welcome' | 'stats' | 'poster' | 'moderation' | 'users' | 'usage' | 'syncpay' | 'supabase';
 type Media = Parameters<typeof api.createPost>[0]['media'][number];
 const tabs: { id: Tab; label: string; icon: typeof Plus }[] = [
-  {id:'configuration',label:'Configurações públicas',icon:SettingsIcon},
-  {id:'requests',label:'Atendimento',icon:Shield},
   {id:'stats',label:'Visão geral',icon:BarChart3},{id:'poster',label:'Publicar',icon:Plus},
   {id:'moderation',label:'Publicações',icon:FileText},{id:'users',label:'Contas',icon:Users},
   {id:'welcome',label:'Tela de entrada',icon:ImageIcon},{id:'usage',label:'Limite diário',icon:Clock},{id:'syncpay',label:'Pagamentos',icon:CreditCard},{id:'supabase',label:'Armazenamento',icon:Database}
@@ -71,7 +67,6 @@ export const AdminPanel: React.FC<{onClose:()=>void;onPostCreated?:()=>void}> = 
       <header className="admin-header"><span className="admin-header-icon"><Shield size={22}/></span><div><h2>{ui('Painel Administrativo')}</h2><p>{ui('Conteúdo e configurações do app')}</p></div><button autoFocus className="icon-button" aria-label={ui('Fechar painel administrativo')} disabled={publishing} onClick={closing}><X size={20}/></button></header>
       <nav className="admin-tabs" aria-label={ui('Seções administrativas')}>{tabs.map(t=><button key={t.id} disabled={publishing} aria-current={activeTab===t.id?'page':undefined} onClick={()=>setActiveTab(t.id)}><t.icon size={18}/><span>{ui(t.label)}</span></button>)}</nav>
       <div ref={bodyRef} className="admin-body">
-        {activeTab === 'requests' && <DirectoryRequestsAdmin/>}{activeTab === 'configuration' && <DirectoryConfiguration/>}
         {loadError&&<p className="admin-message" role="alert">{loadError}</p>}
         {isLoading&&<div className="admin-loading" role="status"><LoaderCircle size={18} className="animate-spin"/>{ui('Carregando…')}</div>}
         {activeTab==='stats'&&<div className="admin-overview"><div className="admin-intro"><span className="admin-eyebrow">mocinhas</span><h3>{ui('O diretório, em um só lugar.')}</h3><p>{ui('Publique, acompanhe as contas e ajuste o acesso diário.')}</p><button className="admin-primary" onClick={()=>setActiveTab('poster')}><Plus size={19}/>{ui('Nova publicação')}</button></div>
