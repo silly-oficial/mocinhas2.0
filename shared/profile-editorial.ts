@@ -9,6 +9,9 @@ export interface SourceSnapshot {capturedAt:string;canonicalUrl:string;handle:st
 export function adultEligible(p:Pick<PersonProfile,'ageBand'|'ageSource'|'adultReview'|'birthYear'>,now=new Date()){
  return p.ageBand==='adulto'&&p.ageSource==='declarado_pelo_perfil'&&!!p.adultReview?.evidenceUrl&&p.adultReview.contentReviewed===true&&(p.birthYear==null||now.getUTCFullYear()-p.birthYear>=18);
 }
+export function profilePublishable(p:Pick<PersonProfile,'subjectType'|'ageBand'|'ageSource'|'adultReview'|'birthYear'>,now=new Date()){
+ return p.subjectType==='animal'||adultEligible(p,now);
+}
 export function ageValues(birthYear:number|null,band:AgeBand='desconhecido',now=new Date()){
  const age=birthYear===null?null:now.getUTCFullYear()-birthYear;
  return {ageAtCapture:age,ageUpdatedAt:now.toISOString(),ageBand:age===null?band:age<12?'crianca' as const:age<18?'adolescente' as const:'adulto' as const};
@@ -25,6 +28,10 @@ export function ageLabel(p:Pick<PersonProfile,'birthYear'|'ageBand'|'ageUpdatedA
  return `${origin} · Idade aproximada: ${Math.max(0,upper-1)} a ${upper} anos · em ${now.toLocaleDateString('pt-BR',{month:'2-digit',year:'numeric',timeZone:'UTC'})}`;
 }
 export function editorialFields(input:Record<string,unknown>,existing:PersonProfile|undefined,now=new Date()){
+ // Existing human records keep their original requirements; no automatic conversion.
+ if(existing&&input.subjectType!==undefined&&input.subjectType!==existing.subjectType)throw Error('O tipo dos registros antigos não pode ser alterado. Cadastre o animal em um novo perfil.');
+ if(input.subjectType!==undefined&&input.subjectType!=='animal')throw Error('Tipo de perfil inválido.');
+ const subjectType=existing?existing.subjectType:input.subjectType==='animal'?'animal' as const:undefined;
  const birthYear=input.birthYear===undefined?existing?.birthYear??null:input.birthYear;
  if(birthYear!==null&&(!Number.isInteger(birthYear)||typeof birthYear!=='number'||birthYear<1900||birthYear>now.getUTCFullYear()))throw Error('Informe somente o ano de nascimento, entre 1900 e o ano atual.');
  const band=input.ageBand??existing?.ageBand??'desconhecido';
@@ -48,8 +55,8 @@ export function editorialFields(input:Record<string,unknown>,existing:PersonProf
   if(review.evidenceUrl){const url=new URL(review.evidenceUrl);if(url.protocol!=='https:'||url.username||url.password)throw Error('Use uma fonte pública https para a maioridade.');}
   adultReview={evidenceUrl:review.evidenceUrl.trim(),contentReviewed:review.contentReviewed};
  }
- if(input.published===true&&!adultEligible({...values,birthYear:birthYear as number|null,ageSource:source as AgeSource,adultReview},now))throw Error('Publicação restrita a adultos: registre a fonte de declaração de maioridade do perfil e confirme 18+ em todas as mídias, inclusive na gravação.');
- return {adultReview,birthYear:birthYear as number|null,...values,ageSource:source as AgeSource,guardianStatus:status as GuardianStatus,guardianName:field('guardianName',120),guardianRelation:field('guardianRelation',80),guardianEmail,ownershipVerified:existing?.ownershipVerified??false,guardianAuthorized:status==='termo_recebido',rankingCriteria,rankingUpdatedAt:rankingCriteria!==existing?.rankingCriteria?now.toISOString():existing?.rankingUpdatedAt??null,sourceSnapshot:existing?.sourceSnapshot??null,availabilityHistory:existing?.availabilityHistory?.slice(0,50)??[],traits:[...new Set(traits)] as string[],identityRevision:existing?.identityRevision??0};
+ if(input.published===true&&!profilePublishable({subjectType,...values,birthYear:birthYear as number|null,ageSource:source as AgeSource,adultReview},now))throw Error('Publicação restrita a adultos: registre a fonte de declaração de maioridade do perfil e confirme 18+ em todas as mídias, inclusive na gravação.');
+ return {subjectType,adultReview,birthYear:birthYear as number|null,...values,ageSource:source as AgeSource,guardianStatus:status as GuardianStatus,guardianName:field('guardianName',120),guardianRelation:field('guardianRelation',80),guardianEmail,ownershipVerified:existing?.ownershipVerified??false,guardianAuthorized:status==='termo_recebido',rankingCriteria,rankingUpdatedAt:rankingCriteria!==existing?.rankingCriteria?now.toISOString():existing?.rankingUpdatedAt??null,sourceSnapshot:existing?.sourceSnapshot??null,availabilityHistory:existing?.availabilityHistory?.slice(0,50)??[],traits:[...new Set(traits)] as string[],identityRevision:existing?.identityRevision??0};
 }
 export function availabilityHistory(rows:{checkedAt:string;available:boolean|null}[]){
  const unique=new Map<string,{checkedAt:string;available:boolean|null}>();

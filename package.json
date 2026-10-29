@@ -11,7 +11,8 @@
     "clean": "rm -rf dist server.js",
     "lint": "tsc --noEmit",
     "test": "node tests/session-recovery.test.mjs && node --import tsx tests/editorial-completion.test.ts && node --import tsx tests/auth-security.test.ts && node --import tsx tests/usage.test.ts && node tests/access.test.mjs && node --import tsx tests/payments.test.ts && node --import tsx tests/i18n.test.ts && node tests/storage.test.mjs && node tests/cloud.test.mjs && node --import tsx tests/cloud-diagnostics.test.ts && node tests/welcome.test.mjs && node --import tsx tests/media-feed.test.ts && node tests/people.test.mjs && node tests/profile-video.test.mjs && node --import tsx tests/directory-requests.test.ts && node --import tsx tests/legal-history.test.ts && node --import tsx tests/tiktok-profile-metadata.test.ts && node --import tsx tests/tiktok-oembed-minimal.test.ts && node --import tsx tests/tiktok-link.test.ts && node --import tsx tests/tiktok-identity.test.ts && node --import tsx tests/avatar-session.test.ts && node --import tsx tests/directory-presentation.test.ts && node --import tsx tests/post-presentation.test.ts && node --import tsx tests/avatar-player.test.ts && node --import tsx tests/profile-avatar.test.ts && node --import tsx tests/tiktok-only.test.ts && node --import tsx tests/tiktok-photo.test.ts && node --import tsx tests/directory-features.test.ts",
-    "test:profile-uploads": "npm run build && node tests/profile-uploads.test.mjs && node --import tsx tests/adult-directory.test.ts"
+    "test:profile-uploads": "npm run build && node tests/profile-uploads.test.mjs && node --import tsx tests/adult-directory.test.ts",
+    "test:animal-review": "node --import tsx tests/animal-review.test.ts && node --import tsx tests/adult-directory.test.ts"
   },
   "dependencies": {
     "@google/genai": "^2.4.0",
