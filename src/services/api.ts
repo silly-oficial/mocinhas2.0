@@ -48,6 +48,7 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
 }
 
 export const api = {
+  resolveTikTokIdentity:(url:string)=>request<{url:string;handle:string;name:string|null;profileUrl:string}>('/admin/tiktok-identity',{method:'POST',body:JSON.stringify({url})}),
 
   resolveTikTokLink:(url:string)=>request<{url:string}>('/admin/tiktok-link',{method:'POST',body:JSON.stringify({url})}),
 

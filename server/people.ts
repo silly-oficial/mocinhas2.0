@@ -4,6 +4,7 @@ import {appendLegalAudit} from './legal-audit';
 import {validatePostPresentation} from '../shared/post-presentation';
 import {optionalTikTokPreview} from './tiktok-preview';
 import {resolveTikTokLink} from './tiktok-link';
+import {resolveTikTokIdentity} from './tiktok-identity';
 import {validateProfileAvatar} from '../shared/profile-avatar';
 import type express from 'express';
 import {randomUUID} from 'node:crypto';
@@ -46,10 +47,11 @@ export function installPeople(app:express.Express,db:typeof DB,admin:express.Req
  const all=()=>db.get().peopleProfiles||[];
  const visible=(p:PersonProfile)=>p.published&&adultEligible(p)&&p.photos.every(url=>profileUpload(url,'image'))&&(!p.cover||profileUpload(p.cover,'image'))&&(!!p.avatarSelection||!p.avatar||p.avatar==='/profile-placeholder.svg'||profileUpload(p.avatar,'image'))&&p.videos.every(v=>v.kind==='upload'?profileUpload(v.url,'video'):v.kind==='social'&&v.display_mode==='embed'&&v.source_platform==='tiktok');
  const resolveTikTok=makeTikTokResolver(db);
+ app.post('/api/admin/tiktok-identity',admin,async(req,res)=>{try{res.set('Cache-Control','no-store').json(await resolveTikTokIdentity(req.body?.url,url=>optionalTikTokPreview(url,resolveTikTok)));}catch(error){res.status(400).json({error:error instanceof Error?error.message:'Não foi possível identificar o perfil.'});}});
  const publicProfile=(p:PersonProfile)=>({id:p.id,name:p.name,username:p.username,bio:p.bio,avatar:p.avatar,avatarSelection:p.avatarSelection,cover:p.cover,photos:p.photos,videos:p.videos,socials:p.socials,tags:p.tags,published:p.published,featured:p.featured,order:p.order,createdAt:p.createdAt,updatedAt:p.updatedAt,mediaSources:p.mediaSources,verified:isProfileVerified(db,p),ownershipVerified:isProfileVerified(db,p),guardianAuthorized:p.guardianStatus==='termo_recebido',birthYear:p.birthYear??null,...ageValues(p.birthYear??null,p.ageBand),ageSource:p.ageSource??'desconhecido',rankingCriteria:p.rankingCriteria??'',rankingUpdatedAt:p.rankingUpdatedAt??null,traits:p.traits??[]});
  app.post('/api/admin/tiktok-link',admin,async(req,res)=>{try{res.json({url:await resolveTikTokLink(req.body?.url)});}catch(e){res.status(400).json({error:e instanceof Error?e.message:'Não foi possível resolver o link.'});}});
  app.post('/api/admin/tiktok-oembed',admin,async(req,res)=>{try{if(typeof req.body?.url!=='string')throw Error('Informe o link.');const url=await resolveTikTokLink(req.body.url);res.json(await optionalTikTokPreview(url,resolveTikTok));}catch(error){res.status(400).json({error:error instanceof Error?error.message:'Falha no TikTok.'});}});
- const sorted=(rows:PersonProfile[])=>[...rows].sort((a,b)=>Number(b.featured)-Number(a.featured)||a.order-b.order||a.name.localeCompare(b.name));
+ const sorted=(rows:PersonProfile[])=>[...rows].sort((a,b)=>a.name.localeCompare(b.name,'pt-BR'));
  app.get('/api/directory-editorial',(_req,res)=>res.set('Cache-Control','no-store').json({profiles:sorted(all().filter(visible)).map(p=>({id:p.id,name:p.name,rankingCriteria:p.rankingCriteria??'',rankingUpdatedAt:p.rankingUpdatedAt??null}))}));
  app.get('/api/people',(_req,res)=>res.set('Cache-Control','no-store').json({profiles:sorted(all().filter(visible)).map(publicProfile)}));
  app.get('/api/people/:id/video-status/:index',async(req,res)=>{
