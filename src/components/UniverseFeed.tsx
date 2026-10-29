@@ -1,4 +1,3 @@
-import {MediaCredit} from './CreatorCredit';
 import { ui, useUi } from '../i18n/ui';
 import { ManagedVideo } from './ManagedVideo';
 import { AutoTranslatedText } from './AutoTranslatedText';
@@ -968,7 +967,7 @@ export const UniverseFeed: React.FC<UniverseFeedProps> = ({
             lite ? 'bg-black/85' : 'bg-black/60 backdrop-blur-md'
           }`}
         >
-          <div className="min-w-0 flex-1 text-sm text-white"><AutoTranslatedText text={focusNode.title} showBadge={false}/><MediaCredit handle={focusNode.post.media[0]?.source_handle}/></div>
+          <div className="min-w-0 flex-1 text-sm text-white"><AutoTranslatedText text={focusNode.title} showBadge={false}/></div>
           {allowVideo && (
             <button
               onClick={() => setSoundOn(v => !v)}

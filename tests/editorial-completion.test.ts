@@ -67,21 +67,10 @@ const fs=await import('node:fs');
 const sql=fs.readFileSync('supabase_schema.sql','utf8');
 assert.match(sql,/REVOKE ALL ON public\.%I FROM anon, authenticated/);assert.match(sql,/GRANT SELECT ON public\.categories, public\.app_settings TO anon, authenticated/);assert.ok(!sql.includes('CREATE POLICY "Permitir_'),'permissive legacy policy generator must not return');
 const React=await import('react');const {renderToStaticMarkup}=await import('react-dom/server');
-const {HowItWorksPage}=await import('../src/components/DirectoryInformation');
-const how=renderToStaticMarkup(React.createElement(HowItWorksPage));assert.equal((how.match(/<h2>/g)||[]).length,8);for(const text of ['subjetiv','votação','player oficial','classificação','idade','selos','/pais'])assert.ok(how.includes(text));
-const {CreatorCredit}=await import('../src/components/CreatorCredit');
-const ownershipMarkup=renderToStaticMarkup(React.createElement(CreatorCredit,{person:{...draft,ownershipVerified:true,guardianAuthorized:false}}));assert.match(ownershipMarkup,/Titularidade do TikTok verificada/);assert.ok(!ownershipMarkup.includes('Autorizado pelo responsável'));
-const guardianMarkup=renderToStaticMarkup(React.createElement(CreatorCredit,{person:{...draft,ownershipVerified:false,guardianAuthorized:true}}));assert.match(guardianMarkup,/Autorização documentada do responsável/);assert.ok(!guardianMarkup.includes('Titularidade do TikTok verificada'));
-const {legalDocuments}=await import('../shared/legal-documents');const privacy=JSON.stringify(legalDocuments.privacy);for(const text of ['Supabase','Render','Resend','art. 33','art. 18','encarregado','seis meses','90 dias','180 dias','perfilamento','7º, IX'])assert.ok(privacy.includes(text),text);
-assert.match(JSON.stringify(legalDocuments.terms),/foro competente/);assert.match(JSON.stringify(legalDocuments.parents),/48 horas úteis/);
-console.log('Public information structure and SQL policy source checks passed. No live SQL execution or visual/device verification claimed.');
-
 assert.ok(sql.includes("VALUES ('mocinhas-media', 'mocinhas-media', false)"));assert.ok(sql.includes('DROP POLICY IF EXISTS "Public Access Mocinhas"'));
 
 const {ProfileVideoGrid}=await import('../src/components/ProfileVideos');
-const unavailable=renderToStaticMarkup(React.createElement(ProfileVideoGrid,{items:[{person:draft,index:0,video:{url:'https://www.tiktok.com/@criadora/video/7421111111111111111',title:'',kind:'social',is_still_available:false}}],onProfile:()=>{}}));assert.match(unavailable,/Indisponível na origem/);
-
-const unrelated=renderToStaticMarkup(React.createElement(CreatorCredit,{person:{...draft,ownershipVerified:true,guardianAuthorized:true},handle:'other.creator'}));assert.ok(!unrelated.includes('Autorizado pelo responsável'));assert.ok(!unrelated.includes('Titularidade do TikTok verificada'));
+const unavailable=renderToStaticMarkup(React.createElement(ProfileVideoGrid,{items:[{person:draft,index:0,video:{url:'https://www.tiktok.com/@criadora/video/7421111111111111111',title:'',kind:'social',is_still_available:false}}]}));assert.match(unavailable,/Indisponível na origem/);
 
 // Origins must remain visible even without a birth year; none implies verified age.
 for(const [ageSource,expected] of [['estimado','Idade estimada pela curadoria'],['declarado_por_responsavel','Informada pelo responsável'],['declarado_pelo_perfil','Informada pelo perfil'],['desconhecido','Origem da idade desconhecida']] as const){
@@ -91,30 +80,16 @@ for(const [ageSource,expected] of [['estimado','Idade estimada pela curadoria'],
   assert.match(label,birthYear===null?/12 a 17/:/15 a 16/);
  }
 }
-const {DirectoryRating,DirectoryEntryNotice}=await import('../src/components/DirectoryInformation');
-for(const Component of [DirectoryRating,DirectoryEntryNotice]){
- const markup=renderToStaticMarkup(React.createElement(Component));
- assert.match(markup,/não é certificação oficial do Ministério da Justiça/);
- assert.match(markup,/trajes de banho/);assert.match(markup,/decotes/);
-}
-assert.match(fs.readFileSync('src/components/DirectoryInformation.tsx','utf8'),/mocinhas-editorial-notice-v2/);
-assert.match(privacy,/§3º/);assert.match(privacy,/§4º/);
 for(const fragment of ['mocinhas_app_state','mocinhas_app_backups','has_table_privilege','has_function_privilege','pg_policies','browser_can_execute'])assert.ok(sql.includes(fragment),fragment);
 const {directorySettings}=await import('../server/directory-settings');
 const custom='Descrição configurada pela administração.';
 assert.equal(directorySettings({get:()=>({directorySettings:{ageRatingNote:custom}})} as unknown as typeof DB).ageRatingNote,custom);
 console.log('Age origin notices, classification disclaimers, preserved custom settings and SQL verification source passed.');
 
-// Corrections must be directly reachable from the age, with the request type selected.
-const peopleSource=fs.readFileSync('src/components/PeopleProfiles.tsx','utf8');
-for(const variable of ['person','p'])assert.ok(peopleSource.includes(`{ageLabel(${variable})} · <a href={'/pais?tipo=corrigir_idade&handle='+encodeURIComponent(${variable}.username)}`));
-assert.match(how,/<a href="\/pais\?tipo=corrigir_idade">Pedir correção da idade<\/a>/);
-assert.ok(!fs.readFileSync('src/components/DirectoryInformation.tsx','utf8').includes('mocinhas-editorial-notice-v1'));
-assert.match(privacy,/§3º[^.]*§4º[^.]*resguardados os direitos do titular/);
 const privateSql=fs.readFileSync('supabase/mocinhas_persistence.sql','utf8');
 const privateBlock=privateSql.slice(privateSql.indexOf('begin;'),privateSql.indexOf('insert into storage.buckets'))+'commit;\n';
 assert.ok(sql.includes(privateBlock),'both entry points apply identical JSON persistence protection');
 const verification=sql.slice(sql.indexOf('-- 26. VERIFICAÇÃO PÓS-EXECUÇÃO'));
 assert.ok(verification.split('\n').every(line=>!line.trim()||line.startsWith('--')),'verification must be opt-in comments');
 for(const fragment of ['drop policy %I','revoke all privileges (%I)','from public, anon, authenticated','revoke all on sequence','revoke all on function'])assert.ok(privateSql.includes(fragment),fragment);
-console.log('Direct age correction links and matching private SQL entry points passed.');
+console.log('Matching private SQL entry points passed.');

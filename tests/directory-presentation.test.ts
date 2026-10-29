@@ -2,7 +2,6 @@ import assert from 'node:assert/strict';
 import React from 'react';
 import {renderToStaticMarkup} from 'react-dom/server';
 import {avatarEmbedSource} from '../shared/avatar-embed';
-import {MediaCredit,CreatorCredit} from '../src/components/CreatorCredit';
 const url='https://www.tiktok.com/@creator/video/7421111111111111111';
 const selection={url,kind:'video' as const,start:12,end:15,zoom:1};
 const src=new URL(avatarEmbedSource(selection));
@@ -11,19 +10,6 @@ assert.equal(avatarEmbedSource({...selection,zoom:2}),src.href,'zoom must not re
 assert.equal(new URL(avatarEmbedSource({...selection,kind:'photo',imageIndex:4})).searchParams.get('autoplay'),'0');
 assert.equal(new URL(avatarEmbedSource(selection,{preview:true})).searchParams.get('loop'),'0');
 assert.equal(new URL(avatarEmbedSource(selection,{interactive:true})).searchParams.get('play_button'),'0','interaction must not restore controls over the image');
-const card=renderToStaticMarkup(React.createElement(MediaCredit,{handle:'creator',sourceUrl:url}));
-assert.ok(!card.includes('Créditos e remoção'),'cards do not expose removal controls');assert.match(card,/Ver no TikTok/);assert.match(card,/@creator/);assert.match(card,/credit-source-button/);
-const person:any={socials:{tiktok:'creator'}};
-const profile=renderToStaticMarkup(React.createElement(CreatorCredit,{person,showRights:true}));
-assert.match(profile,/Créditos e remoção/);assert.match(profile,/Pedir remoção/);assert.match(profile,/Direitos reservados/);
-console.log('Presentation regressions passed: muted autoplay and loop independent of zoom, native play control, credits restricted to explicit profile context.');
-
-const actions=renderToStaticMarkup(React.createElement(MediaCredit,{handle:'creator',profileAction:React.createElement('button',null,'Ir para o perfil')}));
-assert.ok(actions.indexOf('Ir para o perfil')<actions.indexOf('Ver no TikTok'),'profile is the first action on directory cards');
-assert.ok(actions.indexOf('Conteúdo do criador original.')>actions.indexOf('Ver no TikTok'),'ownership caption follows the complete action group');
-assert.ok(!actions.includes('Imagem/vídeo do criador original'));
-assert.match(profile,/aria-expanded="false"/);assert.match(profile,/credit-rights-panel[^>]*hidden/);
-
 const {cleanTikTokPlayerSource}=await import('../shared/tiktok-player-options');
 const clean=new URL(cleanTikTokPlayerSource('https://www.tiktok.com/player/v1/7421111111111111111?controls=1&description=1&music_info=1&muted=1&autoplay=1'));
 for(const name of ['controls','play_button','progress_bar','volume_control','fullscreen_button','timestamp','description','music_info','closed_caption','native_context_menu'])assert.equal(clean.searchParams.get(name),'0');
@@ -33,3 +19,6 @@ const playing=renderToStaticMarkup(React.createElement(SocialVideoPlayer,{video:
 assert.match(playing,/Reproduzir/);assert.match(playing,/Pausar/);assert.match(playing,/controls=0/);
 const images=renderToStaticMarkup(React.createElement(SocialVideoPlayer,{video:{url:url.replace('/video/','/photo/'),title:'',kind:'social'},name:'Creator'}));
 assert.match(images,/Próxima foto/);assert.match(images,/Foto 1/);
+
+for(const html of [playing,images])assert.ok(!/Ver no TikTok|Abrir no|Conteúdo do criador|Créditos e remoção/.test(html));
+console.log('Media presentation: native controls preserved; external links and credit panels absent.');

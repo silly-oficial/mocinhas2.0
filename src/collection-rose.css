@@ -56,11 +56,6 @@ html[data-theme=orix],[data-theme=orix] body {background:var(--canvas-bg);color:
 [data-theme=orix] .people-card .people-card-body{padding:10px 16px 16px}
 [data-theme=orix] .collection-profile-info{font-size:11px;color:var(--sg-muted)}
 [data-theme=orix] .collection-profile-info summary{min-height:44px;display:flex;align-items:center;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
-[data-theme=orix] .people-card .credit-layout{padding:0!important;gap:8px!important}
-[data-theme=orix] .people-card .credit-identity>a{min-height:44px}
-[data-theme=orix] .people-card .credit-actions{grid-template-columns:1fr 1fr;gap:8px}
-[data-theme=orix] .people-card .credit-actions>:is(a,button){font-size:11px;padding:8px;min-height:44px;border-radius:999px}
-[data-theme=orix] .people-card .credit-caption{font-size:11px!important}
 [data-theme=orix] .app-bottom-nav{left:16px;right:16px;bottom:max(16px,env(safe-area-inset-bottom));width:auto;max-width:440px;padding:6px;gap:2px;border:1px solid #ffffff80;border-radius:999px;background:#fff8fbeb;box-shadow:0 8px 28px #80234726;backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);justify-content:space-between;isolation:auto}
 [data-theme=orix] .app-bottom-nav::before{content:none}
 [data-theme=orix] .app-bottom-nav>button{flex:0 1 44px;min-width:44px;min-height:48px;padding:0;gap:6px;border-radius:999px;color:var(--sg-muted)}
@@ -107,8 +102,6 @@ html[data-theme=orix],[data-theme=orix] body {background:var(--canvas-bg);color:
 .upload-avatar-preview{display:flex;gap:12px;align-items:center;margin-top:12px}
 [data-theme=orix] .profile-reel-tile>video{width:100%;height:100%;object-fit:cover}
 [data-theme=orix] .profile-reel-card{background:var(--surface-card);border-color:var(--theme-border);border-radius:24px}
-[data-theme=orix] .directory-entry-notice{margin-top:0;background:var(--surface-card)}
-[data-theme=orix] .directory-safety-footer{background:transparent;color:var(--sg-muted);padding-bottom:112px}
 [data-theme=orix] :is(button,a,summary,input,textarea,select):focus-visible{outline:3px solid var(--rose-600);outline-offset:3px}
 @media(max-width:599px){
  [data-theme=orix] .app-shell{max-width:462px}

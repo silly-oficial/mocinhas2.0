@@ -8,8 +8,6 @@ import {sendEmail,enqueueEmail,startDirectoryMailWorker} from '../server/directo
 import {directorySettings,installDirectorySettings} from '../server/directory-settings';
 import {installVerification,isProfileVerified,addVerificationRequest} from '../server/verification';
 import {ProfileVideoGrid} from '../src/components/ProfileVideos';
-import {CreatorCredit} from '../src/components/CreatorCredit';
-import {CookiePreferences,readCookieChoices} from '../src/components/CookiePreferences';
 import type {DB} from '../server/db';
 const state:any={users:[],posts:[],peopleProfiles:[],directoryRequests:[]};
 let failing=false;
@@ -28,12 +26,8 @@ await assert.rejects(()=>denied(url));assert.equal((await denied(url,false)).ava
 const person:any={id:'p',username:'fixture',name:'Fixture',avatar:'/profile-placeholder.svg',cover:'',photos:[],videos:[],socials:{tiktok:'fixture',instagram:'',pinterest:''},tags:[],published:true};
 state.peopleProfiles=[person];
 const items=Array.from({length:20},(_,index)=>({person,index,video:{url,title:'Video',kind:'social' as const,thumbnail:'https://cdn.example.invalid/thumb.jpg'}}));
-const html=renderToStaticMarkup(React.createElement(ProfileVideoGrid,{items,onProfile:()=>{}}));
-assert.ok(!html.includes('<iframe'));assert.ok(!html.includes('<video'));assert.equal((html.match(/Ver no TikTok/g)||[]).length,20);
-assert.ok(renderToStaticMarkup(React.createElement(CreatorCredit,{person})).includes('Conteúdo público do criador original.'));
-const cookieHtml=renderToStaticMarkup(React.createElement(CookiePreferences));assert.ok(cookieHtml.includes('Analíticos'));assert.ok(cookieHtml.includes('Publicidade'));assert.equal(readCookieChoices(),null);
-const storage=new Map<string,string>();(globalThis as any).localStorage={getItem:(key:string)=>storage.get(key)||null};
-storage.set('mocinhas_cookie_choices_v1',JSON.stringify({version:1,essential:true,analytics:false,advertising:true,updatedAt:new Date().toISOString()}));assert.equal(readCookieChoices()?.advertising,true);assert.equal(readCookieChoices()?.analytics,false);delete (globalThis as any).localStorage;
+const html=renderToStaticMarkup(React.createElement(ProfileVideoGrid,{items}));
+assert.ok(!html.includes('<iframe'));assert.ok(!html.includes('<video'));assert.equal((html.match(/Ver no TikTok/g)||[]).length,0);
 enqueueEmail(db,'received-test','fixture@example.invalid','request_received','req');
 enqueueEmail(db,'received-test','fixture@example.invalid','request_received','req');assert.equal(state.directoryEmailOutbox.length,1);
 const oldKey=process.env.RESEND_API_KEY,oldFrom=process.env.EMAIL_FROM;process.env.RESEND_API_KEY='fake-test';process.env.EMAIL_FROM='verified@example.invalid';

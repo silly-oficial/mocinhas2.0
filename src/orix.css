@@ -192,8 +192,6 @@ html[data-theme=orix], [data-theme=orix] body { background:#fff; color:var(--the
 [data-theme=orix] .orix-photo.show-full-media .sky-media-stage::after { display:none; }
 [data-theme=orix] .orix-photo.show-full-media .sky-card-caption { position:static; max-height:none; padding:16px 20px 4px; font-size:18px; background:none; }
 [data-theme=orix] .orix-photo.show-full-media .sky-action-rail { position:static; padding:12px 16px 16px; }
-@media (min-width:768px) { }
-@media (max-width:767px) { }
 [data-theme=orix] .orix-photo .sky-media-stage { width:100%; }
 [data-theme=orix] .orix-photo:not(.show-full-media) .publication-media { width:100%; height:100%; }
 
@@ -315,8 +313,6 @@ html[data-theme=orix], [data-theme=orix] body { background:#fff; color:var(--the
 [data-theme=orix] .sky-card-caption .orix-caption-text { display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; white-space:pre-wrap; }
 [data-theme=orix] .sky-card-caption [data-translation-toggle] { position:relative; }
 [data-theme=orix] .sky-card-caption [data-translation-toggle]::after { content:''; position:absolute; inset:-8px 0; }
-@media (max-width:767px) {
-}
 /* Fade is attached to the media plane, below the position control. */
 [data-theme=orix] .orix-video .video-shell::after { content:''; position:absolute; inset:40% 0 0; z-index:1; pointer-events:none; background:linear-gradient(transparent,#0008 45%,#000e 100%); border-radius:0 0 26px 26px; }
 [data-theme=orix] .orix-video .sky-card-caption:not(.expanded) { background:none; }
@@ -366,8 +362,6 @@ html[data-theme=orix], [data-theme=orix] body { background:#fff; color:var(--the
 [data-theme=orix] .app-shell:has(.orix-gallery) main { min-height:0; }
 [data-theme=orix] .orix-gallery .orix-photo.show-full-media .publication-media { height:100%; }
 [data-theme=orix] .orix-gallery .orix-photo.show-full-media .sky-media { width:100%; height:100%; max-height:100%; object-fit:contain; }
-@media (prefers-reduced-motion:reduce) {
-}
 /* Center media in the bounded viewing area; lift navigation off the edge. */
 [data-theme=orix] .app-bottom-nav { bottom:24px; }
 [data-theme=orix] .app-bottom-nav::before { bottom:-24px; }
@@ -464,8 +458,6 @@ html[data-theme=orix], [data-theme=orix] body { background:#fff; color:var(--the
  bottom:2px; right:12px; width:36px; height:36px; min-height:36px;
 }
 [data-theme=orix] .orix-gallery .orix-video.show-full-media .media-play { display:none; }
-@media(prefers-reduced-motion:reduce) {
-}
 [data-theme=orix] .orix-video.show-full-media .media-seek::-webkit-slider-runnable-track { background:linear-gradient(to right,var(--orix-orange) var(--seek-progress),#c7c7cc var(--seek-progress)); }
 [data-theme=orix] .orix-video.show-full-media .media-seek::-moz-range-track { background:#c7c7cc; }
 [data-theme=orix] .orix-video.show-full-media .media-seek::-moz-range-progress { background:var(--orix-orange); }
