@@ -9,7 +9,7 @@ import {useUi,ui} from '../i18n/ui';
 import {ModalFrame} from './ModalFrame';
 import {FullPhotoViewer} from './FullPhotoViewer';
 import {pauseMedia} from './ManagedVideo';
-import {socialVideo,type PersonProfile} from '../../shared/people';
+import {socialUrl,socialVideo,type PersonProfile} from '../../shared/people';
 
 export function PersonModal({person,onClose,asPage=false}:{person:PersonProfile;onClose:()=>void;asPage?:boolean}){
  useUi();const [tab,setTab]=useState('photos'),[photo,setPhoto]=useState<string|null>(null),[notice,setNotice]=useState('');
@@ -22,6 +22,7 @@ export function PersonModal({person,onClose,asPage=false}:{person:PersonProfile;
   <div className="people-detail-body"><ProfileAvatar className="people-avatar" selection={person.avatarSelection} interactive={person.avatarSelection?.kind==='video'} fallback={person.avatar} alt={person.name}/><div className="people-title"><div><h2>{person.name}</h2></div><button className="people-icon" aria-label={ui('Compartilhar perfil')} onClick={share}><Share2 size={19}/></button></div>
 
 
+   {person.socials.tiktok?.trim()&&<a className="people-primary people-tiktok-profile" href={socialUrl('tiktok',person.socials.tiktok)} target="_blank" rel="noopener noreferrer">{ui('Ver perfil no TikTok')}<ArrowUpRight size={18}/></a>}
    <div className="people-tabs" role="tablist" aria-label={ui('Mídias do perfil')}><button role="tab" aria-selected={tab==='photos'} onClick={()=>{setTab('photos');}}><ImageIcon size={17}/>{ui('Fotos')} <span>{person.photos.length+photoPosts.length}</span></button><button role="tab" aria-selected={tab==='videos'} onClick={()=>{setTab('videos');}}><Play size={17}/>{ui('Vídeos')} <span>{videoPosts.length}</span></button></div>
    {tab==='photos'?<>{photoPosts.length>0&&<ProfileVideoGrid items={photoPosts}/>}<div className="people-photos">{person.photos.map((src,index)=><article key={src+index}><button onClick={()=>setPhoto(src)} aria-label={ui('Ver foto completa')+' '+(index+1)}><img src={src} alt={person.name+' — '+(index+1)} loading="lazy"/></button></article>)}{!person.photos.length&&!photoPosts.length&&<p>{ui('Nenhuma foto adicionada ainda.')}</p>}</div></>:<ProfileVideoGrid items={videoPosts}/>}
 

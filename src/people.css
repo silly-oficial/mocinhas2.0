@@ -12,6 +12,7 @@
 .people-heading h2,.people-admin-header h2 { display:flex; align-items:center; gap:8px; font-size:24px; font-weight:750; margin-top:4px; }
 .people-primary,.people-secondary,.people-watch { display:inline-flex; align-items:center; justify-content:center; gap:8px; min-height:44px; border-radius:16px; padding:10px 16px; font-size:13px; font-weight:650; }
 .people-primary { background:var(--people-accent); color:#fff; border:0; }
+.people-tiktok-profile { margin:16px 0; text-decoration:none; }
 .people-secondary { border:1px solid var(--people-border); background:var(--people-surface); }
 .people-cards { display:grid; grid-template-columns:repeat(auto-fill,minmax(180px,1fr)); gap:16px; }
 .people-card { border:1px solid var(--people-border); border-radius:26px; overflow:hidden; background:var(--people-surface); box-shadow:0 8px 25px #00000008; }
