@@ -94,3 +94,21 @@
 
 .tiktok-post-card>.social-video-player{width:100%}
 .tiktok-post-card>img{display:block;width:100%;height:auto;object-fit:contain}
+
+.avatar-preview-layout{display:grid;grid-template-columns:minmax(0,1fr) 130px;gap:18px;align-items:start}
+.avatar-preview-layout h4{font-size:13px;font-weight:700;margin:0 0 10px}
+.avatar-crop-preview{position:relative;min-width:0}
+.avatar-crop-preview>.profile-link-avatar{width:100%;height:320px;border-radius:20px}
+.avatar-pan-surface{position:absolute;inset:0 0 auto;height:320px;touch-action:none;cursor:grab;border-radius:20px}
+.avatar-pan-surface:active{cursor:grabbing}
+.avatar-result-preview{display:grid;justify-items:center;gap:6px;text-align:center}
+.avatar-result-preview>.profile-link-avatar{width:112px;height:112px;border-radius:50%;flex:none;box-shadow:0 0 0 4px var(--surface-card,#fff),0 4px 18px #0002}
+.avatar-preview-layout small{display:block;font-size:12px;line-height:1.5;color:var(--theme-muted);margin-top:8px}
+.avatar-direction-controls{display:flex;flex-wrap:wrap;gap:8px}
+.avatar-direction-controls>button{display:flex;align-items:center;gap:6px;min-width:44px;min-height:44px;justify-content:center}
+.avatar-link-editor>details>summary{display:flex;align-items:center;gap:8px;cursor:pointer;min-height:44px;font-size:13px}
+.avatar-link-editor>details[open]{display:grid;gap:12px}
+.profile-link-avatar>video{display:block;border:0}
+@media(max-width:480px){.avatar-preview-layout{grid-template-columns:1fr}.avatar-result-preview{order:-1}.avatar-result-preview>.profile-link-avatar{width:96px;height:96px}}
+.people-admin-row>.profile-link-avatar{width:42px;height:48px;flex:none;border-radius:10px}
+.people-detail-body>.profile-link-avatar.people-avatar{border-radius:50%}

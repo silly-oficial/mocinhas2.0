@@ -31,9 +31,9 @@ export function validatePerson(input:any, existing?:PersonProfile):PersonProfile
  if(!Array.isArray(input.photos)||!Array.isArray(input.videos)||input.videos.length>30||!Array.isArray(input.tags)||input.tags.length>8)throw Error('Limite: 30 vídeos e 8 categorias.');
  if(typeof input.published!=='boolean'||typeof input.featured!=='boolean'||!Number.isInteger(input.order)||input.order<0||input.order>9999)throw Error('Configuração de publicação ou ordem inválida.');
  const socials={} as PersonProfile['socials'];for(const platform of ['tiktok','instagram','pinterest'] as const){const handle=text(input.socials?.[platform]??'',60).replace(/^@/,'');if(handle&&!/^[a-zA-Z0-9_.]{1,60}$/.test(handle))throw Error(`Informe somente o @ de ${platform}, sem o link.`);socials[platform]=handle;}
- const linkedSource=input.avatarSelection?.url||input.videos.find((v:any)=>v?.kind!=='upload'&&typeof v?.url==='string')?.url;
+ const linkedSource=(input.avatarSelection?.source==='upload'?undefined:input.avatarSelection?.url)||input.videos.find((v:any)=>v?.kind!=='upload'&&typeof v?.url==='string')?.url;
  if(linkedSource){try{socials.tiktok=new URL(tiktokPost(linkedSource).canonical).pathname.split('/')[1].slice(1);}catch{/* Legacy entries preserve their known handle. */}}
- for(const url of [input.avatarSelection?.url,...input.videos.filter((v:any)=>v.kind!=='upload').map((v:any)=>v.url)].filter(Boolean)){
+ for(const url of [input.avatarSelection?.source==='upload'?undefined:input.avatarSelection?.url,...input.videos.filter((v:any)=>v.kind!=='upload').map((v:any)=>v.url)].filter(Boolean)){
   const handle=new URL(tiktokPost(url).canonical).pathname.split('/')[1].slice(1);
   if(handle.toLowerCase()!==socials.tiktok.toLowerCase())throw Error('Todas as publicações e o avatar devem pertencer ao mesmo criador.');
  }
@@ -78,11 +78,12 @@ export function installPeople(app:express.Express,db:typeof DB,admin:express.Req
  const write=async(req:express.Request,res:express.Response,update:boolean)=>{
   try {const existing=update?all().find(p=>p.id===req.params.id):undefined;if(update&&!existing)return res.status(404).json({error:'Perfil não encontrado.'});
    const profile=validatePerson(req.body,existing);
-   const files=[...profile.photos,profile.cover,profile.avatar,...profile.videos.filter(v=>v.kind==='upload').map(v=>v.url)].filter(url=>url&&url!=='/profile-placeholder.svg');
+   const files=[...profile.photos,profile.cover,profile.avatar,...(profile.avatarSelection?.source==='upload'?[profile.avatarSelection.url]:[]),...profile.videos.filter(v=>v.kind==='upload').map(v=>v.url)].filter(url=>url&&url!=='/profile-placeholder.svg');
    for(const url of new Set(files)){if(profileUpload(url,'image')||profileUpload(url,'video'))await ensureProfileUpload(url);}
    const now=new Date().toISOString();
    const origin=(url:string,embed=false)=>existing?.mediaSources?.find(m=>m.url===url)||(profile.socials.tiktok?{...uploadedMediaOrigin(url,profile.socials.tiktok,now),...(embed?{source_url:url,display_mode:'embed' as const}:{source_platform:'provided'})}:({url,source_platform:'unknown',source_url:'',source_handle:'',captured_at:now,display_mode:embed?'embed' as const:'reupload' as const,last_check_at:null,is_still_available:null}));
    const sourceRows=profile.photos.map(url=>origin(url));
+   if(profile.avatarSelection?.source==='upload')sourceRows.push(origin(profile.avatarSelection.url));
    for(const key of ['avatar','cover'] as const)if(profile[key])sourceRows.push(origin(profile[key]));
    for(const video of profile.videos){
      const social=video.kind==='social'?socialVideo(video.url):null;
@@ -94,7 +95,7 @@ export function installPeople(app:express.Express,db:typeof DB,admin:express.Req
    }
    // Uploaded files and official embeds retain attribution separately.
    profile.mediaSources=sourceRows;
-   if(!profile.sourceSnapshot){const media=profile.videos.find(v=>v.kind==='social'&&v.source_platform==='tiktok');const url=profile.avatarSelection?.url||media?.url;if(url){profile.sourceSnapshot={capturedAt:now,canonicalUrl:url,handle:new URL(url).pathname.split('/')[1],oembedOkAt:media?.url===url&&media?.is_still_available===true?media.last_check_at??null:null,publiclyAccessible:media?.url===url&&media?.is_still_available===true?true:null};}}
+   if(!profile.sourceSnapshot){const media=profile.videos.find(v=>v.kind==='social'&&v.source_platform==='tiktok');const url=(profile.avatarSelection?.source==='upload'?undefined:profile.avatarSelection?.url)||media?.url;if(url){profile.sourceSnapshot={capturedAt:now,canonicalUrl:url,handle:new URL(url).pathname.split('/')[1],oembedOkAt:media?.url===url&&media?.is_still_available===true?media.last_check_at??null:null,publiclyAccessible:media?.url===url&&media?.is_still_available===true?true:null};}}
    profile.availabilityHistory=availabilityHistory([...profile.videos.filter(v=>v.last_check_at).map(v=>({checkedAt:v.last_check_at!,available:v.is_still_available??null})),...(all().find(row=>row.id===profile.id)?.availabilityHistory||profile.availabilityHistory||[])]);
 
 if(all().some(p=>p.username===profile.username&&p.id!==profile.id))return res.status(409).json({error:'Esse @usuário já está cadastrado.'});
